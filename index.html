@@ -3,14 +3,6 @@
 # Program Name: Browser_Client_Coder.html                                     
 # ================================     
 # This code is for controlling a robot by a web browser using web sockets                            
-# http://www.dexterindustries.com/                                                                
-# History
-# ------------------------------------------------
-# Author     Comments
-# Joshwa     Initial Authoring
-#                                                                  
-# These files have been made available online through a Creative Commons Attribution-ShareAlike 3.0  license.
-# (http://creativecommons.org/licenses/by-sa/3.0/)           
 #
 ########################################################################
 -->
@@ -30,23 +22,23 @@
 
 <p>            
 <!-- Creating press buttons  on the webpage-->                               
-<input id="touch" style="height: 100px; width: 100px; position: absolute; left: 550px; top: 100px" type="button" value="Accelerate" onclick="accelerate(); " />
+<input id="lmf" type="button" value="Left motor fwd" onclick="lmf(); " />
 </p>
 
 <p>                                        
-<input id="touch" style="height: 100px; width: 100px; position: absolute; left: 450px; top: 200px" type="button" value="Steer Left" onclick="steer_left(); " />
+<input id="lmb" type="button" value="Left motor back" onclick="lmb(); " />
 </p>
 
 <p>                                        
-<input id="touch" style="height: 100px; width: 100px; position: absolute; left: 550px; top: 200px" type="button" value="Stop" onclick="stop(); " />
+<input id="stop" type="button" value="Stop" onclick="stop(); " />
 </p>
 
 <p>                                        
-<input id="touch" style="height: 100px; width: 100px; position: absolute; left: 650px; top: 200px" type="button" value="Steer Right" onclick="steer_right(); " />
+<input id="rmf" type="button" value="Right motor fwd" onclick="rmf(); " />
 </p>
 
 <p>                                        
-<input id="touch" style="height: 100px; width: 100px; position: absolute; left: 550px; top: 300px" type="button" value="Reverse" onclick="reverse(); " />
+<input id="rmb" type="button" value="Right motor back" onclick="rmb(); " />
 </p>
 
 </br></br></br></br>
@@ -55,8 +47,14 @@
 
 </br></br></br></br></br></br></br></br></br></br></br></br>
 <p>  Enter the hostname/ip address to make the websocket connection </p>
-    <input type="text" id="data" size="100"/><br>
+    <input type="text" id="hostname" size="100"/><br>
 	<input id="clickMe" type="button" value="clickme" onclick="setup2()" />
+  </br>
+<p>  Enter data to be sent over the socket </p>
+    <input type="text" id="data" size="100"/><br>
+	<input id="sendtext" type="button" value="clickme" onclick="setup2()" />
+
+
 	</br></br>
 <p><span style="font-weight:bold">Instructions for keyboard controls:</span></p>	
 <p>Press Up arrow key - Acceleraate </p>
@@ -68,7 +66,7 @@
 </div>
 
 </div>
-<div id="output"></div>
+<div id="output" style="height:300px"></div>
 
 <script>
 var up;
@@ -76,52 +74,52 @@ var down;
 var left;
 var right;
 var brakes;
+var command;
 
-// defines a variable that controls the forward movement
-function accelerate()       
+function lmf()
 {
-	up = "u";               // when up == "u" the bot moves forward 
-	down = "aaa";left = "aaa";right = "aaa";brakes = "aaa";       // When up button is pressed other buttons(variables) should be turned off.
-    setup2();        		// Goes to websocket connection function
+	command = "lmf";
+  setup2();        		// Goes to websocket connection function
 }  
 
-// defines a variable that controls the backward movement
-function reverse()
+function rmb()
 {
-	down = "d";
-	up = "aaa";left = "aaa";right = "aaa";brakes = "aaa";
+	command = "rmb";
 	setup2();
 }
 
-// defines a variable that controls the left movement
-function steer_left()
+function lmb()
 {
-	left = "l";
-	up = "aaa";down = "aaa";right = "aaa";brakes = "aaa";
+	command = "lmb";
 	setup2();
 }
 
-// defines a variable that controls the right movement
-function steer_right()
+function rmf()
 {
-	right = "r";
-	up = "aaa";down = "aaa";left = "aaa";brakes = "aaa";
+	command = "rmf";
 	setup2();
 }
 
 // defines a variable that stops the robot
 function stop()       
 {
-	up = "aaa";down = "aaa";left = "aaa";right = "aaa";brakes = "b";
+	command = "stop";
 	setup2();
 }		 
 
 // Creates the websockets connection 
 function setup2()         
 {
-	var $txt = $("#data");      			// assigns the data(hostname/ip address) entered in the text box
-	name = $txt.val();          			// Variable name contains the string(hostname/ip address) entered in the text box
-	var host =  "ws://"+name+":9093/ws"; 	// combines the three string and creates a new string
+	var $hostname = $("#hostname");      			// assigns the data(hostname/ip address) entered in the text box
+	var name = $hostname.val();          			// Variable name contains the string(hostname/ip address) entered in the text box
+	if (!name)
+	{
+	  name = window.location.host
+	} else
+	{
+	  name = name+":9093"
+	}
+	var host =  "ws://"+name+"/ws"; 	// combines the three string and creates a new string
 	var socket = new WebSocket(host);
 	var $txt = $("#data");
 	var $btnSend = $("#sendtext");
@@ -136,9 +134,9 @@ function setup2()
 			return;
 		}
 		$txt.val("");
-	});  
-	$txt
-	.keypress(function(evt)
+	});
+
+	$txt.on('keypress', function(evt)
 	{
 		if(evt.which == 13)
 		{
@@ -159,31 +157,9 @@ function setup2()
 		//Send the button pressed backed to the Raspberry Pi
 		function buttons()
 		{	
-			if(up== "u")
-			{
-				socket.send("u");
-			}	
-
-			if(down== "d")
-			{
-				socket.send("d");
-			}
-
-			if(left== "l")
-			{
-				socket.send("l");
-			}	
-
-			if(right== "r")
-			{
-				socket.send("r");
-			}	
-
-			if(brakes == "b")
-			{
-				socket.send("b");
-			}
+			socket.send(command);
 		}
+
 		function arrows()
 		{
 			document.onkeyup = KeyCheck;       
@@ -192,31 +168,34 @@ function setup2()
 				var KeyID = event.keyCode;
 				switch(KeyID)
 				{
-				case 16:
-				socket.send("b");
+				case 16: //shift key
+				command = "stop";
 				break; 
-				case 17:
-				socket.send("b");
+				case 17: //ctrl key
+				command = "stop";
 				break;
-				case 37:
-				socket.send("l");
+				case 37: //left arrow
+				command = "lmb";
 				break;
-				case 38:
-				socket.send("u");
+				case 38: //up arrow
+				command = "rmf";
 				break;
-				case 39:
-				socket.send("r");
+				case 39: //right arrow
+				command = "lmf";
 				break;
-				case 40:
-				socket.send("d");
+				case 40: //down arrow
+				command = "rmb";
 				break;
-				case 112:
-				socket.send("p");
+				case "o".charCodeAt():
+				command = "zero";
 				break;
-				case 111:
-				socket.send("o");
+				case "p".charCodeAt():
+				command = "plot";
 				break;
+				default:
+				command = "";
 				}
+				socket.send(command);
 			}
 		}
 		socket.onmessage = function(msg)

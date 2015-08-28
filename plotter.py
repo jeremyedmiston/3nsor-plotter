@@ -13,7 +13,7 @@ __author__ = 'anton'
 # These files have been made available online through a Creative Commons Attribution-ShareAlike 3.0  license.
 # (http://creativecommons.org/licenses/by-sa/3.0/)
 #
-###############################################################################################################
+# ##############################################################################################################
 
 # CONNECTIONS-
 #   Pen Motor - Port A
@@ -39,22 +39,22 @@ __author__ = 'anton'
 
 
 ####################### Imports #########################
-# For passing arguments to the script from the command line
-import sys
 
-import time
 
 # To run motors on the brickpi, in a separate thread
 from BrickPi import *  # import BrickPi.py file to use BrickPi operations
 import threading
-import subprocess
+
+# Webserver
 import tornado.ioloop
 import tornado.web
 import tornado.websocket
 import tornado.template
+
+# My own stuff
 from brickpi_helpers import *
 
-################### Constants & settings ################
+################### Settings ################
 
 
 MOTOR_CMD_RATE = 20  # Max number of motor commands per second
@@ -63,27 +63,14 @@ R_ROPE_0 = 95  # same for right tope
 ROPE_ATTACHMENT_WIDTH = 90  # space between the two attachment points of the plotter.In my case: door width. In cm.
 PULLEY_DIAMETER = 4.4
 
-# now some math
-CM_TO_DEG = 180 / 3.1415 * 2 / PULLEY_DIAMETER * 24 / 8  #angle-in-deg = l-in-cm/(diameter/2) * 360 /(2*PI) * num_teeth_large_gear / num_teeth_small_gear
-v_margin = triangle_area(L_ROPE_0, R_ROPE_0, ROPE_ATTACHMENT_WIDTH) / ROPE_ATTACHMENT_WIDTH * 2  #height of triangle
-h_margin = (L_ROPE_0 ** 2 - v_margin ** 2) ** 0.5  #pythagoras to find distance from triangle point to left doorframe
-canvas_size = ROPE_ATTACHMENT_WIDTH - 2 * h_margin
 
+################## Globals #################
 
-c = 0 # movement command
-
+c = 0  # movement command. Global. :S
+websockets = [] # list of open sockets. Global. :S
 
 
 ################# Movement functions ######################
-
-def motor_targets_from_coords(x, y):
-    l_rope = (x ** 2 + y ** 2) ** 0.5
-    r_rope = ((ROPE_ATTACHMENT_WIDTH - x) ** 2 + y ** 2) ** 0.5
-
-    l_target = (l_rope - L_ROPE_0) * CM_TO_DEG
-    r_target = (r_rope - L_ROPE_0) * CM_TO_DEG
-
-    return l_target, r_target
 
 def pen_up():
     BrickPi.MotorSpeed[PORT_A] = 30
@@ -101,22 +88,18 @@ def pen_down():
     BrickPiUpdateValues()
 
 
-def set_origin():
+def set_motor_zero():
     global drive_motors
     for motor in drive_motors:
         motor.zero = int(BrickPi.Encoder[motor.port])
         print "Encoder zero position set to", motor.zero, "For motor at port:", motor.port
 
 
-def move_to_norm_coord(x_norm, y_norm):
-    # convert normalized coordinates to global coordinates
-    x = x_norm * canvas_size + h_margin
-    y = y_norm * canvas_size + v_margin
-
+def move_to_norm_coord(x_norm, y_norm, plotter):
     # set targets
-    motor_B.target, motor_C.target = motor_targets_from_coords(x, y)
+    motor_B.target, motor_C.target = plotter.motor_targets_from_coords(x_norm, y_norm)
 
-    # wait until targets are reached
+    # run motors until targets are reached
     while 1:
         for motor in drive_motors:
             #get motor positions
@@ -133,29 +116,28 @@ def move_to_norm_coord(x_norm, y_norm):
             break
 
 
-def plot_from_file(filename):
+def plot_from_file(filename, plotter):
     coords = open(filename)
     num_coords = int(coords.readline())  #coords contains it's length on the first line.
 
     #drive to the first coordinate
     pen_up()
-
     pen_down()
+
     for i in range(num_coords - 1):
         # read from file
         x_norm, y_norm = [float(n) for n in coords.readline().split(",")]
 
         #move
-        move_to_norm_coord(x_norm, y_norm)
+        move_to_norm_coord(x_norm, y_norm, plotter)
 
     coords.close()
 
 
-def plot_circles(step=0.1):
-
+def plot_circles(plotter, step=0.1):
     #draw circles form the left side until we reach the bottom
-    for i in range(0,1,step*2):
-        move_to_norm_coord(0,step)
+    for i in range(0, 1, step * 2):
+        move_to_norm_coord(0, step, plotter)
 
         #turn on right motor, slowly
         BrickPi.MotorSpeed[PORT_C] = 100
@@ -168,8 +150,7 @@ def plot_circles(step=0.1):
 
         #calculate coordinates continuously until we reach the left, or bottom side of the canvas
 
-    #now draw circles from the bottom
-
+        #now draw circles from the bottom
 
 
 ################# Set up web server & threads #####################
@@ -180,6 +161,7 @@ class MainHandler(tornado.web.RequestHandler):
     def get(self):
         loader = tornado.template.Loader(".")
         self.write(loader.load("index.html").generate())
+
 
 #Code for handling the data sent from the webpage
 class WSHandler(tornado.websocket.WebSocketHandler):
@@ -204,6 +186,7 @@ class WSHandler(tornado.websocket.WebSocketHandler):
             websockets.remove(self)
         print 'connection closed...'
 
+
 def wsSend(message):
     for ws in websockets:
         ws.write_message(message)
@@ -217,42 +200,40 @@ application = tornado.web.Application([
 
 
 class MotorThread(threading.Thread):
-    def __init__(self, threadID, name, counter):
+    def __init__(self, plotter):
         self.motor_log = Logger("Motors")
         threading.Thread.__init__(self)
-        self.threadID = threadID
-        self.name = name
-        self.counter = counter
+        self.plotter = plotter
 
     def run(self):
         global c
         print "Starting motor thread"
         while running:
             try:
-                if c == 'u':
+                if c == 'lmf':
                     print "Running left motor fwd"
                     BrickPi.MotorSpeed[PORT_B] = 100  #Set the speed of MotorA (-255 to 255)
 
-                elif c == 'd':
+                elif c == 'lmb':
                     print "Running left motor back"
                     BrickPi.MotorSpeed[PORT_B] = -100
-                elif c == 'r':
+                elif c == 'rmf':
                     print "Running right motor forward"
                     BrickPi.MotorSpeed[PORT_C] = 100
-                elif c == 'l':
+                elif c == 'rmb':
                     print "Running right motor back"
-                    BrickPi.MotorSpeed[PORT_C] = 100
-                elif c == 'b':
+                    BrickPi.MotorSpeed[PORT_C] = -100
+                elif c == 'stop':
                     print "Stopped"
                     wsSend("Stopped")
                     BrickPi.MotorSpeed[PORT_B] = 0
                     BrickPi.MotorSpeed[PORT_C] = 0
-                elif c == 'p':
-                    plot_from_file('coords.csv')
-                elif c == 'o':
-                    set_origin()
+                elif c == 'plot':
+                    plot_from_file('coords.csv', self.plotter)
+                elif c == 'zero':
+                    set_motor_zero()
 
-                BrickPiUpdateValues();  # BrickPi updates the values for the motors
+                BrickPiUpdateValues()  # BrickPi updates the values for the motors
                 time.sleep(0.05)
                 #print "Values Updated"
 
@@ -276,6 +257,8 @@ if __name__ == "__main__":
     # Set up logging
     server_log = Logger("Server")
 
+
+
     #  Setup BrickPi and motors
     server_log.log("Revving up engines")
     BrickPiSetup()  # setup the serial port for communication
@@ -294,14 +277,17 @@ if __name__ == "__main__":
         # So we wait until no_values goes 0, which means values updated OK
         no_values = BrickPiUpdateValues()
 
-    running = True
+    # Set up plotting installation
+    my_plotter = plot_installation(L_ROPE_0, R_ROPE_0, ROPE_ATTACHMENT_WIDTH)
 
-    thread1 = MotorThread(1, "Thread-1", 1)
+    # Start motor thread
+    running = True
+    thread1 = MotorThread(my_plotter)
     thread1.setDaemon(True)
     thread1.start()
 
     #set up web server
-    websockets = []
+
     application.listen(9093)  # starts the websockets connection
     server_log.newline()  #done setting up. Log it.
     tornado.ioloop.IOLoop.instance().start()

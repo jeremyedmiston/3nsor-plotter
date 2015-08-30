@@ -12,61 +12,61 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>WebSockets Client</title>  
+  <title>WebSockets Client</title>
   <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
-  
+
 </head>
+
 <body>
 </br></br>
 </br>
 
-<p>            
-<!-- Creating press buttons  on the webpage-->                               
-<input id="lmf" type="button" value="Left motor fwd" onclick="lmf(); " />
+<p>
+  <!-- Creating press buttons  on the webpage-->
+  <input id="lmf" type="button" value="Left motor fwd" onclick="lmf(); "/>
 </p>
 
-<p>                                        
-<input id="lmb" type="button" value="Left motor back" onclick="lmb(); " />
+<p>
+  <input id="lmb" type="button" value="Left motor back" onclick="lmb(); "/>
 </p>
 
-<p>                                        
-<input id="stop" type="button" value="Stop" onclick="stop(); " />
+<p>
+  <input id="stop" type="button" value="Stop" onclick="stop(); "/>
 </p>
 
-<p>                                        
-<input id="rmf" type="button" value="Right motor fwd" onclick="rmf(); " />
+<p>
+  <input id="rmf" type="button" value="Right motor fwd" onclick="rmf(); "/>
 </p>
 
-<p>                                        
-<input id="rmb" type="button" value="Right motor back" onclick="rmb(); " />
+<p>
+  <input id="rmb" type="button" value="Right motor back" onclick="rmb(); "/>
 </p>
+
+<p>
+  <input id="zero" type="button" value="Zero" onclick="zero(); "/>
+</p>
+
+<p>
+  <input id="plot" type="button" value="Plot" onclick="plot(); "/>
+</p>
+
+<p>
+  <input id="plotc" type="button" value="Plot circles" onclick="plot_circles(); "/>
+</p>
+
 
 </br></br></br></br>
 
-<div id="send">
-
-</br></br></br></br></br></br></br></br></br></br></br></br>
-<p>  Enter the hostname/ip address to make the websocket connection </p>
-    <input type="text" id="hostname" size="100"/><br>
-	<input id="clickMe" type="button" value="clickme" onclick="setup2()" />
-  </br>
-<p>  Enter data to be sent over the socket </p>
-    <input type="text" id="data" size="100"/><br>
-	<input id="sendtext" type="button" value="clickme" onclick="setup2()" />
-
-
-	</br></br>
-<p><span style="font-weight:bold">Instructions for keyboard controls:</span></p>	
-<p>Press Up arrow key - Acceleraate </p>
-<p>Press Down arrow key - Reverse </p>
-<p>Press Right arrow key - Steer Right</p>
-<p>Press Left arrow key - Steer Left</p>
-<p>Press cltr/shift key to Stop</p>
-	
-</div>
+<!--<div id="send">-->
+  <!--<p> Enter the hostname/ip address to make the websocket connection </p>-->
+  <!--<input type="text" id="hostname" size="100"/><br>-->
+  <!--<input id="clickMe" type="button" value="clickme" onclick="setup2()"/>-->
+<!--</div>-->
 
 </div>
-<div id="output" style="height:300px"></div>
+<div id="output" style="height:300px">
+  <p>No message from Brick Pi...</p>
+</div>
 
 <script>
 var up;
@@ -100,6 +100,24 @@ function rmf()
 	setup2();
 }
 
+function zero()
+{
+	command = "zero";
+	setup2();
+}
+
+function plot()
+{
+	command = "plot";
+	setup2();
+}
+
+function plot_circles()
+{
+	command = "plotcircles";
+	setup2();
+}
+
 // defines a variable that stops the robot
 function stop()       
 {
@@ -121,28 +139,6 @@ function setup2()
 	}
 	var host =  "ws://"+name+"/ws"; 	// combines the three string and creates a new string
 	var socket = new WebSocket(host);
-	var $txt = $("#data");
-	var $btnSend = $("#sendtext");
-	$txt.focus();
-	
-	// event handlers for UI
-	$btnSend.on('click',function()
-	{
-		var text = $txt.val();
-		if(text == "")
-		{
-			return;
-		}
-		$txt.val("");
-	});
-
-	$txt.on('keypress', function(evt)
-	{
-		if(evt.which == 13)
-		{
-			$btnSend.click();
-		}
-	});
 
 	// event handlers for websocket
 	if(socket)
@@ -216,9 +212,10 @@ function setup2()
 	{
 		var p = document.createElement('p');
 		p.innerHTML = txt;
-		document.getElementById('output').appendChild(p); 
+		document.getElementById('output').replaceChild(p);
 	}	
 }   
+
 
 </script>
 </body>
@@ -232,5 +229,6 @@ jQuery(function($)
     alert("Your browser does not support web sockets");
   }
 });
+
 
 </script>

@@ -17,20 +17,27 @@ class plot_installation(object):
         self.h_margin = (l_rope_0 ** 2 - self.v_margin ** 2) ** 0.5  #pythagoras to find distance from triangle point to left doorframe
         self.canvas_size = attachment_distance - 2 * self.h_margin
 
-    def motor_targets_from_coords(self,x_norm, y_norm):
+    def motor_targets_from_norm_coords(self,x_norm, y_norm):
         x,y = self.normalized_to_global_coords(x_norm,y_norm)
+        return self.motor_targets_from_coords(x,y)
+
+    def motor_targets_from_coords(self,x, y):
         l_rope = (x ** 2 + y ** 2) ** 0.5
         r_rope = ((self.att_dist - x) ** 2 + y ** 2) ** 0.5
         l_target = (l_rope - self.l_rope_0) * self.cm_to_deg
         r_target = (r_rope - self.r_rope_0) * self.cm_to_deg
 
-        return l_target, r_target
+        return int(l_target), int(r_target)
 
     def coords_from_motor_pos(self,l_motor,r_motor):
         l_rope = l_motor / self.cm_to_deg + self.l_rope_0
         r_rope = r_motor / self.cm_to_deg + self.r_rope_0
-        x = (l_rope**2-nogiets**2)
+        y = self.triangle_area(l_rope,r_rope,self.att_dist)*2/self.att_dist
+        x = (l_rope**2 - y**2)**0.5
+        y_norm = (y - self.v_margin)/self.canvas_size
+        x_norm = (x - self.h_margin)/self.canvas_size
 
+        return x_norm,y_norm
 
     def normalized_to_global_coords(self,x_norm,y_norm):
         # convert normalized coordinates to global coordinates
@@ -39,7 +46,6 @@ class plot_installation(object):
 
         return x,y
 
-    # Calculate proportions of the rope triangle
     def triangle_area(self,a, b, c):
         """
         Calculate the area of a triangle by the lengths of it's sides using Heron's formula
@@ -113,7 +119,7 @@ class motorPID_control(object):
     motor power for a servo.
     """
 
-    def __init__(self, motor_port, KP=.6, KI=0.05, KD=0.0):
+    def __init__(self, motor_port, KP=1, KI=0.0, KD=0.0):
         self.port = motor_port
         self.Kp = KP
         self.Ki = KI
@@ -123,17 +129,32 @@ class motorPID_control(object):
         self.timestamp = time.time()
         self.zero = 0
         self.target = 0
-        self.position = 0
+        self.encoder = 0
 
     @property
     def error(self):
-        return self.target - (self.position - self.zero)
+        return self.target - self.position
+
+    @property
+    def position(self):
+        return self.encoder - self.zero
+
+    @property
+    def target(self):
+        return self.__target
+
+    @target.setter
+    def target(self, target):
+        self.__target = target
+        self.integral = 0
+        self.prev_error = 0
 
     def get_power(self):
         error = self.error
         dt = time.time() - self.timestamp
-        self.integral += error * dt
+        self.integral = error * dt
         derivative = (error - self.prev_error) / dt
+        #print self.port, error, self.integral, derivative
         output = self.Kp * error + self.Ki * self.integral + self.Kd * derivative
         self.prev_error = error
         self.timestamp = time.time()

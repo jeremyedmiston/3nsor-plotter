@@ -12,7 +12,9 @@ class rope_plotter(object):
 
         #self.pulley = pulley_diam
         # now some math to calculate the rest of the plotter parameters
-        self.cm_to_deg = 180 / 3.1415 * 2 / pulley_diam * 24 / 8  #angle-in-deg = l-in-cm/(diameter/2) * 360 /(2*PI) * num_teeth_large_gear / num_teeth_small_gear
+        #angle-in-deg = l-in-cm/(diameter/2) * 360 /(2*PI) * num_teeth_large_gear / num_teeth_small_gear
+        #-2 is BrickPi weirdness. Encoders run backwards in half degrees.
+        self.cm_to_deg = -2 * 180 / 3.1415 * 2 / pulley_diam * 24 / 8
         self.v_margin = self.triangle_area(l_rope_0, r_rope_0, attachment_distance) / attachment_distance * 2  #height of triangle
         self.h_margin = (l_rope_0 ** 2 - self.v_margin ** 2) ** 0.5  #pythagoras to find distance from triangle point to left doorframe
         self.canvas_size = attachment_distance - 2 * self.h_margin
@@ -23,15 +25,19 @@ class rope_plotter(object):
         BrickPi.MotorEnable[PORT_B] = 1  #Enable the Motor B
         BrickPi.MotorEnable[PORT_C] = 1  #Enable the Motor C
 
-        left_motor = motorPID_control(PORT_B)
-        motor_C = motorPID_control(PORT_C)
-        self.drive_motors = [left_motor, motor_C]
+        Kp = 3      #power/deg
+        Ti = 0    #ms
+        Td = 0     #ms
+        left_motor = motorPID_control(PORT_B, Kp, Ti, Td, maxpower=140)
+        right_motor = motorPID_control(PORT_C, Kp, Ti, Td, maxpower=140)
+        self.drive_motors = [left_motor, right_motor]
         no_values = 1
         while no_values:
             # Make sure we have something before we start running
             # So we wait until no_values goes 0, which means values updated OK
             no_values = BrickPiUpdateValues()
         self.set_motor_zero()
+        self.precision = 5
 
     def motor_targets_from_norm_coords(self,x_norm, y_norm):
         x,y = self.normalized_to_global_coords(x_norm,y_norm)
@@ -122,11 +128,12 @@ class rope_plotter(object):
                 motor.encoder = BrickPi.Encoder[motor.port]
 
                 #set motor speed accordingly
-                speed = motor.get_power()
+                speed = motor.calc_power()
                 BrickPi.MotorSpeed[motor.port] = speed
 
-            if (abs(self.drive_motors[0].error) < 3) and (abs(self.drive_motors[1].error) < 3):
+            if (abs(self.drive_motors[0].error) < self.precision) and (abs(self.drive_motors[1].error) < self.precision):
                 #we got where we want to be. Time for the next coordinate.
+                print "zero error"
                 for motor in self.drive_motors:
                     BrickPi.MotorSpeed[motor.port] = 0
                 BrickPiUpdateValues()
@@ -140,7 +147,6 @@ class rope_plotter(object):
     def plot_from_file(self, filename):
         coords = open(filename)
         num_coords = int(coords.readline())  #coords contains it's length on the first line.
-        print num_coords
 
         #drive to the first coordinate
         self.pen_up()
@@ -225,4 +231,31 @@ class rope_plotter(object):
 
     # Calibration functions
     def lmf(self):
-        pass
+        self.move_motor_a_little(self.drive_motors[0].port, 100)
+
+    def lmb(self):
+        self.move_motor_a_little(self.drive_motors[0].port, -100)
+
+    def rmf(self):
+        self.move_motor_a_little(self.drive_motors[1].port, 100)
+
+    def rmb(self):
+        self.move_motor_a_little(self.drive_motors[1].port, -100)
+
+    @staticmethod
+    def move_motor_a_little(port, speed, runtime=0.3):
+        numticks = int(runtime/0.03)
+        for i in range(numticks):   #Have to repeat this, otherwise output goes to 0.
+            BrickPi.MotorSpeed[port] = int(speed)
+            BrickPiUpdateValues()
+            time.sleep(0.03)
+        BrickPi.MotorSpeed[port] = 0
+        BrickPiUpdateValues()
+
+    @staticmethod
+    def stop_all_motors():
+        BrickPi.MotorSpeed[PORT_A] = 0
+        BrickPi.MotorSpeed[PORT_B] = 0
+        BrickPi.MotorSpeed[PORT_C] = 0
+        BrickPi.MotorSpeed[PORT_D] = 0
+        BrickPiUpdateValues()

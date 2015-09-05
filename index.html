@@ -7,166 +7,121 @@
 ########################################################################
 -->
 <!-- This code implements the web socket connection between client(web page on a Computer) and a server(raspberry pi) -->
-<!-- It sends data from web page using buttons and Keyboard presses to control the BrickPi robot -->
+<!-- It sends data from web page using buttons and Keyboard presses to control the BrickPi robot
+TODO: Refactor so setup isn't run every time. Refactor so a dictionary with states is sent over on change.
+TODO: Add a manual connect/disconnect/setup button. Or monitor.
+-->
 
 <!DOCTYPE html>
 <html>
 <head>
   <title>WebSockets Client</title>
   <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+  <link href='https://fonts.googleapis.com/css?family=Montserrat:400,700' rel='stylesheet' type='text/css'>
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha256-MfvZlkHCEqatNoGiOXveE8FIwMzZg4W85qfrfIFBfYc= sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ=="
+        crossorigin="anonymous">
 
+  <style>h1,h2 { font-family: ‘Metrophobic’, Arial, serif; font-weight: 700; }</style>
 </head>
 
 <body>
-</br></br>
-</br>
+<div class="container">
+  <h1>3nsor plotter robot</h1>
 
-<p>
-  <!-- Creating press buttons  on the webpage-->
-  <input id="lmf" type="button" value="Left motor fwd" onclick="lmf(); "/>
-</p>
+  <h2>Manual controls</h2>
 
-<p>
-  <input id="lmb" type="button" value="Left motor back" onclick="lmb(); "/>
-</p>
-
-<p>
-  <input id="stop" type="button" value="Stop" onclick="stop(); "/>
-</p>
-
-<p>
-  <input id="rmf" type="button" value="Right motor fwd" onclick="rmf(); "/>
-</p>
-
-<p>
-  <input id="rmb" type="button" value="Right motor back" onclick="rmb(); "/>
-</p>
-
-<p>
-  <input id="zero" type="button" value="Zero" onclick="zero(); "/>
-</p>
-
-<p>
-  <input id="plot" type="button" value="Plot" onclick="plot(); "/>
-</p>
-
-<p>
-  <input id="plotc" type="button" value="Plot circles" onclick="plot_circles(); "/>
-</p>
+  <div class="controls well">
+    <button class="btn btn-default" data-msg="lmf">Left motor forward</button>
+    <button class="btn btn-default" data-msg="lmb">Left motor back</button>
+    <button class="btn btn-default" data-msg="rmf">Right motor forward</button>
+    <button class="btn btn-default" data-msg="rmb">Right motor back</button>
+    <button class="btn btn-default" data-msg="zero">Set motor zeros</button>
+    <button class="btn btn-default" data-msg="plot">Plot coords.csv</button>
+    <button class="btn btn-default" data-msg="plotcircles">Plot circles</button>
+  </div>
 
 
-</br></br></br></br>
+  </br></br>
 
-<!--<div id="send">-->
-  <!--<p> Enter the hostname/ip address to make the websocket connection </p>-->
-  <!--<input type="text" id="hostname" size="100"/><br>-->
-  <!--<input id="clickMe" type="button" value="clickme" onclick="setup2()"/>-->
-<!--</div>-->
+  <h2>PID tuning</h2>
+
+  <form class="form-inline" id="pid">
+    <div class="form-group">
+      <label> Proportional factor </label>
+      <input type="text" id="kp" size="10" value="3"/><br>
+    </div>
+    <div class="form-group">
+      <label> Enter integral factor</label>
+      <input type="text" id="ki" size="10"/><br>
+    </div>
+    <div class="form-group">
+      <label> Enter derivative factor </label>
+      <input type="text" id="kd" size="10"/><br>
+
+    </div>
+    <button id="sendPID" class="btn btn-primary">Send</button>
+  </form>
+
+  </br></br>
+
+  <h2>Messages from server</h2>
+  <div id="output" class="well">
+
+    <p>No message from Brick Pi...</p>
+  </div>
 
 </div>
-<div id="output" style="height:300px">
-  <p>No message from Brick Pi...</p>
-</div>
-
 <script>
-var up;
-var down;
-var left;
-var right;
-var brakes;
-var command;
+(function() {
+    function SocketController() {
+        var name = window.location.host;
+        this.host =  "ws://"+name+"/ws"; 	// combines the three string and creates a new string
+	      //this.socket = new WebSocket(this.host);
+    }
 
-function lmf()
-{
-	command = "lmf";
-  setup2();        		// Goes to websocket connection function
-}  
+    SocketController.prototype.getSocket = function () {
+        if (!(this.socket)){
+            this.socket = new WebSocket(this.host);
+            this.socket.onopen = function(evt) { onOpen(evt) };
+            this.socket.onclose = function(evt) { showServerResponse("The connection has been closed."); };
+            this.socket.onmessage = function(evt) { showServerResponse(evt.data); };
+            this.socket.onerror = function(evt) { showServerResponse(evt.data); };
+            }
+         return this.socket;
+    }
 
-function rmb()
-{
-	command = "rmb";
-	setup2();
-}
+    SocketController.prototype.send = function (command) {
+        this.getSocket().send(command);
+    }
 
-function lmb()
-{
-	command = "lmb";
-	setup2();
-}
+    function showServerResponse(txt)
+	  {
+	      var output = $('#output')
+		    var pre = document.createElement("p");
+		    pre.style.wordWrap = "break-word";
+		    pre.innerHTML = txt;
+		    output.appendChild(pre);
 
-function rmf()
-{
-	command = "rmf";
-	setup2();
-}
+	  }
 
-function zero()
-{
-	command = "zero";
-	setup2();
-}
 
-function plot()
-{
-	command = "plot";
-	setup2();
-}
 
-function plot_circles()
-{
-	command = "plotcircles";
-	setup2();
-}
+    var brickpi_socket = new SocketController();
 
-// defines a variable that stops the robot
-function stop()       
-{
-	command = "stop";
-	setup2();
-}		 
+    $('.controls').on('click', 'button', function (event) {
+        event.preventDefault();
+        brickpi_socket.send($(this).data('msg'));
+    });
 
-// Creates the websockets connection 
-function setup2()         
-{
-	var $hostname = $("#hostname");      			// assigns the data(hostname/ip address) entered in the text box
-	var name = $hostname.val();          			// Variable name contains the string(hostname/ip address) entered in the text box
-	if (!name)
-	{
-	  name = window.location.host
-	} else
-	{
-	  name = name+":9093"
-	}
-	var host =  "ws://"+name+"/ws"; 	// combines the three string and creates a new string
-	var socket = new WebSocket(host);
-
-	// event handlers for websocket
-	if(socket)
-	{
-		var count =1;
-		socket.onopen = function()
-		{
-			count = 0;
-			arrows();     // function for detecting keyboard presses
-			buttons();    // function for detecting the button press on webpage
-		}
-		//Send the button pressed backed to the Raspberry Pi
-		function buttons()
-		{	
-			socket.send(command);
-		}
-
-		function arrows()
-		{
-			document.onkeyup = KeyCheck;       
-			function KeyCheck()
-			{
-				var KeyID = event.keyCode;
+    document.body.addEventListener('keydown', function (event) {
+        var KeyID = event.keyCode;
 				switch(KeyID)
 				{
 				case 16: //shift key
 				command = "stop";
-				break; 
+				console.log("shift")
+				break;
 				case 17: //ctrl key
 				command = "stop";
 				break;
@@ -191,30 +146,20 @@ function setup2()
 				default:
 				command = "";
 				}
-				socket.send(command);
-			}
-		}
-		socket.onmessage = function(msg)
-		{
-			showServerResponse(msg.data);
-		}
-		socket.onclose = function()
-		{
-			//alert("connection closed....");
-			showServerResponse("The connection has been closed.");
-		}
-	}
-	else
-	{
-		console.log("invalid socket");
-	}
-	function showServerResponse(txt)
-	{
-		var p = document.createElement('p');
-		p.innerHTML = txt;
-		document.getElementById('output').replaceChild(p);
-	}	
-}   
+				brickpi_socket.send(command);
+    });
+
+}());
+
+
+//	var pidcmd = "PID("+$("#kp").val()+","+$("#ki").val()+","+$("#ki").val()+")"
+
+//	console.log(pidcmd);
+
+
+
+
+
 
 
 </script>
@@ -229,6 +174,11 @@ jQuery(function($)
     alert("Your browser does not support web sockets");
   }
 });
+
+
+
+
+
 
 
 </script>

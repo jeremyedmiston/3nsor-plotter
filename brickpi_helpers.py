@@ -1,6 +1,31 @@
 __author__ = 'anton'
 
 import time
+from collections import deque
+
+
+def clamp(n, (minn, maxn)):
+    """
+    Given a number and a range, return the number, or the extreme it is closest to.
+
+    :param n: number
+    :return: number
+    """
+    return max(min(maxn, n), minn)
+
+
+def scale(val, src, dst):
+    """
+    Scale the given value from the scale of src to the scale of dst.
+
+    val: float or int
+    src: tuple
+    dst: tuple
+
+    example: print scale(99, (0.0, 99.0), (-1.0, +1.0))
+    """
+    return (float(val - src[0]) / (src[1] - src[0])) * (dst[1] - dst[0]) + dst[0]
+
 
 class Throttler(object):
     """
@@ -64,43 +89,51 @@ class motorPID_control(object):
     motor power for a servo.
     """
 
-    def __init__(self, motor_port, KP=1, KI=0.0, KD=0.0):
+    def __init__(self, motor_port, KP=3, Ti=0, Td=0, maxpower=255):
         self.port = motor_port
         self.Kp = KP
-        self.Ki = KI
-        self.Kd = KD
+        self.Ti = Ti     #convert ms to seconds
+        self.Td = Td     #convert ms to seconds
         self.integral = 0
         self.prev_error = 0
         self.timestamp = time.time()
         self.zero = 0
         self.target = 0
         self.encoder = 0
+        self.errors = deque(maxlen=6)
+        self.maxpower = maxpower
 
-    @property
+    @property   # getter
     def error(self):
         return self.target - self.position
 
-    @property
+    @property   # getter
     def position(self):
         return self.encoder - self.zero
 
-    @property
+    @property   # getter
     def target(self):
         return self.__target
 
-    @target.setter
+    @target.setter  # setter, python style!
     def target(self, target):
         self.__target = target
         self.integral = 0
         self.prev_error = 0
 
-    def get_power(self):
+    def calc_power(self):
+        """
+        Saves a timestamp, integral and previous error and does PID calculations.
+        Always feed this to a motor.
+        :return: int motor power
+        """
         error = self.error
+        self.errors.append(error)
         dt = time.time() - self.timestamp
-        self.integral = error * dt
+        self.integral += error * dt
         derivative = (error - self.prev_error) / dt
-        #print self.port, error, self.integral, derivative
-        output = self.Kp * error + self.Ki * self.integral + self.Kd * derivative
+        output = self.Kp * ( error + self.Ti * self.integral + self.Td * derivative )   #Ti should be 1/Ti.
+        #print error, output,  "integral:", self.integral, "deriv:", derivative
         self.prev_error = error
         self.timestamp = time.time()
-        return int(output)
+        return int(clamp(output,(-self.maxpower,self.maxpower)))

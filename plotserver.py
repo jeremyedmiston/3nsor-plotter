@@ -42,7 +42,7 @@ __author__ = 'anton'
 
 
 # To run motors on the brickpi, in a separate thread
-from BrickPi import *  # import BrickPi.py file to use BrickPi operations
+#from BrickPi import *  # import BrickPi.py file to use BrickPi operations
 import threading
 
 # Webserver
@@ -59,8 +59,8 @@ from rope_plotter import rope_plotter
 
 
 MOTOR_CMD_RATE = 20  # Max number of motor commands per second
-L_ROPE_0 = 63  # Length of left rope in cm when pen is at 0,0 (top left)
-R_ROPE_0 = 95  # same for right tope
+L_ROPE_0 = 69  # Length of left rope in cm when pen is at 0,0 (top left)
+R_ROPE_0 = 97  # same for right tope
 ROPE_ATTACHMENT_WIDTH = 90  # space between the two attachment points of the plotter.In my case: door width. In cm.
 PULLEY_DIAMETER = 4.4
 
@@ -134,15 +134,22 @@ class MotorThread(threading.Thread):
                 print "Running left motor fwd"
                 #BrickPi.MotorSpeed[PORT_B] = 100
                 self.plotter.lmf()
+                c = ''
             elif c == 'lmb':
                 print "Running left motor back"
                 #BrickPi.MotorSpeed[PORT_B] = -100
+                self.plotter.lmb()
+                c = ''
             elif c == 'rmf':
                 print "Running right motor forward"
                 #BrickPi.MotorSpeed[PORT_C] = 100
+                self.plotter.rmf()
+                c = ''
             elif c == 'rmb':
                 print "Running right motor back"
                 #BrickPi.MotorSpeed[PORT_C] = -100
+                self.plotter.rmb()
+                c = ''
             elif c == 'stop':
                 print "Stopped"
                 #BrickPi.MotorSpeed[PORT_B] = 0
@@ -158,10 +165,10 @@ class MotorThread(threading.Thread):
                 c = ''
             elif c == 'plotcircles':
                 wsSend("Plotting circles")
-                self.plotter.plot_circles(self.plotter)
+                self.plotter.plot_circles()
                 c = ''
 
-            BrickPiUpdateValues()  # BrickPi updates the values for the motors
+            #BrickPiUpdateValues()  # BrickPi updates the values for the motors
             self.throttle.throttle()  #Don't go too fast.
 
 
@@ -192,12 +199,8 @@ if __name__ == "__main__":
     try:
         tornado.ioloop.IOLoop.instance().start()
     except KeyboardInterrupt:  #Triggered by pressing Ctrl+C. Time to clean up.
+        #Stop motor thread
         running = False
         #Shutting down all motors.
-        BrickPi.MotorSpeed[PORT_A] = 0
-        BrickPi.MotorSpeed[PORT_B] = 0
-        BrickPi.MotorSpeed[PORT_C] = 0
-        BrickPi.MotorSpeed[PORT_D] = 0
-        BrickPiUpdateValues()
-
+        my_plotter.stop_all_motors()
         print "Motors & motor thread stopped"

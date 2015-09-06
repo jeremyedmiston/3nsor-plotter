@@ -56,31 +56,30 @@ class Logger(object):
 
     """
 
-    def __init__(self, logname=""):
+    def __init__(self, logname="log",to_file=False):
         self.logname = logname
         self.loglist = []
         self.new_line_ready = False
+        self.to_file = to_file
+        if to_file:
+            self.logfile = open(self.logname+".csv",'w')
 
     def log(self, *args):
-        if type(args) == list:
-            self.loglist += args
-        else:
-            self.loglist += [args]
-        print args
+        self.new_line_ready = False
+        self.loglist += list(args)
+        #print args
 
     def newline(self):
         if len(self.loglist) > 0:
-            self.lastline = [self.logname, time.time()] + [self.loglist]
+            self.lastline = [time.time()] + list(self.loglist)
             self.loglist = []
             self.new_line_ready = True
-            #TODO Write this to a file
+            if self.to_file:
+                self.logfile.write(",".join([str(i) for i in self.lastline])+"\n")
 
-    def get_lastline(self):
-        self.new_line_ready = False
-        return self.lastline
-
-    def has_new_line(self):
-        return self.new_line_ready
+    def log_line(self, *args):
+        self.log(*args)
+        self.newline()
 
 
 class motorPID_control(object):
@@ -94,18 +93,18 @@ class motorPID_control(object):
         self.Kp = KP
         self.Ti = Ti     #convert ms to seconds
         self.Td = Td     #convert ms to seconds
-        self.integral = 0
-        self.prev_error = 0
-        self.timestamp = time.time()
         self.zero = 0
-        self.target = 0
         self.encoder = 0
-        self.errors = deque(maxlen=6)
+        self.target = 0 #also initialize other properties using setter
+        #self.errors = deque(maxlen=6)
+        #self.timestamps = deque(maxlen=6)
         self.maxpower = maxpower
+        logname = "-".join([str(i) for i in ["motor",motor_port,KP,Ti,Td]])
+        self.log = Logger(logname)
 
     @property   # getter
     def error(self):
-        return self.target - self.position
+        return self.__target - self.position
 
     @property   # getter
     def position(self):
@@ -119,7 +118,10 @@ class motorPID_control(object):
     def target(self, target):
         self.__target = target
         self.integral = 0
-        self.prev_error = 0
+        self.prev_error = self.error
+        self.errors = deque([self.error], maxlen=6)
+        self.timestamp = time.time()-0.02
+        self.timestamps = deque([self.timestamp],maxlen=6)
 
     def calc_power(self):
         """
@@ -127,13 +129,28 @@ class motorPID_control(object):
         Always feed this to a motor.
         :return: int motor power
         """
+
+        #get error & save timestamps
         error = self.error
-        self.errors.append(error)
+
+        # calculate integral
         dt = time.time() - self.timestamp
         self.integral += error * dt
+        self.integral = clamp(self.integral,(-self.maxpower,self.maxpower)) #when driving a long time, this number can get too high.
+
+        #calculate derivative. Use the error value from 6 cycles back, because of jitter.
         derivative = (error - self.prev_error) / dt
-        output = self.Kp * ( error + self.Ti * self.integral + self.Td * derivative )   #Ti should be 1/Ti.
-        #print error, output,  "integral:", self.integral, "deriv:", derivative
+        #dt6 = (time.time() - self.timestamps[0])
+        #derivative = (error - self.errors[0]) / dt6
+
+        #calculate output
+        output = self.Kp * ( error +  self.integral / self.Ti + self.Td * derivative )   #Ti should be 1/Ti.
+        self.log.log_line(error, output, self.integral, derivative)
+
+        #save error & time for next time.
         self.prev_error = error
         self.timestamp = time.time()
+        self.errors.append(error)
+        self.timestamps.append(time.time())
+
         return int(clamp(output,(-self.maxpower,self.maxpower)))

@@ -18,3 +18,9 @@ right, and the server became real slow.
 4. Move the plotter to the origin with the buttons
 5. Zero it all
 6. Start plotting
+
+
+## Interesting bits...##
+
+My wifi dongle went to sleep all the time, while I was working on this project. I used this to fix it: http://raspberrypi.stackexchange.com/questions/1384/how-do-i-disable-suspend-mode
+As long as the server is running, there's no problem.

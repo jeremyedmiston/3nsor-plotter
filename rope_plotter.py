@@ -24,18 +24,20 @@ class rope_plotter(object):
         BrickPi.MotorEnable[PORT_A] = 1  #Enable the Motor A
         BrickPi.MotorEnable[PORT_B] = 1  #Enable the Motor B
         BrickPi.MotorEnable[PORT_C] = 1  #Enable the Motor C
+        BrickPi.MotorEnable[PORT_D] = 1  #Enable the Motor D
 
-        Kp = 3      #power/deg
-        Ti = 0    #ms
-        Td = 0     #ms
-        left_motor = motorPID_control(PORT_B, Kp, Ti, Td, maxpower=140)
-        right_motor = motorPID_control(PORT_C, Kp, Ti, Td, maxpower=140)
-        self.drive_motors = [left_motor, right_motor]
         no_values = 1
         while no_values:
             # Make sure we have something before we start running
             # So we wait until no_values goes 0, which means values updated OK
             no_values = BrickPiUpdateValues()
+
+        Kp = 2      #power/deg
+        Ti = 0.8    #ms
+        Td = 0.05     #ms
+        left_motor = motorPID_control(PORT_B, Kp, Ti, Td, maxpower=160)
+        right_motor = motorPID_control(PORT_C, Kp, Ti, Td, maxpower=160)
+        self.drive_motors = [left_motor, right_motor]
         self.set_motor_zero()
         self.precision = 5
 
@@ -82,23 +84,16 @@ class rope_plotter(object):
 
 
     def pen_up(self):
-        BrickPi.MotorSpeed[PORT_A] = 10
-        BrickPiUpdateValues()
-        time.sleep(0.3)
-        BrickPi.MotorSpeed[PORT_A] = 0
-        BrickPiUpdateValues()
+        self.move_motor_a_little(PORT_D,30)
 
 
     def pen_down(self):
-        BrickPi.MotorSpeed[PORT_A] = -10
-        BrickPiUpdateValues()
-        time.sleep(0.3)
-        BrickPi.MotorSpeed[PORT_A] = 0
-        BrickPiUpdateValues()
+        self.move_motor_a_little(PORT_D,-30)
 
 
     def set_motor_zero(self):
         for motor in self.drive_motors:
+            motor.encoder = int(BrickPi.Encoder[motor.port])
             motor.zero = int(BrickPi.Encoder[motor.port])
             print "Encoder zero position set to", motor.zero, "For motor at port:", motor.port
 
@@ -133,7 +128,6 @@ class rope_plotter(object):
 
             if (abs(self.drive_motors[0].error) < self.precision) and (abs(self.drive_motors[1].error) < self.precision):
                 #we got where we want to be. Time for the next coordinate.
-                print "zero error"
                 for motor in self.drive_motors:
                     BrickPi.MotorSpeed[motor.port] = 0
                 BrickPiUpdateValues()
@@ -162,6 +156,8 @@ class rope_plotter(object):
             self.move_to_norm_coord(x_norm, y_norm)
 
         coords.close()
+        self.pen_up()
+        self.move_to_norm_coord(0, 0)
 
 
     def plot_circles(self, num_circles=12):
@@ -186,7 +182,7 @@ class rope_plotter(object):
 
 
             #turn on right motor, slowly, to draw circles left to right
-            BrickPi.MotorSpeed[PORT_C] = -80
+            BrickPi.MotorSpeed[PORT_C] = 120
             #Motor B is off, but let's get it's encoder first
             motor_B.encoder = BrickPi.Encoder[motor_B.port]
 
@@ -213,7 +209,7 @@ class rope_plotter(object):
 
             self.move_to_coord(x,y)
             #turn on right motor, slowly to draw circles from right to left.
-            BrickPi.MotorSpeed[PORT_C] = 80
+            BrickPi.MotorSpeed[PORT_C] = -80
             #Motor B is off, but let's get it's encoder first
             motor_B.encoder = BrickPi.Encoder[motor_B.port]
 

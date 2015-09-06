@@ -59,8 +59,8 @@ from rope_plotter import rope_plotter
 
 
 MOTOR_CMD_RATE = 20  # Max number of motor commands per second
-L_ROPE_0 = 69  # Length of left rope in cm when pen is at 0,0 (top left)
-R_ROPE_0 = 97  # same for right tope
+L_ROPE_0 = 60.5  # Length of left rope in cm when pen is at 0,0 (top left)
+R_ROPE_0 = 88.5  # same for right tope
 ROPE_ATTACHMENT_WIDTH = 90  # space between the two attachment points of the plotter.In my case: door width. In cm.
 PULLEY_DIAMETER = 4.4
 
@@ -149,6 +149,16 @@ class MotorThread(threading.Thread):
                 print "Running right motor back"
                 #BrickPi.MotorSpeed[PORT_C] = -100
                 self.plotter.rmb()
+                c = ''
+            elif c == 'pu':
+                print "Pulling pen up"
+                #BrickPi.MotorSpeed[PORT_C] = -100
+                self.plotter.pen_up()
+                c = ''
+            elif c == 'pd':
+                print "Putting pen down"
+                #BrickPi.MotorSpeed[PORT_C] = -100
+                self.plotter.pen_down()
                 c = ''
             elif c == 'stop':
                 print "Stopped"

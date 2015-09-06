@@ -29,49 +29,65 @@ TODO: Add a manual connect/disconnect/setup button. Or monitor.
 <div class="container">
   <h1>3nsor plotter robot</h1>
 
-  <h2>Manual controls</h2>
+  <div class="row">
+    <div class="col-md-8">
+      <div class="row">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3>Manual controls</h3>
+          </div>
+          <div class="controls panel-body">
+            <button class="btn btn-default" data-msg="lmf">Left motor forward</button>
+            <button class="btn btn-default" data-msg="lmb">Left motor back</button>
+            <button class="btn btn-default" data-msg="rmf">Right motor forward</button>
+            <button class="btn btn-default" data-msg="rmb">Right motor back</button>
+            <button class="btn btn-default" data-msg="pu">Pen up</button>
+            <button class="btn btn-default" data-msg="pd">Pen down</button>
+            <button class="btn btn-default" data-msg="zero">Set motor zeros</button>
+            <button class="btn btn-default" data-msg="plot">Plot coords.csv</button>
+            <button class="btn btn-default" data-msg="plotcircles">Plot circles</button>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3>Settings</h3>
+          </div>
+          <div class="panel-body">
+            <form class="form-inline" id="pid">
+              <div class="form-group">
+                <label> Proportional factor </label>
+                <input type="text" id="kp" size="10" value="3"/><br>
+              </div>
+              <div class="form-group">
+                <label> Enter integral factor</label>
+                <input type="text" id="ki" size="10"/><br>
+              </div>
+              <div class="form-group">
+                <label> Enter derivative factor </label>
+                <input type="text" id="kd" size="10"/><br>
 
-  <div class="controls well">
-    <button class="btn btn-default" data-msg="lmf">Left motor forward</button>
-    <button class="btn btn-default" data-msg="lmb">Left motor back</button>
-    <button class="btn btn-default" data-msg="rmf">Right motor forward</button>
-    <button class="btn btn-default" data-msg="rmb">Right motor back</button>
-    <button class="btn btn-default" data-msg="zero">Set motor zeros</button>
-    <button class="btn btn-default" data-msg="plot">Plot coords.csv</button>
-    <button class="btn btn-default" data-msg="plotcircles">Plot circles</button>
+              </div>
+              <button id="sendPID" class="btn btn-primary">Send</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3>Messages from server</h3>
+        </div>
+        <div id="output" class="panel-body">
+          <p>No message from Brick Pi...</p>
+        </div>
+      </div>
+    </div>
   </div>
-
-
-  </br></br>
-
-  <h2>PID tuning</h2>
-
-  <form class="form-inline" id="pid">
-    <div class="form-group">
-      <label> Proportional factor </label>
-      <input type="text" id="kp" size="10" value="3"/><br>
-    </div>
-    <div class="form-group">
-      <label> Enter integral factor</label>
-      <input type="text" id="ki" size="10"/><br>
-    </div>
-    <div class="form-group">
-      <label> Enter derivative factor </label>
-      <input type="text" id="kd" size="10"/><br>
-
-    </div>
-    <button id="sendPID" class="btn btn-primary">Send</button>
-  </form>
-
-  </br></br>
-
-  <h2>Messages from server</h2>
-  <div id="output" class="well">
-
-    <p>No message from Brick Pi...</p>
-  </div>
-
 </div>
+
 <script>
 (function() {
     function SocketController() {
@@ -80,10 +96,22 @@ TODO: Add a manual connect/disconnect/setup button. Or monitor.
 	      //this.socket = new WebSocket(this.host);
     }
 
+    function showServerResponse(txt)
+	  {
+	      var output = document.getElementById('output')
+		    var pre = document.createElement("p");
+		    pre.style.wordWrap = "break-word";
+		    pre.innerHTML = txt;
+		    output.appendChild(pre);
+	  }
+
     SocketController.prototype.getSocket = function () {
         if (!(this.socket)){
             this.socket = new WebSocket(this.host);
-            this.socket.onopen = function(evt) { onOpen(evt) };
+            this.socket.onopen = function(evt) {
+                this.socketopen = true;
+                showServerResponse("Socket has been opened.");
+                };
             this.socket.onclose = function(evt) { showServerResponse("The connection has been closed."); };
             this.socket.onmessage = function(evt) { showServerResponse(evt.data); };
             this.socket.onerror = function(evt) { showServerResponse(evt.data); };
@@ -91,19 +119,35 @@ TODO: Add a manual connect/disconnect/setup button. Or monitor.
          return this.socket;
     }
 
-    SocketController.prototype.send = function (command) {
-        this.getSocket().send(command);
+
+    // Make the function wait until the connection is made...
+    waitForSocketConnection = function (socket, callback){
+        setTimeout(
+            function () {
+                if (socket.readyState === 1) {
+                    //console.log("Connection is made")
+                    if(callback != null){
+                        callback(socket);
+                    }
+                    return;
+
+                } else {
+                    console.log("wait for connection...")
+                    waitForSocketConnection(socket, callback);
+                }
+
+            }, 5); // wait 5 milisecond for the connection...
     }
 
-    function showServerResponse(txt)
-	  {
-	      var output = $('#output')
-		    var pre = document.createElement("p");
-		    pre.style.wordWrap = "break-word";
-		    pre.innerHTML = txt;
-		    output.appendChild(pre);
+    SocketController.prototype.send = function (command) {
+        // Wait until the state of the socket is not ready and send the message when it is...
+        waitForSocketConnection(this.getSocket(), function(socket){
+            //console.log("message sent!!!");
+            socket.send(command)
+        });
+    }
 
-	  }
+
 
 
 
@@ -162,6 +206,17 @@ TODO: Add a manual connect/disconnect/setup button. Or monitor.
 
 
 
+
+
+
+
+
+
+
+
+
+
+
 </script>
 </body>
 </html>
@@ -174,6 +229,17 @@ jQuery(function($)
     alert("Your browser does not support web sockets");
   }
 });
+
+
+
+
+
+
+
+
+
+
+
 
 
 

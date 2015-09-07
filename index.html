@@ -58,16 +58,27 @@ TODO: Add a manual connect/disconnect/setup button. Or monitor.
             <form class="form-inline" id="pid">
               <div class="form-group">
                 <label> Proportional factor </label>
-                <input type="text" id="kp" size="10" value="3"/><br>
+                <input type="text" id="kp" size="10" value="{{ Kp }}"/>
               </div>
               <div class="form-group">
                 <label> Enter integral factor</label>
-                <input type="text" id="ki" size="10"/><br>
+                <input type="text" id="ki" size="10" value="{{ Ki }}"/>
               </div>
               <div class="form-group">
                 <label> Enter derivative factor </label>
-                <input type="text" id="kd" size="10"/><br>
-
+                <input type="text" id="kd" size="10" value="{{ Kd }}"/>
+              </div>
+              <div class="form-group">
+                <label> Left rope length at 0,0 </label>
+                <input type="text" id="ll" size="10" value="{{ ll }}"/><br>
+              </div>
+              <div class="form-group">
+                <label> Right rope length at 0,0 </label>
+                <input type="text" id="lr" size="10" value="{{ lr }}"/>
+              </div>
+              <div class="form-group">
+                <label> Width between rope attachments </label>
+                <input type="text" id="aw" size="10" value="{{ aw }}"/>
               </div>
               <button id="sendPID" class="btn btn-primary">Send</button>
             </form>
@@ -98,11 +109,11 @@ TODO: Add a manual connect/disconnect/setup button. Or monitor.
 
     function showServerResponse(txt)
 	  {
-	      var output = document.getElementById('output')
-		    var pre = document.createElement("p");
-		    pre.style.wordWrap = "break-word";
-		    pre.innerHTML = txt;
-		    output.appendChild(pre);
+	      $('#output').append($("<p>", {
+		        'html': txt
+		    }).css({
+		        'word-wrap': 'break-word'
+		    }));
 	  }
 
     SocketController.prototype.getSocket = function () {
@@ -158,7 +169,7 @@ TODO: Add a manual connect/disconnect/setup button. Or monitor.
         brickpi_socket.send($(this).data('msg'));
     });
 
-    document.body.addEventListener('keydown', function (event) {
+    $(document.body).on('keydown', function (event)  {
         var KeyID = event.keyCode;
 				switch(KeyID)
 				{
@@ -217,6 +228,7 @@ TODO: Add a manual connect/disconnect/setup button. Or monitor.
 
 
 
+
 </script>
 </body>
 </html>
@@ -229,6 +241,7 @@ jQuery(function($)
     alert("Your browser does not support web sockets");
   }
 });
+
 
 
 

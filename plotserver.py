@@ -63,6 +63,10 @@ L_ROPE_0 = 60.5  # Length of left rope in cm when pen is at 0,0 (top left)
 R_ROPE_0 = 88.5  # same for right tope
 ROPE_ATTACHMENT_WIDTH = 90  # space between the two attachment points of the plotter.In my case: door width. In cm.
 PULLEY_DIAMETER = 4.4
+KP=1.5
+TI=0.8
+TD=0.05
+MAXPWR=200
 
 
 ################## Globals. I know. #################
@@ -77,8 +81,9 @@ websockets = []  # list of open sockets.
 # Initialize Tornado to use 'GET' and load index.html
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
-        loader = tornado.template.Loader(".")
-        self.write(loader.load("index.html").generate())
+        #loader = tornado.template.Loader(".")
+        #self.write(loader.load("index.html").generate())
+        self.render("template.html", kp=KP, ti=TI, td=TD, ll=L_ROPE_0)
 
 
 #Code for handling the data sent from the webpage
@@ -107,8 +112,7 @@ class WSHandler(tornado.websocket.WebSocketHandler):
 
 def wsSend(message):
     for ws in websockets:
-        pass
-        # ws.write_message(message)
+        ws.write_message(message)
 
 
 application = tornado.web.Application([
@@ -119,10 +123,10 @@ application = tornado.web.Application([
 
 
 class MotorThread(threading.Thread):
-    def __init__(self, plotter):
+    def __init__(self):
         self.motor_log = Logger("Motors")
         threading.Thread.__init__(self)
-        self.plotter = plotter
+        self.plotter = rope_plotter(L_ROPE_0, R_ROPE_0, ROPE_ATTACHMENT_WIDTH, Kp=KP, Ti=TI, Td=TD, maxpower=MAXPWR)
         self.throttle = Throttler(MOTOR_CMD_RATE)
 
     def run(self):
@@ -181,36 +185,27 @@ class MotorThread(threading.Thread):
             #BrickPiUpdateValues()  # BrickPi updates the values for the motors
             self.throttle.throttle()  #Don't go too fast.
 
+        #Stopped running. Shutting down all motors.
+        self.plotter.stop_all_motors()
+
 
 ################## Main #############################
 
 if __name__ == "__main__":
-    # Set up logging
-    server_log = Logger("Server")
-
-
-
-    #  Setup BrickPi and motors
-    server_log.log("Revving up engines")
-
-    # Set up plotting installation
-    my_plotter = rope_plotter(L_ROPE_0, R_ROPE_0, ROPE_ATTACHMENT_WIDTH)
-
     # Start motor thread
     running = True
-    thread1 = MotorThread(my_plotter)
-    thread1.setDaemon(True)
-    thread1.start()
+    motor_thread = MotorThread()
+    motor_thread.setDaemon(True)
+    motor_thread.start()
 
     #set up web server
-
     application.listen(9093)  # starts the websockets connection
-    server_log.newline()  #done setting up. Log it.
     try:
         tornado.ioloop.IOLoop.instance().start()
     except KeyboardInterrupt:  #Triggered by pressing Ctrl+C. Time to clean up.
         #Stop motor thread
         running = False
-        #Shutting down all motors.
-        my_plotter.stop_all_motors()
+        #Close all sockets
+        for ws in websockets:
+            ws.close()
         print "Motors & motor thread stopped"

@@ -5,7 +5,7 @@ from BrickPi import *
 
 
 class rope_plotter(object):
-    def __init__(self,l_rope_0,r_rope_0,attachment_distance, pulley_diam = 4.4):
+    def __init__(self,l_rope_0,r_rope_0,attachment_distance, pulley_diam=4.4, Kp=1.5, Ti=0.8, Td=0.05, maxpower=200):
         self.l_rope_0 = l_rope_0
         self.r_rope_0 = r_rope_0
         self.att_dist = attachment_distance
@@ -32,11 +32,9 @@ class rope_plotter(object):
             # So we wait until no_values goes 0, which means values updated OK
             no_values = BrickPiUpdateValues()
 
-        Kp = 2      #power/deg
-        Ti = 0.8    #ms
-        Td = 0.05     #ms
-        left_motor = motorPID_control(PORT_B, Kp, Ti, Td, maxpower=160)
-        right_motor = motorPID_control(PORT_C, Kp, Ti, Td, maxpower=160)
+
+        left_motor = motorPID_control(PORT_B, Kp, Ti, Td, maxpower=maxpower)
+        right_motor = motorPID_control(PORT_C, Kp, Ti, Td, maxpower=maxpower)
         self.drive_motors = [left_motor, right_motor]
         self.set_motor_zero()
         self.precision = 5

@@ -29,65 +29,120 @@ TODO: Add a manual connect/disconnect/setup button. Or monitor.
 <div class="container">
   <h1>3nsor plotter robot</h1>
 
-  <div class="row">
+  <div class="row"  style="display: flex;">
     <div class="col-md-8">
       <div class="row">
-        <div class="panel panel-default">
-          <div class="panel-heading">
-            <h3>Manual controls</h3>
-          </div>
-          <div class="controls panel-body">
-            <button class="btn btn-default" data-msg="lmf">Left motor forward</button>
-            <button class="btn btn-default" data-msg="lmb">Left motor back</button>
-            <button class="btn btn-default" data-msg="rmf">Right motor forward</button>
-            <button class="btn btn-default" data-msg="rmb">Right motor back</button>
-            <button class="btn btn-default" data-msg="pu">Pen up</button>
-            <button class="btn btn-default" data-msg="pd">Pen down</button>
-            <button class="btn btn-default" data-msg="zero">Set motor zeros</button>
-            <button class="btn btn-default" data-msg="plot">Plot coords.csv</button>
-            <button class="btn btn-default" data-msg="plotcircles">Plot circles</button>
+        <div class="col-md-12">
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <h3>Manual controls</h3>
+            </div>
+            <div class="controls panel-body">
+              <table class="table">
+                <thead>
+                <tr>
+                  <th>Left motor</th>
+                  <th>Right motor</th>
+                  <th>Pen</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                  <td>
+                    <button class="btn btn-default" data-msg="lmf"><span class="glyphicon glyphicon-arrow-up"/> [q]
+                    </button>
+                  </td>
+                  <td>
+                    <button class="btn btn-default" data-msg="rmf"><span class="glyphicon glyphicon-arrow-up"/> [w]
+                    </button>
+                  </td>
+                  <td>
+                    <button class="btn btn-default" data-msg="pu"><span class="glyphicon glyphicon-remove-circle"/> [e]
+                    </button>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <button class="btn btn-default" data-msg="lmb"><span class="glyphicon glyphicon-arrow-down"/> [a]
+                    </button>
+                  </td>
+                  <td>
+                    <button class="btn btn-default" data-msg="rmb"><span class="glyphicon glyphicon-arrow-down"/> [s]
+                    </button>
+                  </td>
+                  <td>
+                    <button class="btn btn-default" data-msg="pd"><span class="glyphicon glyphicon-ok-circle"/> [d]
+                    </button>
+                  </td>
+                </tr>
+                </tbody>
+              </table>
+              <button class="btn btn-default" data-msg="zero">Set motor zeros</button>
+              <button class="btn btn-default" data-msg="plot">Plot coords.csv</button>
+              <button class="btn btn-default" data-msg="plotcircles">Plot circles</button>
+            </div>
           </div>
         </div>
       </div>
       <div class="row">
-        <div class="panel panel-default">
-          <div class="panel-heading">
-            <h3>Settings</h3>
+        <div class="col-md-6">
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <h3>PID Settings</h3>
+            </div>
+            <div class="panel-body">
+              <img src="static/pid.png">
+
+              <form class="form-inline" id="pid">
+                <div class="form-group">
+                  <label> Kp </label>
+                  <input type="text" id="kp" size="10" value="{{ Kp }}"/>
+                </div>
+                <div class="form-group">
+                  <label> Ki </label>
+                  <input type="text" id="ki" size="10" value="{{ Ki }}"/>
+                </div>
+                <div class="form-group">
+                  <label> Kd </label>
+                  <input type="text" id="kd" size="10" value="{{ Kd }}"/>
+                </div>
+                <button id="sendPID" class="btn btn-primary">Send</button>
+              </form>
+            </div>
           </div>
-          <div class="panel-body">
-            <form class="form-inline" id="pid">
-              <div class="form-group">
-                <label> Proportional factor </label>
-                <input type="text" id="kp" size="10" value="{{ Kp }}"/>
-              </div>
-              <div class="form-group">
-                <label> Enter integral factor</label>
-                <input type="text" id="ki" size="10" value="{{ Ki }}"/>
-              </div>
-              <div class="form-group">
-                <label> Enter derivative factor </label>
-                <input type="text" id="kd" size="10" value="{{ Kd }}"/>
-              </div>
-              <div class="form-group">
-                <label> Left rope length at 0,0 </label>
-                <input type="text" id="ll" size="10" value="{{ ll }}"/><br>
-              </div>
-              <div class="form-group">
-                <label> Right rope length at 0,0 </label>
-                <input type="text" id="lr" size="10" value="{{ lr }}"/>
-              </div>
-              <div class="form-group">
-                <label> Width between rope attachments </label>
-                <input type="text" id="aw" size="10" value="{{ aw }}"/>
-              </div>
-              <button id="sendPID" class="btn btn-primary">Send</button>
-            </form>
+        </div>
+        <div class="col-md-6">
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <h3>Plotter Settings</h3>
+            </div>
+            <div class="panel-body">
+              <img src="static/schematic.png">
+
+              <form class="form-inline" id="plot">
+
+
+                <div class="form-group">
+                  <label> Left rope length at 0,0 </label>
+                  <input type="text" id="ll" size="10" value="{{ ll }}"/><br>
+                </div>
+                <div class="form-group">
+                  <label> Right rope length at 0,0 </label>
+                  <input type="text" id="lr" size="10" value="{{ lr }}"/>
+                </div>
+                <div class="form-group">
+                  <label> Width between rope attachments </label>
+                  <input type="text" id="aw" size="10" value="{{ aw }}"/>
+                </div>
+                <button id="sendPlot" class="btn btn-primary">Send</button>
+              </form>
+            </div>
           </div>
         </div>
       </div>
     </div>
-    <div class="col-md-4">
-      <div class="panel panel-default">
+    <div class="col-md-4"  style="display: flex;">
+      <div class="panel panel-default" style="flex:1; ">
         <div class="panel-heading">
           <h3>Messages from server</h3>
         </div>
@@ -229,6 +284,9 @@ TODO: Add a manual connect/disconnect/setup button. Or monitor.
 
 
 
+
+
+
 </script>
 </body>
 </html>
@@ -241,6 +299,9 @@ jQuery(function($)
     alert("Your browser does not support web sockets");
   }
 });
+
+
+
 
 
 

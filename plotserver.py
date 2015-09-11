@@ -133,16 +133,27 @@ class MotorThread(threading.Thread):
         global c
         print "Starting motor thread"
         while running:
+            if type(c) == dict:
+                # We got settings
+                if 'kp' in c:
+                    #We got pid settings
+                    self.plotter.Kp = c['kp']
+                    self.plotter.Ti = c['ti']
+                    self.plotter.Td = c['td']
 
-            if c == 'lmf':
+                if 'll' in c:
+                    #we got rope length settings
+                    self.plotter.l_rope_0 = c['ll']
+                    self.plotter.r_rope_0 = c['lr']
+                    self.plotter.att_dist = c['aw']
+
+            if c == 'left-fwd':
                 print "Running left motor fwd"
-                #BrickPi.MotorSpeed[PORT_B] = 100
-                self.plotter.lmf()
-                c = ''
-            elif c == 'lmb':
-                print "Running left motor back"
-                #BrickPi.MotorSpeed[PORT_B] = -100
-                self.plotter.lmb()
+                self.plotter.left_fwd()
+
+            elif c == 'left-stop':
+                print "Stopping left motor"
+                self.plotter.left_stop()
                 c = ''
             elif c == 'rmf':
                 print "Running right motor forward"

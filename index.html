@@ -29,7 +29,7 @@ TODO: Add a manual connect/disconnect/setup button. Or monitor.
 <div class="container">
   <h1>3nsor plotter robot</h1>
 
-  <div class="row"  style="display: flex;">
+  <div class="row" style="display: flex;">
     <div class="col-md-8">
       <div class="row">
         <div class="col-md-12">
@@ -49,29 +49,35 @@ TODO: Add a manual connect/disconnect/setup button. Or monitor.
                 <tbody>
                 <tr>
                   <td>
-                    <button class="btn btn-default" data-msg="lmf"><span class="glyphicon glyphicon-arrow-up"/> [q]
+                    <button class="btn btn-default" data-down="left-fwd" data-up="left-stop"><span
+                            class="glyphicon glyphicon-arrow-up"/> [q]
                     </button>
                   </td>
                   <td>
-                    <button class="btn btn-default" data-msg="rmf"><span class="glyphicon glyphicon-arrow-up"/> [w]
+                    <button class="btn btn-default" data-down="right-fwd" data-up="right-stop"><span
+                            class="glyphicon glyphicon-arrow-up"/> [w]
                     </button>
                   </td>
                   <td>
-                    <button class="btn btn-default" data-msg="pu"><span class="glyphicon glyphicon-remove-circle"/> [e]
+                    <button class="btn btn-default" data-down="" data-up="pu"><span
+                            class="glyphicon glyphicon-remove-circle"/> [e]
                     </button>
                   </td>
                 </tr>
                 <tr>
                   <td>
-                    <button class="btn btn-default" data-msg="lmb"><span class="glyphicon glyphicon-arrow-down"/> [a]
+                    <button class="btn btn-default" data-down="left-back" data-up="left-stop"><span
+                            class="glyphicon glyphicon-arrow-down"/> [a]
                     </button>
                   </td>
                   <td>
-                    <button class="btn btn-default" data-msg="rmb"><span class="glyphicon glyphicon-arrow-down"/> [s]
+                    <button class="btn btn-default" data-down="right-back" data-up="right-stop"><span
+                            class="glyphicon glyphicon-arrow-down"/> [s]
                     </button>
                   </td>
                   <td>
-                    <button class="btn btn-default" data-msg="pd"><span class="glyphicon glyphicon-ok-circle"/> [d]
+                    <button class="btn btn-default" data-down="" data-up="pd"><span
+                            class="glyphicon glyphicon-ok-circle"/> [d]
                     </button>
                   </td>
                 </tr>
@@ -93,20 +99,20 @@ TODO: Add a manual connect/disconnect/setup button. Or monitor.
             <div class="panel-body">
               <img src="static/pid.png">
 
-              <form class="form-inline" id="pid">
+              <form class="form-inline" id="pid" action="" method="post">
                 <div class="form-group">
                   <label> Kp </label>
-                  <input type="text" id="kp" size="10" value="{{ Kp }}"/>
+                  <input type="text" name="kp" size="10" value="{{ Kp }}"/>
                 </div>
                 <div class="form-group">
                   <label> Ki </label>
-                  <input type="text" id="ki" size="10" value="{{ Ki }}"/>
+                  <input type="text" name="ti"  size="10" value="{{ Ki }}"/>
                 </div>
                 <div class="form-group">
                   <label> Kd </label>
-                  <input type="text" id="kd" size="10" value="{{ Kd }}"/>
+                  <input type="text" name="td" size="10" value="{{ Kd }}"/>
                 </div>
-                <button id="sendPID" class="btn btn-primary">Send</button>
+                <button id="sendPID" type="submit" class="btn btn-primary">Send</button>
               </form>
             </div>
           </div>
@@ -119,29 +125,29 @@ TODO: Add a manual connect/disconnect/setup button. Or monitor.
             <div class="panel-body">
               <img src="static/schematic.png">
 
-              <form class="form-inline" id="plot">
+              <form class="form-inline" id="plot" action="" method="post">
 
 
                 <div class="form-group">
                   <label> Left rope length at 0,0 </label>
-                  <input type="text" id="ll" size="10" value="{{ ll }}"/><br>
+                  <input type="text" name="ll" size="10" value="{{ ll }}"/><br>
                 </div>
                 <div class="form-group">
                   <label> Right rope length at 0,0 </label>
-                  <input type="text" id="lr" size="10" value="{{ lr }}"/>
+                  <input type="text" name="lr" size="10" value="{{ lr }}"/>
                 </div>
                 <div class="form-group">
                   <label> Width between rope attachments </label>
-                  <input type="text" id="aw" size="10" value="{{ aw }}"/>
+                  <input type="text" name="aw" size="10" value="{{ aw }}"/>
                 </div>
-                <button id="sendPlot" class="btn btn-primary">Send</button>
+                <button id="sendPlot" type="submit" class="btn btn-primary">Send</button>
               </form>
             </div>
           </div>
         </div>
       </div>
     </div>
-    <div class="col-md-4"  style="display: flex;">
+    <div class="col-md-4" style="display: flex;">
       <div class="panel panel-default" style="flex:1; ">
         <div class="panel-heading">
           <h3>Messages from server</h3>
@@ -155,30 +161,31 @@ TODO: Add a manual connect/disconnect/setup button. Or monitor.
 </div>
 
 <script>
-(function() {
+(function() { //this statement defines a function and executes it right away. Everything inside is scoped this way.
+
     function SocketController() {
+        //the "class" for controlling the everything about the socket on this page.
         var name = window.location.host;
-        this.host =  "ws://"+name+"/ws"; 	// combines the three string and creates a new string
-	      //this.socket = new WebSocket(this.host);
+        this.host =  "ws://"+name+"/ws";
     }
 
     function showServerResponse(txt)
 	  {
-	      $('#output').append($("<p>", {
-		        'html': txt
-		    }).css({
-		        'word-wrap': 'break-word'
+	      $('#output').append($("<p>", { //get element and append a <p> to it
+		        'html': txt                  //inside the p put html containing the response txt
 		    }));
 	  }
 
     SocketController.prototype.getSocket = function () {
+        // Get socket if there is one, or open a new one.
         if (!(this.socket)){
             this.socket = new WebSocket(this.host);
             this.socket.onopen = function(evt) {
-                this.socketopen = true;
                 showServerResponse("Socket has been opened.");
                 };
-            this.socket.onclose = function(evt) { showServerResponse("The connection has been closed."); };
+            this.socket.onclose = function(evt) {
+                showServerResponse("The connection has been closed.");
+                };
             this.socket.onmessage = function(evt) { showServerResponse(evt.data); };
             this.socket.onerror = function(evt) { showServerResponse(evt.data); };
             }
@@ -193,12 +200,12 @@ TODO: Add a manual connect/disconnect/setup button. Or monitor.
                 if (socket.readyState === 1) {
                     //console.log("Connection is made")
                     if(callback != null){
-                        callback(socket);
+                        callback(socket); //pass the opened socket as an argument to the callback, usually the send function.
                     }
                     return;
 
                 } else {
-                    console.log("wait for connection...")
+                    //console.log("wait for connection...")
                     waitForSocketConnection(socket, callback);
                 }
 
@@ -206,10 +213,9 @@ TODO: Add a manual connect/disconnect/setup button. Or monitor.
     }
 
     SocketController.prototype.send = function (command) {
-        // Wait until the state of the socket is not ready and send the message when it is...
+        // Wait until the state of the socket is ready and send the message when it is...
         waitForSocketConnection(this.getSocket(), function(socket){
-            //console.log("message sent!!!");
-            socket.send(command)
+            socket.send(JSON.stringify(command)); //always convert to JSON, that's what server expects.
         });
     }
 
@@ -219,52 +225,139 @@ TODO: Add a manual connect/disconnect/setup button. Or monitor.
 
     var brickpi_socket = new SocketController();
 
-    $('.controls').on('click', 'button', function (event) {
+    $('.controls').on('mousedown', 'button', function (event) {
         event.preventDefault();
-        brickpi_socket.send($(this).data('msg'));
+        var command = $(this).data('down')
+        brickpi_socket.send(command);
+        console.log(command);
     });
+
+    $('.controls').on('mouseup', 'button', function (event) {
+        event.preventDefault();
+        var command = $(this).data('up')
+        brickpi_socket.send(command);
+        console.log(command);
+    });
+
+
 
     $(document.body).on('keydown', function (event)  {
         var KeyID = event.keyCode;
+				command = ""
+				//console.log(KeyID);
 				switch(KeyID)
 				{
 				case 16: //shift key
-				command = "stop";
-				console.log("shift")
 				break;
 				case 17: //ctrl key
-				command = "stop";
 				break;
 				case 37: //left arrow
-				command = "lmb";
 				break;
 				case 38: //up arrow
-				command = "rmf";
 				break;
 				case 39: //right arrow
-				command = "lmf";
 				break;
 				case 40: //down arrow
-				command = "rmb";
 				break;
-				case "o".charCodeAt():
+				case 81: //q
+				command = "left-fwd";
+				break;
+				case 65: //a
+				command = "left-back";
+				break;
+				case 87: //w
+				command = "right-fwd";
+				break;
+				case 83: //s
+				command = "right-back";
+				break;
+				default:
+				command = "";
+				}
+				console.log(command);
+				if (command) {
+				    brickpi_socket.send(command);
+				}
+    });
+
+    $(document.body).on('keyup', function (event)  {
+        var KeyID = event.keyCode;
+				switch(KeyID)
+				{
+        case 81:
+				command = "left-stop";
+				break;
+				case 65:
+				command = "left-stop";
+				break;
+				case 87:
+				command = "right-stop";
+				break;
+				case 83:
+				command = "right-stop";
+				break;
+				case 69: //e
+				command = "pu";
+				break;
+				case 68: //d
+				command = "pd";
+				break;
+				case 79: //o
 				command = "zero";
 				break;
-				case "p".charCodeAt():
+				case 80: //p
 				command = "plot";
 				break;
 				default:
 				command = "";
 				}
-				brickpi_socket.send(command);
+				console.log(command);
+				if (command) {
+				    brickpi_socket.send(command);
+				}
     });
 
+
+    $.fn.serializeObject = function()
+    {
+    var o = {};
+    var a = this.serializeArray();
+    $.each(a, function() {
+        if (o[this.name] !== undefined) {
+            if (!o[this.name].push) {
+                o[this.name] = [o[this.name]];
+            }
+            o[this.name].push(this.value || '');
+        } else {
+            o[this.name] = this.value || '';
+        }
+    });
+    return o;
+    };
+
+    $('#pid').submit(function(evt) {
+        evt.preventDefault();
+        command = $('#pid').serializeObject();
+        console.log(command);
+        brickpi_socket.send(command);
+        return false;
+    });
+
+    $('#plot').submit(function(evt) {
+        evt.preventDefault();
+        command = $('#plot').serializeObject();
+        console.log(command);
+        brickpi_socket.send(command);
+        return false;
+    });
 }());
 
 
 //	var pidcmd = "PID("+$("#kp").val()+","+$("#ki").val()+","+$("#ki").val()+")"
 
 //	console.log(pidcmd);
+
+
 
 
 
@@ -299,6 +392,8 @@ jQuery(function($)
     alert("Your browser does not support web sockets");
   }
 });
+
+
 
 
 

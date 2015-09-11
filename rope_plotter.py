@@ -39,6 +39,37 @@ class rope_plotter(object):
         self.set_motor_zero()
         self.precision = 5
 
+    @property
+    def Kp(self):
+        return 0
+
+    @Kp.setter
+    def Kp(self,Kp):
+        for motor in self.drive_motors:
+            motor.Kp = Kp
+
+    @property
+    def Ti(self):
+        return 0
+
+    @Ti.setter
+    def Ti(self,Ki):
+        for motor in self.drive_motors:
+            motor.Ti = Ki
+
+    @property
+    def Td(self):
+        return 0
+
+    @Td.setter
+    def Td(self,Kd):
+        for motor in self.drive_motors:
+            motor.Td = Kd
+
+
+
+
+
     def motor_targets_from_norm_coords(self,x_norm, y_norm):
         x,y = self.normalized_to_global_coords(x_norm,y_norm)
         return self.motor_targets_from_coords(x,y)
@@ -82,11 +113,11 @@ class rope_plotter(object):
 
 
     def pen_up(self):
-        self.move_motor_a_little(PORT_D,30)
+        self.move_motor_for_time(PORT_D,30)
 
 
     def pen_down(self):
-        self.move_motor_a_little(PORT_D,-30)
+        self.move_motor_for_time(PORT_D,-30)
 
 
     def set_motor_zero(self):
@@ -225,19 +256,28 @@ class rope_plotter(object):
 
     # Calibration functions
     def lmf(self):
-        self.move_motor_a_little(self.drive_motors[0].port, 100)
+        self.move_motor_for_time(self.drive_motors[0].port, 100)
 
     def lmb(self):
-        self.move_motor_a_little(self.drive_motors[0].port, -100)
+        self.move_motor_for_time(self.drive_motors[0].port, -100)
 
     def rmf(self):
-        self.move_motor_a_little(self.drive_motors[1].port, 100)
+        self.move_motor_for_time(self.drive_motors[1].port, 100)
 
     def rmb(self):
-        self.move_motor_a_little(self.drive_motors[1].port, -100)
+        self.move_motor_for_time(self.drive_motors[1].port, -100)
+
+    def left_fwd(self):
+        BrickPi.MotorSpeed[self.drive_motors[0].port] = 100
+        BrickPiUpdateValues()
+
+    def left_stop(self):
+        BrickPi.MotorSpeed[self.drive_motors[0].port] = 0
+        BrickPiUpdateValues()
+
 
     @staticmethod
-    def move_motor_a_little(port, speed, runtime=0.3):
+    def move_motor_for_time(port, speed, runtime=0.3):
         numticks = int(runtime/0.03)
         for i in range(numticks):   #Have to repeat this, otherwise output goes to 0.
             BrickPi.MotorSpeed[port] = int(speed)

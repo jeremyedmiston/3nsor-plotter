@@ -22,14 +22,33 @@ TODO: Add a manual connect/disconnect/setup button. Or monitor.
         integrity="sha256-MfvZlkHCEqatNoGiOXveE8FIwMzZg4W85qfrfIFBfYc= sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ=="
         crossorigin="anonymous">
 
-  <style>h1,h2 { font-family: ‘Metrophobic’, Arial, serif; font-weight: 700; }</style>
+  <style>
+    h1,h2 {
+    font-family: ‘Metrophobic’, Arial, serif;
+    font-weight: 700;
+    }
+
+    @media screen and (min-width: 600px)
+    {
+    #mainrow, #msgcol{
+    display: flex;
+    }
+
+    #msgrow
+    {
+   overflow: scroll;
+    }
+    }
+
+
+  </style>
 </head>
 
 <body>
 <div class="container">
   <h1>3nsor plotter robot</h1>
 
-  <div class="row" style="display: flex;">
+  <div class="row" id="mainrow">
     <div class="col-md-8">
       <div class="row">
         <div class="col-md-12">
@@ -83,7 +102,7 @@ TODO: Add a manual connect/disconnect/setup button. Or monitor.
                 </tr>
                 </tbody>
               </table>
-              <button class="btn btn-default" data-msg="zero">Set motor zeros</button>
+              <button class="btn btn-primary" data-msg="zero">Set motor zeros</button>
               <button class="btn btn-default" data-msg="plot">Plot coords.csv</button>
               <button class="btn btn-default" data-msg="plotcircles">Plot circles</button>
             </div>
@@ -147,7 +166,7 @@ TODO: Add a manual connect/disconnect/setup button. Or monitor.
         </div>
       </div>
     </div>
-    <div class="col-md-4" style="display: flex;">
+    <div class="col-md-4" id="msgcol">
       <div class="panel panel-default" style="flex:1; ">
         <div class="panel-heading">
           <h3>Messages from server</h3>
@@ -351,35 +370,6 @@ TODO: Add a manual connect/disconnect/setup button. Or monitor.
         return false;
     });
 }());
-
-
-//	var pidcmd = "PID("+$("#kp").val()+","+$("#ki").val()+","+$("#ki").val()+")"
-
-//	console.log(pidcmd);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 </script>
 </body>
 </html>
@@ -392,28 +382,4 @@ jQuery(function($)
     alert("Your browser does not support web sockets");
   }
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 </script>

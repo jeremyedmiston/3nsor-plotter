@@ -16,7 +16,7 @@ __author__ = 'anton'
 # ##############################################################################################################
 
 # CONNECTIONS-
-# Pen Motor - Port A
+#   Pen Motor - Port A
 # 	Left Motor  - Port B
 # 	Right Motor - Port C
 #
@@ -35,14 +35,13 @@ __author__ = 'anton'
 #		"kill pid"
 #	If it does not work use:
 #		"kill -9 pid"
-#	If the error does not go away, try changin the port number '9093' both in the client and server code
+#	If the error does not go away, try changing the port number '9093' both in the client and server code
 
 
 ####################### Imports #########################
 
 
 # To run motors on the brickpi, in a separate thread
-#from BrickPi import *  # import BrickPi.py file to use BrickPi operations
 import threading
 
 # Webserver

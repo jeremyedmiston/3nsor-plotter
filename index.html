@@ -30,14 +30,14 @@ TODO: Add a manual connect/disconnect/setup button. Or monitor.
 
     @media screen and (min-width: 600px)
     {
-    .flexrow {
-    display: flex;
-    }
+      .flexbox {
+        display: flex;
+      }
 
-    #msgrow
-    {
-   overflow: scroll;
-    }
+      #output
+      {
+        overflow: scroll;
+      }
     }
 
 
@@ -48,7 +48,7 @@ TODO: Add a manual connect/disconnect/setup button. Or monitor.
 <div class="container">
   <h1>3nsor plotter robot</h1>
 
-  <div class="row flexrow" id="mainrow">
+  <div class="row flexbox" id="mainrow">
     <div class="col-md-8">
       <div class="row">
         <div class="col-md-12">
@@ -166,7 +166,7 @@ TODO: Add a manual connect/disconnect/setup button. Or monitor.
         </div>
       </div>
     </div>
-    <div class="col-md-4 flexrow" id="msgcol">
+    <div class="col-md-4 flexbox" id="msgcol">
       <div class="panel panel-default" style="flex:1; ">
         <div class="panel-heading">
           <h3>Messages from server</h3>
@@ -190,9 +190,14 @@ TODO: Add a manual connect/disconnect/setup button. Or monitor.
 
     function showServerResponse(txt)
 	  {
-	      $('#output').append($("<p>", { //get element and append a <p> to it
+	      $('#output').prepend($("<p>", { //get element and append a <p> to it
 		        'html': txt                  //inside the p put html containing the response txt
 		    }));
+
+		    var count = $("#output p").length; //don't show more than 20 server messages.
+		    if (count > 20) {
+		        $('#output p:last-child').remove();
+		    }
 	  }
 
     SocketController.prototype.getSocket = function () {

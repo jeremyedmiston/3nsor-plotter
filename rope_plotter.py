@@ -5,19 +5,12 @@ from BrickPi import *
 
 
 class rope_plotter(object):
-    def __init__(self,l_rope_0,r_rope_0,attachment_distance, pulley_diam=4.4, Kp=1.5, Ti=0.8, Td=0.05, maxpower=200):
-        self.l_rope_0 = l_rope_0
-        self.r_rope_0 = r_rope_0
-        self.att_dist = attachment_distance
-
-        #self.pulley = pulley_diam
-        # now some math to calculate the rest of the plotter parameters
-        #angle-in-deg = l-in-cm/(diameter/2) * 360 /(2*PI) * num_teeth_large_gear / num_teeth_small_gear
-        #-2 is BrickPi weirdness. Encoders run backwards in half degrees.
-        self.cm_to_deg = -2 * 180 / 3.1415 * 2 / pulley_diam * 24 / 8
-        self.v_margin = self.triangle_area(l_rope_0, r_rope_0, attachment_distance) / attachment_distance * 2  #height of triangle
-        self.h_margin = (l_rope_0 ** 2 - self.v_margin ** 2) ** 0.5  #pythagoras to find distance from triangle point to left doorframe
-        self.canvas_size = attachment_distance - 2 * self.h_margin
+    def __init__(self,l_rope_0, r_rope_0, attachment_distance, pulley_diam=4.4, Kp=1.5, Ti=0.8, Td=0.05, maxpower=200):
+        self.__l_rope_0 = l_rope_0
+        self.__r_rope_0 = r_rope_0
+        self.__att_dist = attachment_distance
+        self.pulley_diam = pulley_diam
+        self.calc_constants()
 
         #Start the BrickPi
         BrickPiSetup()  # setup the serial port for communication
@@ -37,8 +30,12 @@ class rope_plotter(object):
         right_motor = motorPID_control(PORT_C, Kp, Ti, Td, maxpower=maxpower)
         self.drive_motors = [left_motor, right_motor]
         self.set_motor_zero()
-        self.precision = 5
+        self.precision = 5 #Motors stop running when they are within +/-5 degrees of target.
 
+
+    # Getters & setters for plotter properties. Python style, Baby!
+    # After setting these, some calculations need to be done, that's why I define special functions
+    # And decorate them as setters and getters.
     @property
     def Kp(self):
         return 0
@@ -66,10 +63,59 @@ class rope_plotter(object):
         for motor in self.drive_motors:
             motor.Td = Kd
 
+    @property
+    def l_rope_0(self):
+        return self.__l_rope_0
+
+    @l_rope_0.setter
+    def l_rope_0(self,length):
+        self.__l_rope_0 = length
+        self.calc_constants()
+
+    @property
+    def r_rope_0(self):
+        return self.__r_rope_0
+
+    @r_rope_0.setter
+    def r_rope_0(self,length):
+        self.__r_rope_0 = length
+        self.calc_constants()
+
+    @property
+    def att_dist(self):
+        return self.__att_dist
+
+    @att_dist.setter
+    def att_dist(self,length):
+        self.__att_dist = length
+        self.calc_constants()
+
+
+    def calc_constants(self):
+        # now some math to calculate the rest of the plotter parameters
+        #angle-in-deg = l-in-cm/(diameter/2) * 360 /(2*PI) * num_teeth_large_gear / num_teeth_small_gear
+        #-2 is BrickPi weirdness. Encoders run backwards in half degrees.
+        self.cm_to_deg = -2 * 180 / 3.1415 * 2 / self.pulley_diam * 24 / 8
+        self.v_margin = self.triangle_area(self.__l_rope_0, self.__r_rope_0, self.__att_dist) / self.__att_dist * 2  #height of triangle
+        self.h_margin = (self.__l_rope_0 ** 2 - self.v_margin ** 2) ** 0.5  #pythagoras to find distance from triangle point to left doorframe
+        self.canvas_size = self.__att_dist - 2 * self.h_margin
+
+    @staticmethod
+    def triangle_area(a, b, c):
+        """
+        Calculate the area of a triangle by the lengths of it's sides using Heron's formula
+
+        :param a: Length of side a
+        :param b: Length of side b
+        :param c: Length of side c
+        :return: area (float)
+        """
+        half_p = (a + b + c) / 2
+        return (half_p * (half_p - a) * (half_p - b) * (half_p - c)) ** 0.5
 
 
 
-
+    # Calculations for global to local coordinates and back.
     def motor_targets_from_norm_coords(self,x_norm, y_norm):
         x,y = self.normalized_to_global_coords(x_norm,y_norm)
         return self.motor_targets_from_coords(x,y)
@@ -99,33 +145,20 @@ class rope_plotter(object):
 
         return x,y
 
-    def triangle_area(self,a, b, c):
-        """
-        Calculate the area of a triangle by the lengths of it's sides using Heron's formula
-
-        :param a: Length of side a
-        :param b: Length of side b
-        :param c: Length of side c
-        :return: area (float)
-        """
-        half_p = (a + b + c) / 2
-        return (half_p * (half_p - a) * (half_p - b) * (half_p - c)) ** 0.5
 
 
+    # Movement functions
     def pen_up(self):
         self.move_motor_for_time(PORT_D,30)
 
-
     def pen_down(self):
         self.move_motor_for_time(PORT_D,-30)
-
 
     def set_motor_zero(self):
         for motor in self.drive_motors:
             motor.encoder = int(BrickPi.Encoder[motor.port])
             motor.zero = int(BrickPi.Encoder[motor.port])
             print "Encoder zero position set to", motor.zero, "For motor at port:", motor.port
-
 
     def move_to_coord(self,x,y):
         motor_b_target, motor_c_target  = self.motor_targets_from_coords(x, y)
@@ -137,7 +170,6 @@ class rope_plotter(object):
         motor_b_target, motor_c_target = self.motor_targets_from_norm_coords(x_norm, y_norm)
         print "Moving to ", x_norm, ",", y_norm, "(At", motor_b_target, motor_c_target, ")"
         self.move_to_targets((motor_b_target, motor_c_target))
-
 
     def move_to_targets(self, targets):
         # set targets
@@ -167,7 +199,23 @@ class rope_plotter(object):
 
 
 
-    def plot_from_file(self, filename, abort=False):
+    # Advanced plotting functions by chaining movement functions
+    def plot_from_file(self, filename):
+        """
+        Generator function for plotting from file. After each next() it returns the pct done of the plotting
+        This way the plotting can easily be aborted and status can be given. Gotta love python for this.
+        Usage:
+
+        gen = plotter.plot_from_file(myfile)
+        while 1:
+            try:
+                pct_done = next(gen)
+            except StopIteration:
+                break
+
+        :param filename: str
+        :return:
+        """
         coords = open(filename)
         num_coords = int(coords.readline())  #coords contains it's length on the first line.
 
@@ -256,7 +304,8 @@ class rope_plotter(object):
 
         print "Done drawing"
 
-    # Calibration functions
+
+    # Calibration & manual movement functions
     def left_fwd(self):
         BrickPi.MotorSpeed[self.drive_motors[0].port] = 100
         BrickPiUpdateValues()

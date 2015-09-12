@@ -182,17 +182,21 @@ class MotorThread(threading.Thread):
                 #BrickPi.MotorSpeed[PORT_C] = -100
                 self.plotter.pen_down()
                 c = ''
+
             elif c == 'stop':
+                self.plotter.left_stop()
+                self.plotter.right_stop()
+                c = ''
                 print "Stopped"
-                #BrickPi.MotorSpeed[PORT_B] = 0
-                #BrickPi.MotorSpeed[PORT_C] = 0
+
             elif c == 'plot':
-                wsSend("Start plotting...")
-                plotaction = self.plotter.plot_from_file('coords.csv')
+                # c stays 'plot' until another command is sent trough the socket
+                plot_action = self.plotter.plot_from_file('coords.csv')
                 try:
-                    pctdone = next(plotaction)
-                    wsSend("{:.2f} Percent done".format(pctdone))
+                    pct_done = next(plot_action)
+                    wsSend("Plot {:.2f} Percent done".format(pct_done))
                 except StopIteration:
+                    c = ''
                     wsSend("Done plotting")
 
             elif c == 'zero':

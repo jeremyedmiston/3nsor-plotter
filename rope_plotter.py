@@ -200,6 +200,10 @@ class rope_plotter(object):
 
 
     # Advanced plotting functions by chaining movement functions
+    def test_drive(self):
+        self.move_to_norm_coord(0.1,0.1)
+        self.move_to_norm_coord(0.0,0.0)
+
     def plot_from_file(self, filename):
         """
         Generator function for plotting from file. After each next() it returns the pct done of the plotting

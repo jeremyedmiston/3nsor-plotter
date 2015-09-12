@@ -121,7 +121,12 @@ application = tornado.web.Application([
     (r"/static/(.*)", tornado.web.StaticFileHandler, {"path": "./static"})
 ])
 
+
 class MotorThread(threading.Thread):
+    """
+    This thread interacts with the plotter via the global 'c' which containts plotter commands.
+    """
+
     def __init__(self):
         self.motor_log = Logger("Motors")
         threading.Thread.__init__(self)
@@ -139,47 +144,48 @@ class MotorThread(threading.Thread):
                     self.plotter.Kp = float(c['kp'])
                     self.plotter.Ti = float(c['ti'])
                     self.plotter.Td = float(c['td'])
+                    wsSend("PID parameters set")
 
                 if 'll' in c:
                     #we got rope length settings
                     self.plotter.l_rope_0 = float(c['ll'])
                     self.plotter.r_rope_0 = float(c['lr'])
                     self.plotter.att_dist = float(c['aw'])
+                    wsSend("Plotter settings set")
 
             if c == 'left-fwd':
-                print "Running left motor fwd"
+                #print "Running left motor fwd"
                 self.plotter.left_fwd()
 
             elif c == 'left-stop':
-                print "Stopping left motor"
+                #print "Stopping left motor"
                 self.plotter.left_stop()
                 c = ''
 
             elif c == 'right-fwd':
-                print "Running right motor forward"
+                #print "Running right motor forward"
                 self.plotter.right_fwd()
 
             elif c == 'right-back':
-                print "Running right motor back"
+                #print "Running right motor back"
                 self.plotter.right_back()
 
             elif c == 'right-stop':
-                print "Stopping right motor"
+                #print "Stopping right motor"
                 self.plotter.right_stop()
                 c = ''
 
             elif c == 'left-back':
-                print "Running left motor back"
+                #print "Running left motor back"
                 self.plotter.left_back()
 
             elif c == 'pu':
-                print "Pulling pen up"
-                #BrickPi.MotorSpeed[PORT_C] = -100
+                #print "Pulling pen up"
                 self.plotter.pen_up()
                 c = ''
+
             elif c == 'pd':
-                print "Putting pen down"
-                #BrickPi.MotorSpeed[PORT_C] = -100
+                #print "Putting pen down"
                 self.plotter.pen_down()
                 c = ''
 
@@ -188,6 +194,10 @@ class MotorThread(threading.Thread):
                 self.plotter.right_stop()
                 c = ''
                 print "Stopped"
+
+            elif c == 'testdrive':
+                self.plotter.test_drive()
+                c = ''
 
             elif c == 'plot':
                 # c stays 'plot' until another command is sent trough the socket

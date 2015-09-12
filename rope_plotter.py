@@ -167,7 +167,7 @@ class rope_plotter(object):
 
 
 
-    def plot_from_file(self, filename):
+    def plot_from_file(self, filename, abort=False):
         coords = open(filename)
         num_coords = int(coords.readline())  #coords contains it's length on the first line.
 
@@ -183,10 +183,12 @@ class rope_plotter(object):
             x_norm, y_norm = [float(n) for n in coords.readline().split(",")]
             #move
             self.move_to_norm_coord(x_norm, y_norm)
+            yield float(i)/num_coords
 
         coords.close()
         self.pen_up()
         self.move_to_norm_coord(0, 0)
+        return
 
 
     def plot_circles(self, num_circles=12):
@@ -255,24 +257,28 @@ class rope_plotter(object):
         print "Done drawing"
 
     # Calibration functions
-    def lmf(self):
-        self.move_motor_for_time(self.drive_motors[0].port, 100)
-
-    def lmb(self):
-        self.move_motor_for_time(self.drive_motors[0].port, -100)
-
-    def rmf(self):
-        self.move_motor_for_time(self.drive_motors[1].port, 100)
-
-    def rmb(self):
-        self.move_motor_for_time(self.drive_motors[1].port, -100)
-
     def left_fwd(self):
         BrickPi.MotorSpeed[self.drive_motors[0].port] = 100
         BrickPiUpdateValues()
 
     def left_stop(self):
         BrickPi.MotorSpeed[self.drive_motors[0].port] = 0
+        BrickPiUpdateValues()
+
+    def left_back(self):
+        BrickPi.MotorSpeed[self.drive_motors[0].port] = -100
+        BrickPiUpdateValues()
+
+    def right_fwd(self):
+        BrickPi.MotorSpeed[self.drive_motors[1].port] = 100
+        BrickPiUpdateValues()
+
+    def right_stop(self):
+        BrickPi.MotorSpeed[self.drive_motors[1].port] = 0
+        BrickPiUpdateValues()
+
+    def right_back(self):
+        BrickPi.MotorSpeed[self.drive_motors[1].port] = -100
         BrickPiUpdateValues()
 
 

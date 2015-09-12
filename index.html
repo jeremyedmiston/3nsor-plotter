@@ -30,7 +30,7 @@ TODO: Add a manual connect/disconnect/setup button. Or monitor.
 
     @media screen and (min-width: 600px)
     {
-    #mainrow, #msgcol{
+    .flexrow {
     display: flex;
     }
 
@@ -48,7 +48,7 @@ TODO: Add a manual connect/disconnect/setup button. Or monitor.
 <div class="container">
   <h1>3nsor plotter robot</h1>
 
-  <div class="row" id="mainrow">
+  <div class="row flexrow" id="mainrow">
     <div class="col-md-8">
       <div class="row">
         <div class="col-md-12">
@@ -102,9 +102,9 @@ TODO: Add a manual connect/disconnect/setup button. Or monitor.
                 </tr>
                 </tbody>
               </table>
-              <button class="btn btn-primary" data-msg="zero">Set motor zeros</button>
-              <button class="btn btn-default" data-msg="plot">Plot coords.csv</button>
-              <button class="btn btn-default" data-msg="plotcircles">Plot circles</button>
+              <button class="btn btn-primary" data-down="" data-up="zero">Set motor zeros</button>
+              <button class="btn btn-default" data-down="" data-up="plot">Plot coords.csv</button>
+              <button class="btn btn-default" data-down="" data-up="plotcircles">Plot circles</button>
             </div>
           </div>
         </div>
@@ -121,15 +121,15 @@ TODO: Add a manual connect/disconnect/setup button. Or monitor.
               <form class="form-inline" id="pid" action="" method="post">
                 <div class="form-group">
                   <label> Kp </label>
-                  <input type="text" name="kp" size="10" value="{{ Kp }}"/>
+                  <input type="text" name="kp" size="10" value="{{ kp }}"/>
                 </div>
                 <div class="form-group">
                   <label> Ki </label>
-                  <input type="text" name="ti"  size="10" value="{{ Ki }}"/>
+                  <input type="text" name="ti"  size="10" value="{{ ti }}"/>
                 </div>
                 <div class="form-group">
                   <label> Kd </label>
-                  <input type="text" name="td" size="10" value="{{ Kd }}"/>
+                  <input type="text" name="td" size="10" value="{{ td }}"/>
                 </div>
                 <button id="sendPID" type="submit" class="btn btn-primary">Send</button>
               </form>
@@ -148,11 +148,11 @@ TODO: Add a manual connect/disconnect/setup button. Or monitor.
 
 
                 <div class="form-group">
-                  <label> Left rope length at 0,0 </label>
+                  <label> Left rope length at origin (cm) </label>
                   <input type="text" name="ll" size="10" value="{{ ll }}"/><br>
                 </div>
                 <div class="form-group">
-                  <label> Right rope length at 0,0 </label>
+                  <label> Right rope length at origin (cm) </label>
                   <input type="text" name="lr" size="10" value="{{ lr }}"/>
                 </div>
                 <div class="form-group">
@@ -166,7 +166,7 @@ TODO: Add a manual connect/disconnect/setup button. Or monitor.
         </div>
       </div>
     </div>
-    <div class="col-md-4" id="msgcol">
+    <div class="col-md-4 flexrow" id="msgcol">
       <div class="panel panel-default" style="flex:1; ">
         <div class="panel-heading">
           <h3>Messages from server</h3>

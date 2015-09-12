@@ -50,6 +50,7 @@ import tornado.ioloop
 import tornado.web
 import tornado.websocket
 import tornado.template
+import json
 
 # My own stuff
 from brickpi_helpers import *
@@ -63,9 +64,9 @@ L_ROPE_0 = 60.5  # Length of left rope in cm when pen is at 0,0 (top left)
 R_ROPE_0 = 88.5  # same for right tope
 ROPE_ATTACHMENT_WIDTH = 90  # space between the two attachment points of the plotter.In my case: door width. In cm.
 PULLEY_DIAMETER = 4.4
-KP=1.5
-TI=0.8
-TD=0.05
+KP=0.9
+TI=0.9
+TD=0.18
 MAXPWR=200
 
 
@@ -83,7 +84,7 @@ class MainHandler(tornado.web.RequestHandler):
     def get(self):
         #loader = tornado.template.Loader(".")
         #self.write(loader.load("index.html").generate())
-        self.render("template.html", kp=KP, ti=TI, td=TD, ll=L_ROPE_0)
+        self.render("index.html", kp=KP, ti=TI, td=TD, ll=L_ROPE_0, lr=L_ROPE_0, aw=ROPE_ATTACHMENT_WIDTH)
 
 
 #Code for handling the data sent from the webpage
@@ -99,9 +100,8 @@ class WSHandler(tornado.websocket.WebSocketHandler):
 
     def on_message(self, message):  # receives the data from the webpage and is stored in the variable message
         global c
-        print 'received:', message  # prints the revived from the webpage
-        c = message
-        print c
+        #print 'received:', message  # prints the revived from the webpage
+        c = json.loads(message)
 
     def on_close(self):
         global websockets
@@ -118,9 +118,8 @@ def wsSend(message):
 application = tornado.web.Application([
     (r'/ws', WSHandler),
     (r'/', MainHandler),
-    (r"/(.*)", tornado.web.StaticFileHandler, {"path": "./resources"}),
+    (r"/static/(.*)", tornado.web.StaticFileHandler, {"path": "./static"})
 ])
-
 
 class MotorThread(threading.Thread):
     def __init__(self):
@@ -137,15 +136,15 @@ class MotorThread(threading.Thread):
                 # We got settings
                 if 'kp' in c:
                     #We got pid settings
-                    self.plotter.Kp = c['kp']
-                    self.plotter.Ti = c['ti']
-                    self.plotter.Td = c['td']
+                    self.plotter.Kp = float(c['kp'])
+                    self.plotter.Ti = float(c['ti'])
+                    self.plotter.Td = float(c['td'])
 
                 if 'll' in c:
                     #we got rope length settings
-                    self.plotter.l_rope_0 = c['ll']
-                    self.plotter.r_rope_0 = c['lr']
-                    self.plotter.att_dist = c['aw']
+                    self.plotter.l_rope_0 = float(c['ll'])
+                    self.plotter.r_rope_0 = float(c['lr'])
+                    self.plotter.att_dist = float(c['aw'])
 
             if c == 'left-fwd':
                 print "Running left motor fwd"
@@ -155,16 +154,24 @@ class MotorThread(threading.Thread):
                 print "Stopping left motor"
                 self.plotter.left_stop()
                 c = ''
-            elif c == 'rmf':
+
+            elif c == 'right-fwd':
                 print "Running right motor forward"
-                #BrickPi.MotorSpeed[PORT_C] = 100
-                self.plotter.rmf()
-                c = ''
-            elif c == 'rmb':
+                self.plotter.right_fwd()
+
+            elif c == 'right-back':
                 print "Running right motor back"
-                #BrickPi.MotorSpeed[PORT_C] = -100
-                self.plotter.rmb()
+                self.plotter.right_back()
+
+            elif c == 'right-stop':
+                print "Stopping right motor"
+                self.plotter.right_stop()
                 c = ''
+
+            elif c == 'left-back':
+                print "Running left motor back"
+                self.plotter.left_back()
+
             elif c == 'pu':
                 print "Pulling pen up"
                 #BrickPi.MotorSpeed[PORT_C] = -100
@@ -181,9 +188,13 @@ class MotorThread(threading.Thread):
                 #BrickPi.MotorSpeed[PORT_C] = 0
             elif c == 'plot':
                 wsSend("Start plotting...")
-                self.plotter.plot_from_file('coords.csv')
-                print "Done plotting"
-                c = ''
+                plotaction = self.plotter.plot_from_file('coords.csv')
+                try:
+                    pctdone = next(plotaction)
+                    wsSend("{:.2f} Percent done".format(pctdone))
+                except StopIteration:
+                    wsSend("Done plotting")
+
             elif c == 'zero':
                 wsSend("zero motor positions")
                 self.plotter.set_motor_zero()

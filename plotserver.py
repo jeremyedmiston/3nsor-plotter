@@ -49,7 +49,7 @@ import tornado.ioloop
 import tornado.web
 import tornado.websocket
 import tornado.template
-import json
+import json, os, random, string
 
 # My own stuff
 from brickpi_helpers import *
@@ -83,7 +83,35 @@ class MainHandler(tornado.web.RequestHandler):
     def get(self):
         #loader = tornado.template.Loader(".")
         #self.write(loader.load("index.html").generate())
-        self.render("index.html", kp=KP, ti=TI, td=TD, ll=L_ROPE_0, lr=L_ROPE_0, aw=ROPE_ATTACHMENT_WIDTH)
+        self.render("index.html", kp=KP, ti=TI, td=TD, ll=L_ROPE_0, lr=R_ROPE_0, aw=ROPE_ATTACHMENT_WIDTH)
+
+class UploadHandler(tornado.web.RequestHandler):
+    def post(self):
+        # if self.request.files['coordsfile'][0]:
+        #     uploaded_file = self.request.files['coordsfile'][0]
+        #     #original_fname = file1['filename']
+        #     #extension = os.path.splitext(original_fname)[1]
+        #     #fname = ''.join(random.choice(string.ascii_lowercase + string.digits) for x in range(6))
+        #     final_filename = 'coords.csv' #fname+extension
+        # elif self.request.files['imgfile'][0]:
+        #     uploaded_file = self.request.files['imgfile'][0]
+        #     original_fname = uploaded_file['filename']
+        #     extension = os.path.splitext(original_fname)[1]
+        #     final_filename = "picture"+extension
+        # else:
+        #     return
+
+        uploaded_file = self.request.files['imgfile'][0]
+        original_fname = uploaded_file['filename']
+        extension = os.path.splitext(original_fname)[1]
+        fname = ''.join(random.choice(string.ascii_lowercase + string.digits) for x in range(6))
+        final_filename = fname+extension
+
+        output_file = open("uploads/" + final_filename, 'w')
+        output_file.write(uploaded_file['body'])
+        self.redirect('/')
+        wsSend("file" + final_filename + " is uploaded")
+        #self.finish("file" + final_filename + " is uploaded")
 
 
 #Code for handling the data sent from the webpage
@@ -117,7 +145,10 @@ def wsSend(message):
 application = tornado.web.Application([
     (r'/ws', WSHandler),
     (r'/', MainHandler),
-    (r"/static/(.*)", tornado.web.StaticFileHandler, {"path": "./static"})
+    (r"/static/(.*)", tornado.web.StaticFileHandler, {"path": "./static"}),
+    (r"/css/(.*)", tornado.web.StaticFileHandler, {"path": "./css"}),
+    (r"/fonts/(.*)", tornado.web.StaticFileHandler, {"path": "./fonts"}),
+    (r"/upload", UploadHandler)
 ])
 
 
@@ -151,6 +182,7 @@ class MotorThread(threading.Thread):
                     self.plotter.r_rope_0 = float(c['lr'])
                     self.plotter.att_dist = float(c['aw'])
                     wsSend("Plotter settings set")
+                c=''
 
             if c == 'left-fwd':
                 #print "Running left motor fwd"
@@ -201,6 +233,9 @@ class MotorThread(threading.Thread):
             elif c == 'plot':
                 # c stays 'plot' until another command is sent trough the socket
                 plot_action = self.plotter.plot_from_file('coords.csv')
+                c = 'plotting'
+
+            elif c == 'plotting':
                 try:
                     pct_done = next(plot_action)
                     wsSend("Plot {:.2f} Percent done".format(pct_done))

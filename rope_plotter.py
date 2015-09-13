@@ -201,7 +201,8 @@ class rope_plotter(object):
 
     # Advanced plotting functions by chaining movement functions
     def test_drive(self):
-        self.move_to_norm_coord(0.1,0.1)
+        # A little disturbance in the force
+        self.move_to_norm_coord(0.02,0.02)
         self.move_to_norm_coord(0.0,0.0)
 
     def plot_from_file(self, filename):
@@ -235,12 +236,12 @@ class rope_plotter(object):
             x_norm, y_norm = [float(n) for n in coords.readline().split(",")]
             #move
             self.move_to_norm_coord(x_norm, y_norm)
-            yield float(i)/num_coords
+            yield float(i+1)/num_coords*100
 
         coords.close()
         self.pen_up()
         self.move_to_norm_coord(0, 0)
-        return
+        yield 100
 
 
     def plot_circles(self, num_circles=12):

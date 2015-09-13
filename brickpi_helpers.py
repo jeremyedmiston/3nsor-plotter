@@ -144,7 +144,7 @@ class motorPID_control(object):
         #derivative = (error - self.errors[0]) / dt6
 
         #calculate output
-        output = self.Kp * ( error +  self.integral / self.Ti + self.Td * derivative )   #Ti should be 1/Ti.
+        output = self.Kp * ( error + self.integral * self.Ti + self.Td * derivative )   #Ti should be 1/Ti.
         self.log.log_line(error, output, self.integral, derivative)
 
         #save error & time for next time.

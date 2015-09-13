@@ -7,10 +7,7 @@
 ########################################################################
 -->
 <!-- This code implements the web socket connection between client(web page on a Computer) and a server(raspberry pi) -->
-<!-- It sends data from web page using buttons and Keyboard presses to control the BrickPi robot
-TODO: Refactor so setup isn't run every time. Refactor so a dictionary with states is sent over on change.
-TODO: Add a manual connect/disconnect/setup button. Or monitor.
--->
+<!-- It sends data from web page using buttons and Keyboard presses to control the BrickPi robot-->
 
 <!DOCTYPE html>
 <html>
@@ -18,10 +15,8 @@ TODO: Add a manual connect/disconnect/setup button. Or monitor.
   <title>WebSockets Client</title>
   <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
   <link href='https://fonts.googleapis.com/css?family=Montserrat:400,700' rel='stylesheet' type='text/css'>
-  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet"
-        integrity="sha256-MfvZlkHCEqatNoGiOXveE8FIwMzZg4W85qfrfIFBfYc= sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ=="
-        crossorigin="anonymous">
-
+  <link href="css/bootstrap.min.css" rel="stylesheet">
+  <link href="css/bootstrap-theme.min.css" rel="stylesheet">
   <style>
     h1,h2 {
     font-family: ‘Metrophobic’, Arial, serif;
@@ -30,14 +25,14 @@ TODO: Add a manual connect/disconnect/setup button. Or monitor.
 
     @media screen and (min-width: 600px)
     {
-      .flexbox {
-        display: flex;
-      }
+    .flexbox {
+    display: flex;
+    }
 
-      #output
-      {
-        overflow: scroll;
-      }
+    #output
+    {
+    overflow: scroll;
+    }
     }
 
 
@@ -50,6 +45,46 @@ TODO: Add a manual connect/disconnect/setup button. Or monitor.
 
   <div class="row flexbox" id="mainrow">
     <div class="col-md-8">
+      <div class="row">
+        <div class="col-md-12">
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <h3>Upload and plot</h3>
+            </div>
+            <div class="panel-body">
+              <p>
+
+              <form enctype="multipart/form-data" action="/upload" method="post">
+                <div class="input-group">
+                  <span class="input-group-addon"> Select coords.csv </span>
+                  <input class="form-control" type="file" name="coordsfile"/>
+                  <span class="input-group-btn">
+                    <button type="submit" class="btn btn-default"><span class="glyphicon glyphicon-upload"></span>
+                      Upload
+                    </button>
+                    <button class="btn btn-primary"><span class="glyphicon glyphicon-pencil"></span> Plot</button>
+                  </span>
+                </div>
+              </form>
+              </p><p>
+
+              <form enctype="multipart/form-data" action="/upload" method="post">
+                <div class="input-group">
+                  <span class="input-group-addon"> Select image </span>
+                  <input class="form-control" type="file" name="imgfile"/>
+                  <span class="input-group-btn">
+                    <button type="submit" value="upload" class="btn btn-default"><span
+                            class="glyphicon glyphicon-upload"></span> Upload
+                    </button>
+                    <button class="btn btn-primary"><span class="glyphicon glyphicon-pencil"></span> Plot</button>
+                  </span>
+                </div>
+              </form>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
       <div class="row">
         <div class="col-md-12">
           <div class="panel panel-default">
@@ -69,34 +104,34 @@ TODO: Add a manual connect/disconnect/setup button. Or monitor.
                 <tr>
                   <td>
                     <button class="btn btn-default" data-down="left-fwd" data-up="left-stop"><span
-                            class="glyphicon glyphicon-arrow-up"/> [q]
+                            class="glyphicon glyphicon-arrow-up"></span> [q]
                     </button>
                   </td>
                   <td>
                     <button class="btn btn-default" data-down="right-fwd" data-up="right-stop"><span
-                            class="glyphicon glyphicon-arrow-up"/> [w]
+                            class="glyphicon glyphicon-arrow-up"></span> [w]
                     </button>
                   </td>
                   <td>
                     <button class="btn btn-default" data-down="" data-up="pu"><span
-                            class="glyphicon glyphicon-remove-circle"/> [e]
+                            class="glyphicon glyphicon-remove-circle"></span> [e]
                     </button>
                   </td>
                 </tr>
                 <tr>
                   <td>
                     <button class="btn btn-default" data-down="left-back" data-up="left-stop"><span
-                            class="glyphicon glyphicon-arrow-down"/> [a]
+                            class="glyphicon glyphicon-arrow-down"></span> [a]
                     </button>
                   </td>
                   <td>
                     <button class="btn btn-default" data-down="right-back" data-up="right-stop"><span
-                            class="glyphicon glyphicon-arrow-down"/> [s]
+                            class="glyphicon glyphicon-arrow-down"></span> [s]
                     </button>
                   </td>
                   <td>
                     <button class="btn btn-default" data-down="" data-up="pd"><span
-                            class="glyphicon glyphicon-ok-circle"/> [d]
+                            class="glyphicon glyphicon-ok-circle"></span> [d]
                     </button>
                   </td>
                 </tr>
@@ -105,7 +140,7 @@ TODO: Add a manual connect/disconnect/setup button. Or monitor.
               <button class="btn btn-primary" data-down="" data-up="zero">Set motor zeros</button>
               <button class="btn btn-default" data-down="" data-up="plot">Plot coords.csv</button>
               <button class="btn btn-default" data-down="" data-up="plotcircles">Plot circles</button>
-
+              <button class="btn btn-default" data-down="" data-up="testdrive">Test drive</button>
               <button class="btn btn-default" data-down="" data-up="stop">Stop</button>
             </div>
           </div>
@@ -127,7 +162,7 @@ TODO: Add a manual connect/disconnect/setup button. Or monitor.
                 </div>
                 <div class="form-group">
                   <label> Ki </label>
-                  <input type="text" name="ti"  size="10" value="{{ ti }}"/>
+                  <input type="text" name="ti" size="10" value="{{ ti }}"/>
                 </div>
                 <div class="form-group">
                   <label> Kd </label>
@@ -189,6 +224,7 @@ TODO: Add a manual connect/disconnect/setup button. Or monitor.
         //the "class" for controlling the everything about the socket on this page.
         var name = window.location.host;
         this.host =  "ws://"+name+"/ws";
+        this.socket = this.getSocket();
     }
 
     function showServerResponse(txt)
@@ -378,6 +414,11 @@ TODO: Add a manual connect/disconnect/setup button. Or monitor.
         return false;
     });
 }());
+
+
+
+
+
 </script>
 </body>
 </html>
@@ -390,4 +431,9 @@ jQuery(function($)
     alert("Your browser does not support web sockets");
   }
 });
+
+
+
+
+
 </script>

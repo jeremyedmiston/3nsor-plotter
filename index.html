@@ -13,7 +13,7 @@
 <html>
 <head>
   <title>WebSockets Client</title>
-  <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+  <script src="static/jquery-1.11.3.min.js"></script>
   <link href='https://fonts.googleapis.com/css?family=Montserrat:400,700' rel='stylesheet' type='text/css'>
   <link href="css/bootstrap.min.css" rel="stylesheet">
   <link href="css/bootstrap-theme.min.css" rel="stylesheet">
@@ -156,6 +156,7 @@
               <img src="static/pid.png">
 
               <form class="form-inline" id="pid" action="" method="post">
+                <p>
                 <div class="form-group">
                   <label> Kp </label>
                   <input type="text" name="kp" size="10" value="{{ kp }}"/>
@@ -168,8 +169,10 @@
                   <label> Kd </label>
                   <input type="text" name="td" size="10" value="{{ td }}"/>
                 </div>
+                </p><p>
                 <button id="sendPID" type="submit" class="btn btn-primary">Send</button>
                 <button class="btn btn-default" data-down="" data-up="testdrive">Test drive</button>
+                </p>
               </form>
             </div>
           </div>
@@ -184,7 +187,7 @@
 
               <form class="form-inline" id="plot" action="" method="post">
 
-
+                <p>
                 <div class="form-group">
                   <label> Left rope length at origin (cm) </label>
                   <input type="text" name="ll" size="10" value="{{ ll }}"/><br>
@@ -197,7 +200,9 @@
                   <label> Width between rope attachments </label>
                   <input type="text" name="aw" size="10" value="{{ aw }}"/>
                 </div>
+                </p><p>
                 <button id="sendPlot" type="submit" class="btn btn-primary">Send</button>
+                </p>
               </form>
             </div>
           </div>

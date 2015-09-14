@@ -19,10 +19,10 @@ right, and the server became real slow.
 6. Start plotting
 
 
-
-## Interesting bits...##
+## Good to know ##
 - My wifi dongle went to sleep all the time, while I was working on this project. I used this to fix it: http://raspberrypi.stackexchange.com/questions/1384/how-do-i-disable-suspend-mode
 As long as the server is running, there's no problem.
+- The script has virtually no error catching. It will crash if you throw data at it, that it is not expecting.
 
 ## Todo ##
 - Make PID controller for pen up/down

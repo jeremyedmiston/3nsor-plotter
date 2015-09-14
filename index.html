@@ -157,6 +157,7 @@
 
               <form class="form-inline" id="pid" action="" method="post">
                 <p>
+
                 <div class="form-group">
                   <label> Kp </label>
                   <input type="text" name="kp" size="10" value="{{ kp }}"/>
@@ -169,9 +170,10 @@
                   <label> Kd </label>
                   <input type="text" name="td" size="10" value="{{ td }}"/>
                 </div>
-                </p><p>
-                <button id="sendPID" type="submit" class="btn btn-primary">Send</button>
-                <button class="btn btn-default" data-down="" data-up="testdrive">Test drive</button>
+                </p>
+                <p>
+                  <button id="sendPID" type="submit" class="btn btn-primary">Send</button>
+                  <button class="btn btn-default" data-down="" data-up="testdrive">Test drive</button>
                 </p>
               </form>
             </div>
@@ -186,7 +188,6 @@
               <img src="static/schematic.png">
 
               <form class="form-inline" id="plot" action="" method="post">
-
                 <p>
                 <div class="form-group">
                   <label> Left rope length at origin (cm) </label>
@@ -200,8 +201,9 @@
                   <label> Width between rope attachments </label>
                   <input type="text" name="aw" size="10" value="{{ aw }}"/>
                 </div>
-                </p><p>
-                <button id="sendPlot" type="submit" class="btn btn-primary">Send</button>
+                </p>
+                <p>
+                  <button id="sendPlot" type="submit" class="btn btn-primary">Send</button>
                 </p>
               </form>
             </div>
@@ -424,6 +426,7 @@
 
 
 
+
 </script>
 </body>
 </html>
@@ -436,6 +439,7 @@ jQuery(function($)
     alert("Your browser does not support web sockets");
   }
 });
+
 
 
 

@@ -87,29 +87,28 @@ class MainHandler(tornado.web.RequestHandler):
 
 class UploadHandler(tornado.web.RequestHandler):
     def post(self):
-        # if self.request.files['coordsfile'][0]:
-        #     uploaded_file = self.request.files['coordsfile'][0]
-        #     #original_fname = file1['filename']
-        #     #extension = os.path.splitext(original_fname)[1]
-        #     #fname = ''.join(random.choice(string.ascii_lowercase + string.digits) for x in range(6))
-        #     final_filename = 'coords.csv' #fname+extension
-        # elif self.request.files['imgfile'][0]:
-        #     uploaded_file = self.request.files['imgfile'][0]
-        #     original_fname = uploaded_file['filename']
-        #     extension = os.path.splitext(original_fname)[1]
-        #     final_filename = "picture"+extension
-        # else:
-        #     return
+        if 'coordsfile' in self.request.files:
+            uploaded_file = self.request.files['coordsfile'][0]
+            final_filename = 'coords.csv' #fname+extension
+        elif 'imgfile' in self.request.files:
+            uploaded_file = self.request.files['imgfile'][0]
+            original_fname = uploaded_file['filename']
+            extension = os.path.splitext(original_fname)[1]
+            final_filename = "picture"+extension
+        else:
+            return
 
-        uploaded_file = self.request.files['imgfile'][0]
-        original_fname = uploaded_file['filename']
-        extension = os.path.splitext(original_fname)[1]
-        fname = ''.join(random.choice(string.ascii_lowercase + string.digits) for x in range(6))
-        final_filename = fname+extension
+        # original code
+        # uploaded_file = self.request.files['imgfile'][0]
+        # original_fname = uploaded_file['filename']
+        # extension = os.path.splitext(original_fname)[1]
+        # fname = ''.join(random.choice(string.ascii_lowercase + string.digits) for x in range(6))
+        # final_filename = fname+extension
 
         output_file = open("uploads/" + final_filename, 'w')
         output_file.write(uploaded_file['body'])
-        self.redirect('/')
+
+        #self.redirect('/') #is this necessary?
         wsSend("file" + final_filename + " is uploaded")
         #self.finish("file" + final_filename + " is uploaded")
 

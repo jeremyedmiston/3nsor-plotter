@@ -63,9 +63,9 @@ L_ROPE_0 = 60.5  # Length of left rope in cm when pen is at 0,0 (top left)
 R_ROPE_0 = 88.5  # same for right tope
 ROPE_ATTACHMENT_WIDTH = 90  # space between the two attachment points of the plotter.In my case: door width. In cm.
 PULLEY_DIAMETER = 4.4
-KP=0.9
-TI=0.9
-TD=0.18
+KP=2.2
+TI=0.2
+TD=0.02
 MAXPWR=200
 
 
@@ -138,7 +138,7 @@ class WSHandler(tornado.websocket.WebSocketHandler):
 
 def wsSend(message):
     for ws in websockets:
-        ws.write_message(message)
+        ws.write_message("[ {0:.2f}V ] {1}".format(get_voltage(), message))
 
 
 application = tornado.web.Application([

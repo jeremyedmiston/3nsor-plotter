@@ -1,6 +1,6 @@
 __author__ = 'anton'
 
-from brickpi_helpers import motorPID_control
+from brickpi_helpers import motorPID_control, motor_assym_control
 from BrickPi import *
 
 
@@ -25,12 +25,11 @@ class rope_plotter(object):
             # So we wait until no_values goes 0, which means values updated OK
             no_values = BrickPiUpdateValues()
 
-
-        left_motor = motorPID_control(PORT_B, Kp, Ti, Td, maxpower=maxpower)
-        right_motor = motorPID_control(PORT_C, Kp, Ti, Td, maxpower=maxpower)
+        left_motor = motor_assym_control(PORT_B) #motorPID_control(PORT_B, Kp, Ti, Td, maxpower=maxpower)
+        right_motor = motor_assym_control(PORT_C) #motorPID_control(PORT_C, Kp, Ti, Td, maxpower=maxpower)
         self.drive_motors = [left_motor, right_motor]
         self.set_motor_zero()
-        self.precision = 5 #Motors stop running when they are within +/-5 degrees of target.
+        self.precision = 10 #Motors stop running when they are within +/-5 degrees of target.
 
 
     # Getters & setters for plotter properties. Python style, Baby!

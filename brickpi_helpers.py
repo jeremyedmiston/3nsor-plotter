@@ -2,6 +2,43 @@ __author__ = 'anton'
 
 import time
 from collections import deque
+import smbus
+
+
+def get_voltage():
+    """
+    Reads the digital output code of the MCP3021 chip on the BrickPi+ over i2c.
+    Some bit operation magic to get a voltage floating number.
+
+    If this doesnt work try this on the command line: i2cdetect -y 1
+    The 1 in there is the bus number, same as in bus = smbus.SMBus(1)
+    Google the resulting error.
+
+    :return: voltage (float)
+    """
+    bus = smbus.SMBus(1)            # SMBUS 1 because we're using greater than V1.
+    address = 0x48
+    # time.sleep(0.1) #Is this necessary?
+    try:
+            # read data from i2c bus. the 0 command is mandatory for the protocol but not used in this chip.
+            data = bus.read_word_data(address, 0)
+
+            # from this data we need the last 4 bites and the first 6.
+            last_4 = data & 0b1111 # using a byte mask
+            first_6 = data >> 10 # left shift 10 because data is 16 bits
+
+            # together they make the voltage conversion ratio
+            # to make it all easier the last_4 bits are most significant :S
+            # vratio = (data & 0b1111) << 6 | data >> 10)
+            vdata = ((last_4 << 6) | first_6)
+
+            # Now we can calculate the battery voltage like so:
+            voltage = vdata * 0.0181 #This is an empyrical number for voltage conversion.
+
+            return voltage
+
+    except:
+            return False
 
 
 def clamp(n, (minn, maxn)):
@@ -136,7 +173,7 @@ class motorPID_control(object):
         # calculate integral
         dt = time.time() - self.timestamp
         self.integral += error * dt
-        self.integral = clamp(self.integral,(-self.maxpower,self.maxpower)) #when driving a long time, this number can get too high.
+        self.integral = clamp(self.integral,(-self.maxpower/2,self.maxpower/2)) #when driving a long time, this number can get too high.
 
         #calculate derivative. Use the error value from 6 cycles back, because of jitter.
         derivative = (error - self.prev_error) / dt
@@ -151,6 +188,66 @@ class motorPID_control(object):
         self.prev_error = error
         self.timestamp = time.time()
         self.errors.append(error)
+        self.timestamps.append(time.time())
+
+        return int(clamp(output,(-self.maxpower,self.maxpower)))
+
+
+class motor_assym_control(object):
+    """
+    Helper class that remembers the integral and derivative of an error and uses that to calculate
+    motor power for a servo.
+    """
+
+    def __init__(self, motor_port, Kp_fwd=5, Kp_bwd=1, maxpower=255):
+        self.port = motor_port
+        self.Kp_fwd = Kp_fwd
+        self.Kp_bwd = Kp_bwd
+        self.zero = 0
+        self.encoder = 0
+        self.target = 0 #also initialize other properties using setter
+        #self.errors = deque(maxlen=6)
+        #self.timestamps = deque(maxlen=6)
+        self.maxpower = maxpower
+
+    @property   # getter
+    def error(self):
+        return self.__target - self.position
+
+    @property   # getter
+    def position(self):
+        return self.encoder - self.zero
+
+    @property   # getter
+    def target(self):
+        return self.__target
+
+    @target.setter  # setter, python style!
+    def target(self, target):
+        self.__target = target
+        self.integral = 0
+        self.prev_error = self.error
+        self.errors = deque([self.error], maxlen=6)
+        self.timestamp = time.time()-0.02
+        self.timestamps = deque([self.timestamp],maxlen=6)
+
+    def calc_power(self):
+        """
+        Returns motor power based on previously set encoder position.
+
+        Always feed this to a motor.
+        :return: int motor power
+        """
+
+        #get error & save timestamps
+        if self.error < 0:
+            output = self.Kp_bwd * self.error
+        else:
+            output = self.Kp_fwd * self.error
+
+        #save error & time for next time.
+        self.prev_error = self.error
+        self.timestamp = time.time()
         self.timestamps.append(time.time())
 
         return int(clamp(output,(-self.maxpower,self.maxpower)))

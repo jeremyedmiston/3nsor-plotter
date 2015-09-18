@@ -137,7 +137,7 @@ class MotorPidControl(object):
         self.target = 0         # This also initializes other properties using setter
 
         self.maxpower = maxpower
-        logname = "-".join([str(i) for i in ["motor",motor_port,Kp,Ti,Td]])
+        logname = "-".join([str(i) for i in ["motor",motor_port]])
         self.log = Logger(logname, to_file=True)
         self.log.log_line('target','error','output','integral','derivative')
 

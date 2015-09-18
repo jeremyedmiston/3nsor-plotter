@@ -10,7 +10,7 @@ class RopePlotter(object):
         self.__r_rope_0 = r_rope_0
         self.__att_dist = attachment_distance
         self.pulley_diam = pulley_diam
-        self.direction = -1
+        self.direction = 1 # -1 is for reversing motors
         self.calc_constants()
         self.maxpower = maxpower
 
@@ -27,8 +27,8 @@ class RopePlotter(object):
             no_values = BrickPiUpdateValues()
 
         # Intialise motor control
-        left_motor = MotorPidControl(PORT_B, Kp, Ti, Td, Kp_neg=3, maxpower=maxpower, direction=self.direction)
-        right_motor = MotorPidControl(PORT_C, Kp, Ti, Td, Kp_neg=3, maxpower=maxpower, direction=self.direction)
+        left_motor = MotorPidControl(PORT_B, Kp, Ti, Td, Kp_neg=1.3, maxpower=maxpower, direction=self.direction)
+        right_motor = MotorPidControl(PORT_C, Kp, Ti, Td, Kp_neg=1.3, maxpower=maxpower, direction=self.direction)
         self.drive_motors = [left_motor, right_motor]
         self.set_motor_zero()
         self.precision = 10 # Motors stop running when they are within +/-5 degrees of target.
@@ -203,7 +203,7 @@ class RopePlotter(object):
     # Advanced plotting functions by chaining movement functions
     def test_drive(self):
         # A little disturbance in the force
-        self.move_to_norm_coord(0.02,0.02)
+        self.move_to_norm_coord(0.05,0.05)
         self.move_to_norm_coord(0.0,0.0)
 
     def plot_from_file(self, filename):

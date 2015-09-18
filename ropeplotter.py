@@ -1,35 +1,37 @@
 __author__ = 'anton'
 
-from brickpi_helpers import motorPID_control, motor_assym_control
+from brickpi_helpers import MotorPidControl
 from BrickPi import *
 
 
-class rope_plotter(object):
+class RopePlotter(object):
     def __init__(self,l_rope_0, r_rope_0, attachment_distance, pulley_diam=4.4, Kp=1.5, Ti=0.8, Td=0.05, maxpower=200):
         self.__l_rope_0 = l_rope_0
         self.__r_rope_0 = r_rope_0
         self.__att_dist = attachment_distance
         self.pulley_diam = pulley_diam
+        self.direction = -1
         self.calc_constants()
+        self.maxpower = maxpower
 
-        #Start the BrickPi
+        # Start the BrickPi
         BrickPiSetup()  # setup the serial port for communication
         BrickPi.MotorEnable[PORT_A] = 1  #Enable the Motor A
         BrickPi.MotorEnable[PORT_B] = 1  #Enable the Motor B
         BrickPi.MotorEnable[PORT_C] = 1  #Enable the Motor C
         BrickPi.MotorEnable[PORT_D] = 1  #Enable the Motor D
-
         no_values = 1
         while no_values:
             # Make sure we have something before we start running
             # So we wait until no_values goes 0, which means values updated OK
             no_values = BrickPiUpdateValues()
 
-        left_motor = motor_assym_control(PORT_B) #motorPID_control(PORT_B, Kp, Ti, Td, maxpower=maxpower)
-        right_motor = motor_assym_control(PORT_C) #motorPID_control(PORT_C, Kp, Ti, Td, maxpower=maxpower)
+        # Intialise motor control
+        left_motor = MotorPidControl(PORT_B, Kp, Ti, Td, Kp_neg=3, maxpower=maxpower, direction=self.direction)
+        right_motor = MotorPidControl(PORT_C, Kp, Ti, Td, Kp_neg=3, maxpower=maxpower, direction=self.direction)
         self.drive_motors = [left_motor, right_motor]
         self.set_motor_zero()
-        self.precision = 10 #Motors stop running when they are within +/-5 degrees of target.
+        self.precision = 10 # Motors stop running when they are within +/-5 degrees of target.
 
 
     # Getters & setters for plotter properties. Python style, Baby!
@@ -311,7 +313,7 @@ class rope_plotter(object):
 
     # Calibration & manual movement functions
     def left_fwd(self):
-        BrickPi.MotorSpeed[self.drive_motors[0].port] = 100
+        BrickPi.MotorSpeed[self.drive_motors[0].port] = 150 * self.direction
         BrickPiUpdateValues()
 
     def left_stop(self):
@@ -319,11 +321,11 @@ class rope_plotter(object):
         BrickPiUpdateValues()
 
     def left_back(self):
-        BrickPi.MotorSpeed[self.drive_motors[0].port] = -100
+        BrickPi.MotorSpeed[self.drive_motors[0].port] = -150 * self.direction
         BrickPiUpdateValues()
 
     def right_fwd(self):
-        BrickPi.MotorSpeed[self.drive_motors[1].port] = 100
+        BrickPi.MotorSpeed[self.drive_motors[1].port] = 150 * self.direction
         BrickPiUpdateValues()
 
     def right_stop(self):
@@ -331,7 +333,7 @@ class rope_plotter(object):
         BrickPiUpdateValues()
 
     def right_back(self):
-        BrickPi.MotorSpeed[self.drive_motors[1].port] = -100
+        BrickPi.MotorSpeed[self.drive_motors[1].port] = -150 * self.direction
         BrickPiUpdateValues()
 
 

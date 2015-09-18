@@ -99,7 +99,7 @@ class Logger(object):
         self.new_line_ready = False
         self.to_file = to_file
         if to_file:
-            self.logfile = open(self.logname+".csv",'w')
+            self.logfile = open("logs/"+self.logname+".csv",'w')
 
     def log(self, *args):
         self.new_line_ready = False
@@ -119,25 +119,27 @@ class Logger(object):
         self.newline()
 
 
-class motorPID_control(object):
+class MotorPidControl(object):
     """
     Helper class that remembers the integral and derivative of an error and uses that to calculate
     motor power for a servo.
     """
 
-    def __init__(self, motor_port, KP=3, Ti=0, Td=0, maxpower=255):
+    def __init__(self, motor_port, Kp=2, Ti=0, Td=0, Kp_neg=2, maxpower=255, direction=1):
         self.port = motor_port
-        self.Kp = KP
-        self.Ti = Ti     #convert ms to seconds
-        self.Td = Td     #convert ms to seconds
+        self.direction = direction
+        self.Kp = Kp
+        self.Kp_neg = Kp_neg    # Different feedback factor in the negative direction.
+        self.Ti = Ti
+        self.Td = Td
         self.zero = 0
         self.encoder = 0
-        self.target = 0 #also initialize other properties using setter
-        #self.errors = deque(maxlen=6)
-        #self.timestamps = deque(maxlen=6)
+        self.target = 0         # This also initializes other properties using setter
+
         self.maxpower = maxpower
-        logname = "-".join([str(i) for i in ["motor",motor_port,KP,Ti,Td]])
-        self.log = Logger(logname)
+        logname = "-".join([str(i) for i in ["motor",motor_port,Kp,Ti,Td]])
+        self.log = Logger(logname, to_file=True)
+        self.log.log_line('target','error','output','integral','derivative')
 
     @property   # getter
     def error(self):
@@ -153,12 +155,12 @@ class motorPID_control(object):
 
     @target.setter  # setter, python style!
     def target(self, target):
-        self.__target = target
+        self.__target = target * self.direction
         self.integral = 0
         self.prev_error = self.error
-        self.errors = deque([self.error], maxlen=6)
+        #self.errors = deque([self.error], maxlen=6)
         self.timestamp = time.time()-0.02
-        self.timestamps = deque([self.timestamp],maxlen=6)
+        #self.timestamps = deque([self.timestamp],maxlen=6)
 
     def calc_power(self):
         """
@@ -181,73 +183,19 @@ class motorPID_control(object):
         #derivative = (error - self.errors[0]) / dt6
 
         #calculate output
-        output = self.Kp * ( error + self.integral * self.Ti + self.Td * derivative )   #Ti should be 1/Ti.
-        self.log.log_line(error, output, self.integral, derivative)
+        if error < 0:
+            Kp = self.Kp_neg
+        else:
+            Kp = self.Kp
+        output = Kp * ( error + self.integral * self.Ti + self.Td * derivative )   #Ti should be 1/Ti.
+        self.log.log_line(self.target, error, output, self.integral, derivative)
 
         #save error & time for next time.
         self.prev_error = error
         self.timestamp = time.time()
-        self.errors.append(error)
-        self.timestamps.append(time.time())
+        #self.errors.append(error)
+        #self.timestamps.append(time.time())
 
         return int(clamp(output,(-self.maxpower,self.maxpower)))
 
 
-class motor_assym_control(object):
-    """
-    Helper class that remembers the integral and derivative of an error and uses that to calculate
-    motor power for a servo.
-    """
-
-    def __init__(self, motor_port, Kp_fwd=5, Kp_bwd=1, maxpower=255):
-        self.port = motor_port
-        self.Kp_fwd = Kp_fwd
-        self.Kp_bwd = Kp_bwd
-        self.zero = 0
-        self.encoder = 0
-        self.target = 0 #also initialize other properties using setter
-        #self.errors = deque(maxlen=6)
-        #self.timestamps = deque(maxlen=6)
-        self.maxpower = maxpower
-
-    @property   # getter
-    def error(self):
-        return self.__target - self.position
-
-    @property   # getter
-    def position(self):
-        return self.encoder - self.zero
-
-    @property   # getter
-    def target(self):
-        return self.__target
-
-    @target.setter  # setter, python style!
-    def target(self, target):
-        self.__target = target
-        self.integral = 0
-        self.prev_error = self.error
-        self.errors = deque([self.error], maxlen=6)
-        self.timestamp = time.time()-0.02
-        self.timestamps = deque([self.timestamp],maxlen=6)
-
-    def calc_power(self):
-        """
-        Returns motor power based on previously set encoder position.
-
-        Always feed this to a motor.
-        :return: int motor power
-        """
-
-        #get error & save timestamps
-        if self.error < 0:
-            output = self.Kp_bwd * self.error
-        else:
-            output = self.Kp_fwd * self.error
-
-        #save error & time for next time.
-        self.prev_error = self.error
-        self.timestamp = time.time()
-        self.timestamps.append(time.time())
-
-        return int(clamp(output,(-self.maxpower,self.maxpower)))

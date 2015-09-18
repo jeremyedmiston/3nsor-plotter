@@ -53,17 +53,18 @@ import json, os, random, string
 
 # My own stuff
 from brickpi_helpers import *
-from rope_plotter import rope_plotter
+from ropeplotter import RopePlotter
 
 ################### Settings ################
 
 
-MOTOR_CMD_RATE = 20  # Max number of motor commands per second
-L_ROPE_0 = 60.5  # Length of left rope in cm when pen is at 0,0 (top left)
-R_ROPE_0 = 88.5  # same for right tope
+MOTOR_CMD_RATE = 20         # Max number of motor commands per second
+L_ROPE_0 = 60.5             # Length of left rope in cm when pen is at 0,0 (top left)
+R_ROPE_0 = 88.5             # same for right rope
 ROPE_ATTACHMENT_WIDTH = 90  # space between the two attachment points of the plotter.In my case: door width. In cm.
 PULLEY_DIAMETER = 4.4
-KP=2.2
+KP=0.8
+KP_NEG=3
 TI=0.2
 TD=0.02
 MAXPWR=200
@@ -71,8 +72,8 @@ MAXPWR=200
 
 ################## Globals. I know. #################
 
-c = 0  # movement command.
-websockets = []  # list of open sockets.
+c = 0               # movement command.
+websockets = []     # list of open sockets.
 
 
 ################# Set up web server & threads #####################
@@ -138,6 +139,8 @@ class WSHandler(tornado.websocket.WebSocketHandler):
 
 def wsSend(message):
     for ws in websockets:
+        # Prepend voltage before each message
+        # TODO make a separate voltage gauge on the web page.
         ws.write_message("[ {0:.2f}V ] {1}".format(get_voltage(), message))
 
 
@@ -147,6 +150,7 @@ application = tornado.web.Application([
     (r"/static/(.*)", tornado.web.StaticFileHandler, {"path": "./static"}),
     (r"/css/(.*)", tornado.web.StaticFileHandler, {"path": "./css"}),
     (r"/fonts/(.*)", tornado.web.StaticFileHandler, {"path": "./fonts"}),
+    (r"/logs/(.*)", tornado.web.StaticFileHandler, {"path": "./logs"}),
     (r"/upload", UploadHandler)
 ])
 
@@ -159,7 +163,7 @@ class MotorThread(threading.Thread):
     def __init__(self):
         self.motor_log = Logger("Motors")
         threading.Thread.__init__(self)
-        self.plotter = rope_plotter(L_ROPE_0, R_ROPE_0, ROPE_ATTACHMENT_WIDTH, Kp=KP, Ti=TI, Td=TD, maxpower=MAXPWR)
+        self.plotter = RopePlotter(L_ROPE_0, R_ROPE_0, ROPE_ATTACHMENT_WIDTH, Kp=KP, Ti=TI, Td=TD, maxpower=MAXPWR)
         self.throttle = Throttler(MOTOR_CMD_RATE)
 
     def run(self):
@@ -268,10 +272,10 @@ if __name__ == "__main__":
     motor_thread.start()
 
     #set up web server
-    application.listen(9093)  # starts the websockets connection
+    application.listen(9093)  # starts the web sockets connection
     try:
         tornado.ioloop.IOLoop.instance().start()
-    except KeyboardInterrupt:  #Triggered by pressing Ctrl+C. Time to clean up.
+    except KeyboardInterrupt:  # Triggered by pressing Ctrl+C. Time to clean up.
         #Stop motor thread
         running = False
         #Close all sockets

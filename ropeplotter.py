@@ -2,10 +2,11 @@ __author__ = 'anton'
 
 from brickpi_helpers import MotorPidControl
 from BrickPi import *
+from PIL import Image
 
 
 class RopePlotter(object):
-    def __init__(self,l_rope_0, r_rope_0, attachment_distance, pulley_diam=4.4, Kp=1.5, Ti=0.8, Td=0.05, maxpower=200):
+    def __init__(self,l_rope_0, r_rope_0, attachment_distance, pulley_diam=4.4, Kp=2.2, Ti=0.2, Td=0.02, Kp_neg=1, maxpower=200):
         self.__l_rope_0 = l_rope_0
         self.__r_rope_0 = r_rope_0
         self.__att_dist = attachment_distance
@@ -27,8 +28,9 @@ class RopePlotter(object):
             no_values = BrickPiUpdateValues()
 
         # Intialise motor control
-        left_motor = MotorPidControl(PORT_B, Kp, Ti, Td, Kp_neg=1.3, maxpower=maxpower, direction=self.direction)
-        right_motor = MotorPidControl(PORT_C, Kp, Ti, Td, Kp_neg=1.3, maxpower=maxpower, direction=self.direction)
+        left_motor = MotorPidControl(PORT_B, Kp, Ti, Td, Kp_neg=Kp_neg, maxpower=maxpower, direction=self.direction)
+        right_motor = MotorPidControl(PORT_C, Kp, Ti, Td, Kp_neg=Kp_neg, maxpower=maxpower, direction=self.direction)
+        self.pen_motor = MotorPidControl(PORT_A)
         self.drive_motors = [left_motor, right_motor]
         self.set_motor_zero()
         self.precision = 10 # Motors stop running when they are within +/-5 degrees of target.
@@ -156,7 +158,7 @@ class RopePlotter(object):
         self.move_motor_for_time(PORT_D,-30)
 
     def set_motor_zero(self):
-        for motor in self.drive_motors:
+        for motor in self.drive_motors + [self.pen_motor]:
             motor.encoder = int(BrickPi.Encoder[motor.port])
             motor.zero = int(BrickPi.Encoder[motor.port])
             print "Encoder zero position set to", motor.zero, "For motor at port:", motor.port
@@ -246,40 +248,63 @@ class RopePlotter(object):
 
 
     def plot_circles(self, num_circles=12):
+        UP = 0
+        DOWN = 30
+        im = Image.open("uploads/picture.jpg").convert("L")
+        w, h = im.size
+        pixels = im.load()
+
         r_min = (self.h_margin**2+self.v_margin**2)**0.5
         r_max = ((self.h_margin+self.canvas_size)**2 + (self.v_margin+self.canvas_size)**2)**0.5
         r_step = (r_max-r_min)/num_circles
 
-        motor_B, motor_C = self.drive_motors #unpack
+        motor_B, motor_C = self.drive_motors # Unpack
 
         for i in range(1, num_circles, 2):
             x = self.h_margin
+            # Caculate where a circle with radius r_min+r_step*i crosses the left margin.
             y = ((r_min+r_step*i)**2 - self.h_margin ** 2) ** 0.5
             print "y:",y, "vm:",self.v_margin,"rmin:",r_min,"step:",r_step
             if y > self.v_margin+self.canvas_size:
+                # We reached the bottom, now we check where circles cross the bottom margin
                 x = ((r_min + r_step*i) ** 2 - (self.v_margin + self.canvas_size) ** 2) ** 0.5
                 y = self.v_margin+self.canvas_size
-                print "Phase 3: Rollin' up!"
-            else:
-                print "Phase 1: Rollin' up!"
 
             self.move_to_coord(x,y)
 
-
             #turn on right motor, slowly, to draw circles left to right
             BrickPi.MotorSpeed[PORT_C] = 120
-            #Motor B is off, but let's get it's encoder first
+            #Motor B is off, so let's get it's encoder only once
             motor_B.encoder = BrickPi.Encoder[motor_B.port]
 
             #calculate coordinates continuously until we reach the top, or right side of the canvas
             while 1:
                 BrickPiUpdateValues()
                 motor_C.encoder = BrickPi.Encoder[motor_C.port]
+
+                # Look at the pixel we're at and move pen up or down accordingly
+                self.pen_motor.encoder = BrickPi.Encoder[self.pen_motor.port]
                 x_norm, y_norm = self.coords_from_motor_pos(motor_B.position, motor_C.position)
-                print "Currently at", x_norm,y_norm
-                if y_norm <= 0: break # reached the top
-                if x_norm >= 1: break # reached the right side
+                if pixels[int(x_norm * w), int(y_norm * w)] < 80: # About 33% gray
+                    self.pen_motor.target = DOWN
+                else:
+                    self.pen_motor.target = UP
+                BrickPi.MotorSpeed[self.pen_motor.port] = self.pen_motor.calc_power()
+
+                if y_norm <= 0:
+                    break # reached the top
+                if x_norm >= 1:
+                    break # reached the right side
                 time.sleep(0.02)
+
+            # Pen up
+            self.pen_motor.target = UP
+            while not (-5 < self.pen_motor.error < 5):
+                BrickPi.MotorSpeed[self.pen_motor.port] = self.pen_motor.calc_power()
+                BrickPiUpdateValues()
+
+            # Yield to allow pause/stop and show percentage
+            yield i*100.0/num_circles
 
             #Good, now move to the next point and roll down.
             x = ((r_min + r_step*(i+1)) ** 2 - self.v_margin ** 2) ** 0.5
@@ -288,9 +313,6 @@ class RopePlotter(object):
             if x > self.h_margin + self.canvas_size:
                 x = self.h_margin + self.canvas_size
                 y = ((r_min+r_step*(i+1)) ** 2 - (self.h_margin+self.canvas_size) ** 2) ** 0.5
-                print "Phase 2: Moving down"
-            else:
-                print "Phase 1: Moving down"
 
             self.move_to_coord(x,y)
             #turn on right motor, slowly to draw circles from right to left.
@@ -302,11 +324,30 @@ class RopePlotter(object):
             while 1:
                 BrickPiUpdateValues()
                 motor_C.encoder = BrickPi.Encoder[motor_C.port]
+
+                # Look at the pixel we're at and move pen up or down accordingly
+                self.pen_motor.encoder = BrickPi.Encoder[self.pen_motor.port]
+                x_norm, y_norm = self.coords_from_motor_pos(motor_B.position, motor_C.position)
+                if pixels[int(x_norm * w), int(y_norm * w)] < 80: # About 33% gray
+                    self.pen_motor.target = DOWN
+                else:
+                    self.pen_motor.target = UP
+                BrickPi.MotorSpeed[self.pen_motor.port] = self.pen_motor.calc_power()
+
                 x_norm, y_norm = self.coords_from_motor_pos(motor_B.position, motor_C.position)
                 print "Currently at", x_norm,y_norm
                 if y_norm >= 1: break # reached the bottom
                 if x_norm <= 0: break # reached the left side
                 time.sleep(0.02)
+
+            # Pen up
+            self.pen_motor.target = UP
+            while not (-5 < self.pen_motor.error < 5):
+                BrickPi.MotorSpeed[self.pen_motor.port] = self.pen_motor.calc_power()
+                BrickPiUpdateValues()
+
+            # Yield to allow pause/stop and show percentage
+            yield (i+1)*100.0/num_circles
 
         print "Done drawing"
 

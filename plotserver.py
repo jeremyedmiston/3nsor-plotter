@@ -64,7 +64,7 @@ R_ROPE_0 = 88.5             # same for right rope
 ROPE_ATTACHMENT_WIDTH = 90  # space between the two attachment points of the plotter.In my case: door width. In cm.
 PULLEY_DIAMETER = 4.4
 KP=2.7
-KP_NEG=0.5
+KP_NEG=1
 TI=0.2
 TD=0.02
 MAXPWR=200
@@ -99,7 +99,7 @@ class UploadHandler(tornado.web.RequestHandler):
         else:
             return
 
-        # original code
+        # original code:
         # uploaded_file = self.request.files['imgfile'][0]
         # original_fname = uploaded_file['filename']
         # extension = os.path.splitext(original_fname)[1]
@@ -127,7 +127,6 @@ class WSHandler(tornado.websocket.WebSocketHandler):
 
     def on_message(self, message):  # receives the data from the webpage and is stored in the variable message
         global c
-        #print 'received:', message  # prints the revived from the webpage
         c = json.loads(message)
 
     def on_close(self):
@@ -252,8 +251,10 @@ class MotorThread(threading.Thread):
                 c = ''
             elif c == 'plotcircles':
                 wsSend("Plotting circles")
-                self.plotter.plot_circles()
-                c = ''
+                # c stays 'plot' until another command is sent trough the socket
+                plot_action = self.plotter.plot_circles()
+                c = 'plotting'
+
 
             #BrickPiUpdateValues()  # BrickPi updates the values for the motors
             self.throttle.throttle()  #Don't go too fast.

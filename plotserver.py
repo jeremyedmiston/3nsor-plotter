@@ -59,13 +59,13 @@ from ropeplotter import RopePlotter
 
 
 MOTOR_CMD_RATE = 20         # Max number of motor commands per second
-L_ROPE_0 = 60.5             # Length of left rope in cm when pen is at 0,0 (top left)
-R_ROPE_0 = 88.5             # same for right rope
-ROPE_ATTACHMENT_WIDTH = 90  # space between the two attachment points of the plotter.In my case: door width. In cm.
+L_ROPE_0 = 63 #60.5             # Length of left rope in cm when pen is at 0,0 (top left)
+R_ROPE_0 = 102 #88.5             # same for right rope
+ROPE_ATTACHMENT_WIDTH = 117 #90  # space between the two attachment points of the plotter.In my case: door width. In cm.
 PULLEY_DIAMETER = 4.4
 KP=2.7
-KP_NEG=1
-TI=0.2
+KP_NEG=1.3
+TI=0.3
 TD=0.02
 MAXPWR=200
 
@@ -109,7 +109,7 @@ class UploadHandler(tornado.web.RequestHandler):
         output_file = open("uploads/" + final_filename, 'w')
         output_file.write(uploaded_file['body'])
 
-        #self.redirect('/') #is this necessary?
+        self.redirect('/')
         wsSend("file" + final_filename + " is uploaded")
         #self.finish("file" + final_filename + " is uploaded")
 

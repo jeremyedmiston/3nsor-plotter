@@ -6,7 +6,7 @@ from PIL import Image
 
 
 class RopePlotter(object):
-    def __init__(self,l_rope_0, r_rope_0, attachment_distance, pulley_diam=4.4, Kp=2.2, Ti=0.2, Td=0.02, Kp_neg=1, maxpower=200):
+    def __init__(self,l_rope_0, r_rope_0, attachment_distance, pulley_diam=4.4, Kp=2.2, Ti=0.2, Td=0.02, Kp_neg=1.3, maxpower=200):
         self.__l_rope_0 = l_rope_0
         self.__r_rope_0 = r_rope_0
         self.__att_dist = attachment_distance
@@ -33,7 +33,7 @@ class RopePlotter(object):
         self.pen_motor = MotorPidControl(PORT_A)
         self.drive_motors = [left_motor, right_motor]
         self.set_motor_zero()
-        self.precision = 10 # Motors stop running when they are within +/-5 degrees of target.
+        self.precision = 18  # Motors stop running when they are within +/-5 degrees of target.
 
 
     # Getters & setters for plotter properties. Python style, Baby!

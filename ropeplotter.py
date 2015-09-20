@@ -27,14 +27,13 @@ class RopePlotter(object):
             # So we wait until no_values goes 0, which means values updated OK
             no_values = BrickPiUpdateValues()
 
-        # Intialise motor control
+        # Initialise motor control
         left_motor = MotorPidControl(PORT_B, Kp, Ti, Td, Kp_neg=Kp_neg, maxpower=maxpower, direction=self.direction)
         right_motor = MotorPidControl(PORT_C, Kp, Ti, Td, Kp_neg=Kp_neg, maxpower=maxpower, direction=self.direction)
         self.pen_motor = MotorPidControl(PORT_A)
         self.drive_motors = [left_motor, right_motor]
         self.set_motor_zero()
         self.precision = 18  # Motors stop running when they are within +/-5 degrees of target.
-
 
     # Getters & setters for plotter properties. Python style, Baby!
     # After setting these, some calculations need to be done, that's why I define special functions
@@ -93,7 +92,6 @@ class RopePlotter(object):
         self.__att_dist = length
         self.calc_constants()
 
-
     def calc_constants(self):
         # now some math to calculate the rest of the plotter parameters
         #angle-in-deg = l-in-cm/(diameter/2) * 360 /(2*PI) * num_teeth_large_gear / num_teeth_small_gear
@@ -115,8 +113,6 @@ class RopePlotter(object):
         """
         half_p = (a + b + c) / 2
         return (half_p * (half_p - a) * (half_p - b) * (half_p - c)) ** 0.5
-
-
 
     # Calculations for global to local coordinates and back.
     def motor_targets_from_norm_coords(self,x_norm, y_norm):
@@ -148,8 +144,6 @@ class RopePlotter(object):
 
         return x,y
 
-
-
     # Movement functions
     def pen_up(self):
         self.move_motor_for_time(PORT_D,30)
@@ -161,17 +155,17 @@ class RopePlotter(object):
         for motor in self.drive_motors + [self.pen_motor]:
             motor.encoder = int(BrickPi.Encoder[motor.port])
             motor.zero = int(BrickPi.Encoder[motor.port])
-            print "Encoder zero position set to", motor.zero, "For motor at port:", motor.port
+            #print "Encoder zero position set to", motor.zero, "For motor at port:", motor.port
 
     def move_to_coord(self,x,y):
         motor_b_target, motor_c_target  = self.motor_targets_from_coords(x, y)
-        print "Moving to ", x, ",", y, "(At", motor_b_target, motor_c_target, ")"
+        #print "Moving to ", x, ",", y, "(At", motor_b_target, motor_c_target, ")"
         self.move_to_targets((motor_b_target, motor_c_target))
 
 
     def move_to_norm_coord(self, x_norm, y_norm):
         motor_b_target, motor_c_target = self.motor_targets_from_norm_coords(x_norm, y_norm)
-        print "Moving to ", x_norm, ",", y_norm, "(At", motor_b_target, motor_c_target, ")"
+        #print "Moving to ", x_norm, ",", y_norm, "(At", motor_b_target, motor_c_target, ")"
         self.move_to_targets((motor_b_target, motor_c_target))
 
     def move_to_targets(self, targets):
@@ -200,8 +194,6 @@ class RopePlotter(object):
             #We're done calculating and setting all motor speeds!
             time.sleep(0.02)
 
-
-
     # Advanced plotting functions by chaining movement functions
     def test_drive(self):
         # A little disturbance in the force
@@ -210,7 +202,7 @@ class RopePlotter(object):
 
     def plot_from_file(self, filename):
         """
-        Generator function for plotting from file. After each next() it returns the pct done of the plotting
+        Generator function for plotting from coords.csv file. After each next() it returns the pct done of the plotting
         This way the plotting can easily be aborted and status can be given. Gotta love python for this.
         Usage:
 
@@ -222,7 +214,7 @@ class RopePlotter(object):
                 break
 
         :param filename: str
-        :return:
+        :return: percentage done: float
         """
         coords = open(filename)
         num_coords = int(coords.readline())  #coords contains it's length on the first line.
@@ -245,7 +237,6 @@ class RopePlotter(object):
         self.pen_up()
         self.move_to_norm_coord(0, 0)
         yield 100
-
 
     def plot_circles(self, num_circles=12):
         UP = 0

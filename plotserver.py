@@ -226,7 +226,7 @@ class MotorThread(threading.Thread):
                 self.plotter.left_stop()
                 self.plotter.right_stop()
                 c = ''
-                print "Stopped"
+                #print "Stopped"
 
             elif c == 'testdrive':
                 self.plotter.test_drive()

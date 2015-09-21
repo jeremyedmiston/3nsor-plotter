@@ -21,12 +21,15 @@ class RopePlotter(object):
         self.left_motor = ev3dev.motor('outB')
         self.right_motor = ev3dev.motor('outC')
 
+        #TODO Check if motors are connected and raise error if not.
+
         self.pen_motor.set(speed_regulation_enabled='on', stop_command='brake')
         self.left_motor.set(speed_regulation_enabled='on', stop_command='brake')
         self.right_motor.set(speed_regulation_enabled='on', stop_command='brake')
         self.drive_motors = [self.left_motor, self.right_motor]
 
         # Initialise motor control
+        #TODO Refactor this, as most of the stuff is not needed anymore on ev3dev.
         left_motor_control = MotorPidControl('outB', Kp, Ti, Td, Kp_neg=Kp_neg, maxpower=maxpower, direction=self.direction)
         right_motor_control = MotorPidControl('outC', Kp, Ti, Td, Kp_neg=Kp_neg, maxpower=maxpower, direction=self.direction)
         self.pen_motor_control = MotorPidControl('outA')

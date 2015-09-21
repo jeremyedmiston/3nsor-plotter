@@ -14,14 +14,15 @@ a web interface with tornado. It's the BrickPi version of L3onardo.
 1. Install python ev3dev bindings as described here: https://github.com/ddemidov/ev3dev-lang-python
 2. Install tornado as described here under *manual*(!) installation here: http://www.tornadoweb.org/en/stable/#installation
 2. Install pillow: `pip install pillow`
-2. Clone this repo: git clone https://github.com/antonvh/3nsor-plotter/
+2. Clone this repo: `git clone https://github.com/antonvh/3nsor-plotter/`
 
 ## Usage ##
 
 2. Type `cd 3nsor-plotter`. This is important, as tornado expects to be run from it's root.
-2. Type `python plotserver.py`
-3. Surf to <yourbrickpiaddress>:9093
+2. Type `python 3nsor-plotter.py`
+3. Surf to `<yourbrickpiaddress>:9093`
 4. Move the plotter to the origin with the buttons/keyboard
+4. Measure and input rope length at origin. (Make sure your paper is in the middle between attachment points.)
 5. Zero it all
 6. Start plotting
 

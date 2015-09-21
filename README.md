@@ -22,7 +22,7 @@ a web interface with tornado. It's the BrickPi version of L3onardo.
 2. Type `python 3nsor-plotter.py`
 3. Surf to `<yourbrickpiaddress>:9093`
 4. Move the plotter to the origin with the buttons/keyboard
-4. Measure and input rope length at origin. (Make sure your paper is in the middle between attachment points.)
+4. Measure and input rope lengths at origin. (Make sure your paper is in the middle between attachment points.)
 5. Zero it all
 6. Start plotting
 

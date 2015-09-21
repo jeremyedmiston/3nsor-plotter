@@ -1,6 +1,6 @@
 __author__ = 'anton'
 
-from brickpi_helpers import MotorPidControl
+from brickpi_helpers import MotorPidControl, clamp
 from BrickPi import *
 from PIL import Image
 
@@ -33,7 +33,7 @@ class RopePlotter(object):
         self.pen_motor = MotorPidControl(PORT_A)
         self.drive_motors = [left_motor, right_motor]
         self.set_motor_zero()
-        self.precision = 18  # Motors stop running when they are within +/-5 degrees of target.
+        self.precision = 18  # Motors stop running when they are within +/-9 degrees of target.
 
     # Getters & setters for plotter properties. Python style, Baby!
     # After setting these, some calculations need to be done, that's why I define special functions
@@ -179,13 +179,10 @@ class RopePlotter(object):
             for motor in self.drive_motors:
                 #get motor positions
                 motor.encoder = BrickPi.Encoder[motor.port]
-
-                #set motor speed accordingly
-                speed = motor.calc_power()
-                BrickPi.MotorSpeed[motor.port] = speed
+                BrickPi.MotorSpeed[motor.port] = motor.calc_power()
 
             if (abs(self.drive_motors[0].error) < self.precision) and (abs(self.drive_motors[1].error) < self.precision):
-                #we got where we want to be. Time for the next coordinate.
+                #we got where we want to be. Shutting down motors.
                 for motor in self.drive_motors:
                     BrickPi.MotorSpeed[motor.port] = 0
                 BrickPiUpdateValues()
@@ -198,6 +195,7 @@ class RopePlotter(object):
     def test_drive(self):
         # A little disturbance in the force
         self.move_to_norm_coord(0.05,0.05)
+        self.move_to_norm_coord(0.0,0.05)
         self.move_to_norm_coord(0.0,0.0)
 
     def plot_from_file(self, filename):
@@ -240,7 +238,8 @@ class RopePlotter(object):
 
     def plot_circles(self, num_circles=12):
         UP = 0
-        DOWN = 30
+        DOWN = -30
+
         im = Image.open("uploads/picture.jpg").convert("L")
         w, h = im.size
         pixels = im.load()
@@ -249,98 +248,120 @@ class RopePlotter(object):
         r_max = ((self.h_margin+self.canvas_size)**2 + (self.v_margin+self.canvas_size)**2)**0.5
         r_step = (r_max-r_min)/num_circles
 
-        motor_B, motor_C = self.drive_motors # Unpack
+        for right_side_mode in [0, 1]: # Multiply all terms that only apply to the right side circles with right_side_mode
+            if right_side_mode:
+                drive_motor, anchor_motor = self.drive_motors
+            else:
+                anchor_motor, drive_motor = self.drive_motors
 
-        for i in range(1, num_circles, 2):
-            x = self.h_margin
-            # Caculate where a circle with radius r_min+r_step*i crosses the left margin.
-            y = ((r_min+r_step*i)**2 - self.h_margin ** 2) ** 0.5
-            print "y:",y, "vm:",self.v_margin,"rmin:",r_min,"step:",r_step
-            if y > self.v_margin+self.canvas_size:
-                # We reached the bottom, now we check where circles cross the bottom margin
-                x = ((r_min + r_step*i) ** 2 - (self.v_margin + self.canvas_size) ** 2) ** 0.5
-                y = self.v_margin+self.canvas_size
+            # First draw circles with left anchor point as center.
+            for i in range(1, num_circles, 2):
+                # Move to the starting point at x,y
+                # Caculate where a circle with radius r_min+r_step*i crosses the left margin.
+                x = self.h_margin + (right_side_mode * self.canvas_size)
+                y = ((r_min+r_step*i)**2 - self.h_margin ** 2) ** 0.5   # This is the same left and right
+                if y > self.v_margin+self.canvas_size:
+                    # We reached the bottom, now we check where circles cross the bottom margin
+                    if right_side_mode:
+                        x = self.h_margin + self.canvas_size - ((r_min + r_step*i) ** 2 - (self.v_margin + self.canvas_size) ** 2) ** 0.5
+                    else:
+                        x = ((r_min + r_step*i) ** 2 - (self.v_margin + self.canvas_size) ** 2) ** 0.5
+                    y = self.v_margin+self.canvas_size  # This is the same left and right
+                self.move_to_coord(x,y)
 
-            self.move_to_coord(x,y)
+                #turn on right motor, slowly, to draw circles upwards
+                BrickPi.MotorSpeed[drive_motor.port] = 120
 
-            #turn on right motor, slowly, to draw circles left to right
-            BrickPi.MotorSpeed[PORT_C] = 120
-            #Motor B is off, so let's get it's encoder only once
-            motor_B.encoder = BrickPi.Encoder[motor_B.port]
+                # Now calculate coordinates continuously until we reach the top, or right side of the canvas
+                # Motor B is off, so let's get it's encoder only once
+                anchor_motor.encoder = BrickPi.Encoder[anchor_motor.port]
+                while 1:
+                    BrickPiUpdateValues()
+                    drive_motor.encoder = BrickPi.Encoder[drive_motor.port]
 
-            #calculate coordinates continuously until we reach the top, or right side of the canvas
-            while 1:
-                BrickPiUpdateValues()
-                motor_C.encoder = BrickPi.Encoder[motor_C.port]
+                    # Look at the pixel we're at and move pen up or down accordingly
+                    x_norm, y_norm = self.coords_from_motor_pos(self.drive_motors[0].position, self.drive_motors[1].position)
+                    pixel_location = tuple([clamp(c,(0,1)) * w for c in (x_norm, y_norm)])
+                    print "looking at pixel ", pixel_location
+                    if pixels[pixel_location] < 80: # About 33% gray
+                        self.pen_motor.target = DOWN
+                    else:
+                        self.pen_motor.target = UP
+                    self.pen_motor.encoder = BrickPi.Encoder[self.pen_motor.port]
+                    BrickPi.MotorSpeed[self.pen_motor.port] = self.pen_motor.calc_power()
 
-                # Look at the pixel we're at and move pen up or down accordingly
-                self.pen_motor.encoder = BrickPi.Encoder[self.pen_motor.port]
-                x_norm, y_norm = self.coords_from_motor_pos(motor_B.position, motor_C.position)
-                if pixels[int(x_norm * w), int(y_norm * w)] < 80: # About 33% gray
-                    self.pen_motor.target = DOWN
+                    if y_norm <= 0:
+                        break # reached the top
+                    if (not right_side_mode) and x_norm >= 1:
+                        break # reached the right side
+                    if right_side_mode and x_norm <= 0:
+                        break
+                    time.sleep(0.02)
+
+                # Pen up
+                self.pen_motor.target = UP
+                while not (-5 < self.pen_motor.error < 5):
+                    BrickPi.MotorSpeed[self.pen_motor.port] = self.pen_motor.calc_power()
+                    BrickPiUpdateValues()
+                    time.sleep(0.02)
+
+                # Yield to allow pause/stop and show percentage
+                yield i*(50.0+right_side_mode*50.0)/num_circles
+
+                #Good, now move to the next point and roll down.
+                if right_side_mode:
+                    x = self.h_margin + self.canvas_size - ((r_min + r_step*(i+1)) ** 2 - self.v_margin ** 2) ** 0.5
                 else:
-                    self.pen_motor.target = UP
-                BrickPi.MotorSpeed[self.pen_motor.port] = self.pen_motor.calc_power()
+                    x = ((r_min + r_step*(i+1)) ** 2 - self.v_margin ** 2) ** 0.5
+                y = self.v_margin
 
-                if y_norm <= 0:
-                    break # reached the top
-                if x_norm >= 1:
-                    break # reached the right side
-                time.sleep(0.02)
+                if (not right_side_mode) and x > (self.h_margin + self.canvas_size): # Reached right side
+                    x = self.h_margin + self.canvas_size
+                    y = ((r_min+r_step*(i+1)) ** 2 - (self.h_margin+self.canvas_size) ** 2) ** 0.5
+                if right_side_mode and x < self.h_margin: # Reached left side
+                    x = self.h_margin
+                    y = ((r_min+r_step*(i+1)) ** 2 - (self.h_margin+self.canvas_size) ** 2) ** 0.5
+                self.move_to_coord(x, y)
 
-            # Pen up
-            self.pen_motor.target = UP
-            while not (-5 < self.pen_motor.error < 5):
-                BrickPi.MotorSpeed[self.pen_motor.port] = self.pen_motor.calc_power()
-                BrickPiUpdateValues()
+                #turn on right motor, slowly to draw circles from right to left.
+                BrickPi.MotorSpeed[drive_motor.port] = -80
 
-            # Yield to allow pause/stop and show percentage
-            yield i*100.0/num_circles
+                # Calculate coordinates continuously until we reach the top, or right side of the canvas
+                # Motor B is off, so let's get it's position only once.
+                anchor_motor.encoder = BrickPi.Encoder[anchor_motor.port]
+                while 1:
+                    BrickPiUpdateValues()
+                    drive_motor.encoder = BrickPi.Encoder[drive_motor.port]
 
-            #Good, now move to the next point and roll down.
-            x = ((r_min + r_step*(i+1)) ** 2 - self.v_margin ** 2) ** 0.5
-            y = self.v_margin
+                    # Look at the pixel we're at and move pen up or down accordingly
+                    x_norm, y_norm = self.coords_from_motor_pos(self.drive_motors[0].position, self.drive_motors[1].position)
+                    pixel_location = tuple([clamp(c,(0,1)) * w for c in (x_norm, y_norm)])
+                    if pixels[pixel_location] < 80: # About 33% gray
+                        self.pen_motor.target = DOWN
+                    else:
+                        self.pen_motor.target = UP
+                    self.pen_motor.encoder = BrickPi.Encoder[self.pen_motor.port]
+                    BrickPi.MotorSpeed[self.pen_motor.port] = self.pen_motor.calc_power()
 
-            if x > self.h_margin + self.canvas_size:
-                x = self.h_margin + self.canvas_size
-                y = ((r_min+r_step*(i+1)) ** 2 - (self.h_margin+self.canvas_size) ** 2) ** 0.5
+                    if y_norm >= 1:
+                        break # reached the bottom
+                    if x_norm <= 0 and not right_side_mode:
+                        break # reached the left side
+                    if x_norm >= 1 and right_side_mode:
+                        break
+                    time.sleep(0.02)
 
-            self.move_to_coord(x,y)
-            #turn on right motor, slowly to draw circles from right to left.
-            BrickPi.MotorSpeed[PORT_C] = -80
-            #Motor B is off, but let's get it's encoder first
-            motor_B.encoder = BrickPi.Encoder[motor_B.port]
+                # Pen up
+                self.pen_motor.target = UP
+                while not (-5 < self.pen_motor.error < 5):
+                    self.pen_motor.encoder = BrickPi.Encoder[self.pen_motor.port]
+                    BrickPi.MotorSpeed[self.pen_motor.port] = self.pen_motor.calc_power()
+                    BrickPiUpdateValues()
+                    time.sleep(0.02)
 
-            #calculate coordinates continuously until we reach the top, or right side of the canvas
-            while 1:
-                BrickPiUpdateValues()
-                motor_C.encoder = BrickPi.Encoder[motor_C.port]
+                # Yield to allow pause/stop and show percentage
+                yield (i+1)*(50.0+right_side_mode*50.0)/num_circles
 
-                # Look at the pixel we're at and move pen up or down accordingly
-                self.pen_motor.encoder = BrickPi.Encoder[self.pen_motor.port]
-                x_norm, y_norm = self.coords_from_motor_pos(motor_B.position, motor_C.position)
-                if pixels[int(x_norm * w), int(y_norm * w)] < 80: # About 33% gray
-                    self.pen_motor.target = DOWN
-                else:
-                    self.pen_motor.target = UP
-                BrickPi.MotorSpeed[self.pen_motor.port] = self.pen_motor.calc_power()
-
-                x_norm, y_norm = self.coords_from_motor_pos(motor_B.position, motor_C.position)
-                print "Currently at", x_norm,y_norm
-                if y_norm >= 1: break # reached the bottom
-                if x_norm <= 0: break # reached the left side
-                time.sleep(0.02)
-
-            # Pen up
-            self.pen_motor.target = UP
-            while not (-5 < self.pen_motor.error < 5):
-                BrickPi.MotorSpeed[self.pen_motor.port] = self.pen_motor.calc_power()
-                BrickPiUpdateValues()
-
-            # Yield to allow pause/stop and show percentage
-            yield (i+1)*100.0/num_circles
-
-        print "Done drawing"
 
 
     # Calibration & manual movement functions

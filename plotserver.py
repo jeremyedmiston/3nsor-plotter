@@ -110,7 +110,7 @@ class UploadHandler(tornado.web.RequestHandler):
         output_file.write(uploaded_file['body'])
 
         self.redirect('/')
-        wsSend("file" + final_filename + " is uploaded")
+        wsSend("file " + final_filename + " is uploaded")
         #self.finish("file" + final_filename + " is uploaded")
 
 

@@ -2,10 +2,9 @@ __author__ = 'anton'
 
 import time
 from collections import deque
-#import smbus
-
 
 def get_voltage():
+    # TODO find ev3dev equivalent
     return 0
 
 

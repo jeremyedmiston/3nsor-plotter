@@ -49,11 +49,10 @@ import tornado.ioloop
 import tornado.web
 import tornado.websocket
 import tornado.template
-import json, os, random, string
+import json
 
 # My own stuff
-from brickpi_helpers import *
-from ropeplotter import RopePlotter
+from ropeplotter import RopePlotter, Logger, Throttler, get_voltage
 
 ################### Settings ################
 
@@ -94,8 +93,8 @@ class UploadHandler(tornado.web.RequestHandler):
         elif 'imgfile' in self.request.files:
             uploaded_file = self.request.files['imgfile'][0]
             original_fname = uploaded_file['filename']
-            extension = os.path.splitext(original_fname)[1]
-            final_filename = "picture"+extension
+            #extension = os.path.splitext(original_fname)[1]
+            final_filename = "picture.jpg"
         else:
             return
 
@@ -234,7 +233,7 @@ class MotorThread(threading.Thread):
 
             elif c == 'plot':
                 # c stays 'plot' until another command is sent trough the socket
-                plot_action = self.plotter.plot_from_file('coords.csv')
+                plot_action = self.plotter.plot_from_file('uploads/coords.csv')
                 c = 'plotting'
 
             elif c == 'plotting':

@@ -1,9 +1,11 @@
 __author__ = 'anton'
 
-from brickpi_helpers import MotorPidControl, clamp
-import ev3dev
-from PIL import Image
 import time
+
+from PIL import Image
+
+from ropeplotter.robot_helpers import MotorPidControl, clamp
+import ev3dev
 
 
 class RopePlotter(object):

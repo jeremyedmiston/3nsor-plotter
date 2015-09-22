@@ -3,10 +3,6 @@ __author__ = 'anton'
 import time
 from collections import deque
 
-def get_voltage():
-    # TODO find ev3dev equivalent
-    return 0
-
 
 def clamp(n, (minn, maxn)):
     """

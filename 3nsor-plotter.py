@@ -52,7 +52,7 @@ import tornado.template
 import json
 
 # My own stuff
-from ropeplotter import RopePlotter, Logger, Throttler, get_voltage
+from ropeplotter import RopePlotter, Logger, Throttler
 
 ################### Settings ################
 
@@ -139,7 +139,7 @@ def wsSend(message):
     for ws in websockets:
         # Prepend voltage before each message
         # TODO make a separate voltage gauge on the web page.
-        ws.write_message("[ {0:.2f}V ] {1}".format(get_voltage(), message))
+        ws.write_message(message)
 
 
 application = tornado.web.Application([
@@ -239,7 +239,7 @@ class MotorThread(threading.Thread):
             elif c == 'plotting':
                 try:
                     pct_done = next(plot_action)
-                    wsSend("Plot {:.2f} Percent done".format(pct_done))
+                    wsSend("[ {0:.2f}V ] Plot {1:.2f} Percent done".format(self.plotter.get_voltage(),pct_done))
                 except StopIteration:
                     c = ''
                     wsSend("Done plotting")

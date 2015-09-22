@@ -9,7 +9,7 @@ import ev3dev
 
 
 class RopePlotter(object):
-    def __init__(self,l_rope_0, r_rope_0, attachment_distance, pulley_diam=4.4, Kp=2.2, Ti=0.2, Td=0.02, Kp_neg=1.3, maxpower=200):
+    def __init__(self,l_rope_0, r_rope_0, attachment_distance, pulley_diam=4.4, Kp=2.2, Ti=0.2, Td=0.02, Kp_neg=1.3, maxpower=200, RPi_mode=True):
         self.__l_rope_0 = l_rope_0
         self.__r_rope_0 = r_rope_0
         self.__att_dist = attachment_distance
@@ -17,11 +17,17 @@ class RopePlotter(object):
         self.direction = 1 # -1 is for reversing motors
         self.calc_constants()
         self.maxpower = maxpower
+        self.RPi_mode = RPi_mode
 
+        if RPi_mode:
         # Start the BrickPi
-        self.pen_motor = ev3dev.motor('outA')
-        self.left_motor = ev3dev.motor('outB')
-        self.right_motor = ev3dev.motor('outC')
+            self.pen_motor = ev3dev.motor(ev3dev.OUTPUT_A)
+            self.left_motor = ev3dev.motor(ev3dev.OUTPUT_B)
+            self.right_motor = ev3dev.motor(ev3dev.OUTPUT_C)
+        else:
+            self.pen_motor = ev3dev.motor('outA')
+            self.left_motor = ev3dev.motor('outB')
+            self.right_motor = ev3dev.motor('outC')
 
         #TODO Check if motors are connected and raise error if not.
 
@@ -36,12 +42,15 @@ class RopePlotter(object):
         right_motor_control = MotorPidControl('outC', Kp, Ti, Td, Kp_neg=Kp_neg, maxpower=maxpower, direction=self.direction)
         self.pen_motor_control = MotorPidControl('outA')
         self.drive_motor_controls = [left_motor_control, right_motor_control]
+
+        # Set starting point
         self.set_motor_zeroes()
-        self.precision = 18  # Motors stop running when they are within +/-9 degrees of target.
+        self.precision = 9  # Motors stop running when they are within +/-9 degrees of target.
 
     # Getters & setters for plotter properties. Python style, Baby!
     # After setting these, some calculations need to be done, that's why I define special functions
     # And decorate them as setters and getters.
+    # TODO Refactor for ev3dev.
     @property
     def Kp(self):
         return 0
@@ -173,6 +182,14 @@ class RopePlotter(object):
     def move_to_targets(self, targets):
         for i in range(2):
             self.drive_motors[i].run_to_abs_pos(position_sp=targets[i])
+        #Now wait for the motors to reach their targets
+        while 1:
+            if self.close_enough(self.left_motor.position, targets[0]) and self.close_enough(self.left_motor.position, targets[0]): break
+            time.sleep(0.09)
+
+    def close_enough(self, test, target):
+        return target - self.precision < test < target + self.precision
+
 
     # Advanced plotting functions by chaining movement functions
     def test_drive(self):
@@ -346,3 +363,10 @@ class RopePlotter(object):
     def stop_all_motors(self):
         for motor in self.drive_motors + [self.pen_motor]:
             motor.stop()
+
+    def get_voltage(self):
+        if self.RPi_mode:
+            #do smbus stuff
+            pass
+        else:
+            return ev3dev.power_supply.battery.measured_voltage / 1000000.0

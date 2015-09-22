@@ -54,7 +54,7 @@
             <div class="panel-body">
               <p>
 
-              <form enctype="multipart/form-data" action="/upload" method="post">
+              <form enctype="multipart/form-data" class="upload" action="/upload" method="post">
                 <div class="input-group">
                   <span class="input-group-addon"> Select coords.csv </span>
                   <input class="form-control" type="file" name="coordsfile"/>
@@ -62,13 +62,19 @@
                     <button type="submit" class="btn btn-default"><span class="glyphicon glyphicon-upload"></span>
                       Upload
                     </button>
-                    <button class="btn btn-primary"><span class="glyphicon glyphicon-pencil"></span> Plot</button>
+
                   </span>
                 </div>
               </form>
-              </p><p>
+              </p>
+              <p>
+              <span class="controls"><button class="btn btn-primary" data-down="" data-up="plot"><span
+                      class="glyphicon glyphicon-pencil"></span> Plot single line drawing
+              </button></span>
+              </p>
+              <p>
 
-              <form enctype="multipart/form-data" action="/upload" method="post">
+              <form enctype="multipart/form-data" class="upload" action="/upload" method="post">
                 <div class="input-group">
                   <span class="input-group-addon"> Select image </span>
                   <input class="form-control" type="file" name="imgfile"/>
@@ -76,10 +82,15 @@
                     <button type="submit" value="upload" class="btn btn-default"><span
                             class="glyphicon glyphicon-upload"></span> Upload
                     </button>
-                    <button class="btn btn-primary"><span class="glyphicon glyphicon-pencil"></span> Plot</button>
+
                   </span>
                 </div>
               </form>
+              </p>
+              <p>
+              <span class="controls"><button class="btn btn-primary controls" data-down="" data-up="plotcircles">
+                <span class="glyphicon glyphicon-pencil"></span> Plot circle scanline drawing
+              </button></span>
               </p>
             </div>
           </div>
@@ -173,7 +184,9 @@
                 </p>
                 <p>
                   <button id="sendPID" type="submit" class="btn btn-primary">Send</button>
-                  <button class="btn btn-default" data-down="" data-up="testdrive">Test drive</button>
+                  <span class="controls"><button class="btn btn-default" data-down="" data-up="testdrive">Test drive
+                  </button></span>
+
                 </p>
               </form>
             </div>
@@ -189,6 +202,7 @@
 
               <form class="form-inline" id="plot" action="" method="post">
                 <p>
+
                 <div class="form-group">
                   <label> Left rope length at origin (cm) </label>
                   <input type="text" name="ll" size="10" value="{{ ll }}"/><br>
@@ -295,19 +309,22 @@
 
     var brickpi_socket = new SocketController();
 
+
     $('.controls').on('mousedown', 'button', function (event) {
         event.preventDefault();
         var command = $(this).data('down')
-        brickpi_socket.send(command);
         console.log(command);
+        brickpi_socket.send(command);
+
     });
+
 
     $('.controls').on('mouseup', 'button', function (event) {
         event.preventDefault();
         var command = $(this).data('up')
-        brickpi_socket.send(command);
         console.log(command);
-    });
+        brickpi_socket.send(command);
+    }).on('click', function (event) { event.preventDefault(); } );
 
 
 
@@ -420,7 +437,37 @@
         brickpi_socket.send(command);
         return false;
     });
+
+    $('form.upload').submit(function(evt) {
+        evt.preventDefault();
+
+      var fd = new FormData();
+      var file_data = $('input[type="file"]')[0].files; // for multiple files
+      for(var i = 0;i<file_data.length;i++){
+          fd.append("file_"+i, file_data[i]);
+      }
+
+      // we aren;t submitting any other data.
+      // var other_data = $('form').serializeArray();
+      // $.each(other_data,function(key,input){
+      //    fd.append(input.name,input.value);
+      // });
+
+      $.ajax({
+          url: $(this).attr('action'),
+          data: fd,
+          contentType: false,
+          processData: false,
+          type: $(this).attr('method'),
+          success: function(data){
+              console.log(data);
+          }
+      });
+
+    });
 }());
+
+
 
 
 
@@ -439,6 +486,8 @@ jQuery(function($)
     alert("Your browser does not support web sockets");
   }
 });
+
+
 
 
 

@@ -366,7 +366,7 @@ class RopePlotter(object):
 
     def get_voltage(self):
         if self.RPi_mode:
-            #do smbus stuff
-            pass
+            #TODO smbus stuff
+            return 0.0
         else:
             return ev3dev.power_supply.battery.measured_voltage / 1000000.0

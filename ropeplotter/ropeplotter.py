@@ -4,7 +4,7 @@ import time
 
 from PIL import Image
 
-from ropeplotter.robot_helpers import MotorPidControl, clamp
+from robot_helpers import MotorPidControl, clamp
 import ev3dev
 
 

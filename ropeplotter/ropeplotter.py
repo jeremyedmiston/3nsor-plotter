@@ -184,7 +184,7 @@ class RopePlotter(object):
             self.drive_motors[i].run_to_abs_pos(position_sp=targets[i])
         #Now wait for the motors to reach their targets
         while 1:
-            if self.close_enough(self.drive_motors[0], targets[0]) and self.close_enough(self.drive_motors[1], targets[1]): break
+            if self.close_enough(self.drive_motors[0].position, targets[0]) and self.close_enough(self.drive_motors[1].position, targets[1]): break
             time.sleep(0.09)
 
     def close_enough(self, test, target):

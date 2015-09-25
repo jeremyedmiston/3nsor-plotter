@@ -49,7 +49,7 @@ import tornado.ioloop
 import tornado.web
 import tornado.websocket
 import tornado.template
-import json
+import json,os
 
 # My own stuff
 from ropeplotter import RopePlotter, Logger, Throttler
@@ -87,17 +87,18 @@ class MainHandler(tornado.web.RequestHandler):
 
 class UploadHandler(tornado.web.RequestHandler):
     def post(self):
-        if 'coordsfile' in self.request.files:
-            uploaded_file = self.request.files['coordsfile'][0]
-            final_filename = 'coords.csv' #fname+extension
-        elif 'imgfile' in self.request.files:
-            uploaded_file = self.request.files['imgfile'][0]
+        print self.request
+        print self.request.files.keys()
+        print self.request.files.items()[0][1]
+        if self.request.files:
+            uploaded_file = self.request.files.items()[0][1]    #Get one file only.
             original_fname = uploaded_file['filename']
-            #extension = os.path.splitext(original_fname)[1]
-            final_filename = "picture.jpg"
+            extension = os.path.splitext(original_fname)[1]
+            if extension == 'jpg':
+                final_filename = "picture.jpg"
+            elif extension == 'csv':
+                final_filename = "coords.csv"
         else:
-            print self.request
-            print self.request.files.keys()
             return
 
         # original code:

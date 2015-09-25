@@ -376,6 +376,8 @@ class RopePlotter(object):
 
     def get_voltage(self):
         if self.RPi_mode:
+            import smbus
+
             #TODO smbus stuff
             return 0.0
         else:

@@ -159,10 +159,10 @@ class RopePlotter(object):
 
     # Movement functions
     def pen_up(self):
-        self.pen_motor.run_timed(time_sp=150, speed_sp=300)
+        self.pen_motor.run_timed(time_sp=150, duty_cycle_sp=30)
 
     def pen_down(self):
-        self.pen_motor.run_timed(time_sp=150, speed_sp=-300)
+        self.pen_motor.run_timed(time_sp=150, duty_cycle_sp=-30)
 
     def set_motor_zeroes(self):
         for motor in self.drive_motors + [self.pen_motor]:
@@ -270,7 +270,7 @@ class RopePlotter(object):
                 self.move_to_coord(x,y)
 
                 #turn on right motor, slowly, to draw circles upwards
-                drive_motor.run_forever(speed_sp=400)
+                drive_motor.run_forever(duty_cycle_sp=60)
 
                 # Now calculate coordinates continuously until we reach the top, or right side of the canvas
                 # Motor B is off, so let's get it's encoder only once
@@ -313,7 +313,7 @@ class RopePlotter(object):
                 self.move_to_coord(x, y)
 
                 #turn on right motor, slowly to draw circles from right to left.
-                drive_motor.run_forever(speed_sp=-400)
+                drive_motor.run_forever(duty_cycle_sp=-40)
 
                 # Calculate coordinates continuously until we reach the top, or right side of the canvas
                 while 1:
@@ -343,22 +343,22 @@ class RopePlotter(object):
 
     # Calibration & manual movement functions
     def left_fwd(self):
-        self.left_motor.run_forever(speed_sp=500 * self.direction)
+        self.left_motor.run_forever(duty_cycle_sp=70 * self.direction)
 
     def left_stop(self):
         self.left_motor.stop()
 
     def left_back(self):
-        self.left_motor.run_forever(speed_sp=-500 * self.direction)
+        self.left_motor.run_forever(duty_cycle_sp=-40 * self.direction)
 
     def right_fwd(self):
-        self.right_motor.run_forever(speed_sp=500 * self.direction)
+        self.right_motor.run_forever(duty_cycle_sp=70 * self.direction)
 
     def right_stop(self):
         self.right_motor.stop()
 
     def right_back(self):
-        self.right_motor.run_forever(speed_sp=-500 * self.direction)
+        self.right_motor.run_forever(duty_cycle_sp=-40 * self.direction)
 
     def stop_all_motors(self):
         for motor in self.drive_motors + [self.pen_motor]:

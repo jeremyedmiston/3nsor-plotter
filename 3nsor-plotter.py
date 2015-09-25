@@ -89,15 +89,22 @@ class UploadHandler(tornado.web.RequestHandler):
     def post(self):
         print self.request
         print self.request.files
-        print self.request.files.values()[0][0]
+        print self.request.files.values()[0]
         if self.request.files:
-            uploaded_file = self.request.files.values()[0][0]    #Get one file only.
+            uploaded_file = self.request.files.values()[0]    #Get one file only.
             original_fname = uploaded_file['filename']
             extension = os.path.splitext(original_fname)[1]
-            if extension == 'jpg':
+            print os.path.splitext(original_fname)[1]
+            if extension == '.jpg':
                 final_filename = "picture.jpg"
-            elif extension == 'csv':
+            elif extension == '.csv':
                 final_filename = "coords.csv"
+
+            output_file = open("uploads/" + final_filename, 'w') #TODO Check for empty final_filename
+            output_file.write(uploaded_file['body'])
+            #self.redirect('/')
+            wsSend("file " + final_filename + " is uploaded")
+            self.finish("file" + final_filename + " is uploaded")
         else:
             return
 
@@ -108,12 +115,7 @@ class UploadHandler(tornado.web.RequestHandler):
         # fname = ''.join(random.choice(string.ascii_lowercase + string.digits) for x in range(6))
         # final_filename = fname+extension
 
-        output_file = open("uploads/" + final_filename, 'w')
-        output_file.write(uploaded_file['body'])
 
-        #self.redirect('/')
-        wsSend("file " + final_filename + " is uploaded")
-        self.finish("file" + final_filename + " is uploaded")
 
 
 #Code for handling the data sent from the webpage

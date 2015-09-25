@@ -6,9 +6,6 @@
 This plotter is hung by two pieces of rope on a door and controlled by a BrickPi. Since BrickPi has no screen I built
 a web interface with tornado. The video is done with the BrickPi branch of this repo. The newest branch is on Ev3dev.
 
-## Warning ##
-I'm still having issues with ev3dev. Until they are resolved, it's best to clone the BrickPi branch.
-
 ## Requirements ##
 - **Tornado**
 - **Ev3dev** and of course the python bindings.

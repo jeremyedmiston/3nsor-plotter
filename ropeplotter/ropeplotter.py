@@ -180,15 +180,16 @@ class RopePlotter(object):
         self.move_to_targets((motor_b_target, motor_c_target))
 
     def move_to_targets(self, targets):
-        for i in range(2):
-            self.drive_motors[i].run_to_abs_pos(position_sp=targets[i])
-            print "Moving motor", i,"to",targets[i]
+
         #Now wait for the motors to reach their targets
         while 1:
             for i in range(2):
+                self.drive_motors[i].run_to_abs_pos(position_sp=targets[i])
+            print "Moving motor", i,"to",targets[i]
+            for i in range(2):
                 print "Motor:", i, " position:", self.drive_motors[i].position, "target:", targets[i]
             if self.close_enough(self.drive_motors[0].position, targets[0]) and self.close_enough(self.drive_motors[1].position, targets[1]): break
-            time.sleep(0.03)
+            time.sleep(0.09)
 
     def close_enough(self, test, target):
         return (target - self.precision) < test < (target + self.precision)

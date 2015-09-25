@@ -98,6 +98,7 @@ class UploadHandler(tornado.web.RequestHandler):
             final_filename = "picture.jpg"
         else:
             print self.request
+            print self.request.files
             return
 
         # original code:

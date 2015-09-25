@@ -16,7 +16,7 @@ __author__ = 'anton'
 # ##############################################################################################################
 
 # CONNECTIONS-
-#   Pen Motor - Port A
+#   Pen Motor - Port D (!)
 # 	Left Motor  - Port B
 # 	Right Motor - Port C
 #

@@ -9,7 +9,7 @@ import ev3dev
 
 
 class RopePlotter(object):
-    def __init__(self,l_rope_0, r_rope_0, attachment_distance, pulley_diam=4.4, Kp=2.2, Ti=0.2, Td=0.02, Kp_neg=1.3, maxpower=200, RPi_mode=True):
+    def __init__(self,l_rope_0, r_rope_0, attachment_distance, pulley_diam=4.4, Kp=2.2, Ti=0.2, Td=0.02, Kp_neg=1.3, maxpower=100, RPi_mode=True):
         self.__l_rope_0 = l_rope_0
         self.__r_rope_0 = r_rope_0
         self.__att_dist = attachment_distance

@@ -66,7 +66,7 @@ KP=2.7
 KP_NEG=1.3
 TI=0.3
 TD=0.02
-MAXPWR=200
+MAXPWR=100
 
 
 ################## Globals. I know. #################

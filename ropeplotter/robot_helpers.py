@@ -88,7 +88,7 @@ class MotorPidControl(object):
     motor power for a servo.
     """
 
-    def __init__(self, motor_port, Kp=2, Ti=0, Td=0, Kp_neg=2, maxpower=255, direction=1):
+    def __init__(self, motor_port, Kp=2, Ti=0, Td=0, Kp_neg=2, maxpower=255, direction=1, precision=12):
         self.port = motor_port
         self.direction = direction
         self.Kp = Kp
@@ -97,6 +97,7 @@ class MotorPidControl(object):
         self.Td = Td
         self.zero = 0
         self.encoder = 0
+        self.precision = precision
         self.target = 0         # This also initializes other properties using setter
 
         self.maxpower = maxpower
@@ -124,6 +125,10 @@ class MotorPidControl(object):
         #self.errors = deque([self.error], maxlen=6)
         self.timestamp = time.time()-0.02
         #self.timestamps = deque([self.timestamp],maxlen=6)
+
+    @property
+    def target_reached(self):
+        return abs(self.error) < self.precision
 
     def calc_power(self):
         """

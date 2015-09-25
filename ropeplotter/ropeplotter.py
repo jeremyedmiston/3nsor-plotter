@@ -38,14 +38,14 @@ class RopePlotter(object):
 
         # Initialise motor control
         #TODO Refactor this, as most of the stuff is not needed anymore on ev3dev.
-        left_motor_control = MotorPidControl('outB', Kp, Ti, Td, Kp_neg=Kp_neg, maxpower=maxpower, direction=self.direction)
-        right_motor_control = MotorPidControl('outC', Kp, Ti, Td, Kp_neg=Kp_neg, maxpower=maxpower, direction=self.direction)
-        self.pen_motor_control = MotorPidControl('outA')
+        left_motor_control = MotorPidControl(ev3dev.OUTPUT_B, Kp, Ti, Td, Kp_neg=Kp_neg, maxpower=maxpower, direction=self.direction)
+        right_motor_control = MotorPidControl(ev3dev.OUTPUT_C, Kp, Ti, Td, Kp_neg=Kp_neg, maxpower=maxpower, direction=self.direction)
+        self.pen_motor_control = MotorPidControl(ev3dev.OUTPUT_D)
         self.drive_motor_controls = [left_motor_control, right_motor_control]
 
         # Set starting point
         self.set_motor_zeroes()
-        self.precision = 9  # Motors stop running when they are within +/-9 degrees of target.
+        #self.precision = 9  # Motors stop running when they are within +/-9 degrees of target.
 
     # Getters & setters for plotter properties. Python style, Baby!
     # After setting these, some calculations need to be done, that's why I define special functions
@@ -180,20 +180,26 @@ class RopePlotter(object):
         self.move_to_targets((motor_b_target, motor_c_target))
 
     def move_to_targets(self, targets):
+        # set targets
+        for i in range(2):
+            self.drive_motors[i].target = targets[i]
 
         #Now wait for the motors to reach their targets
         # Alas ev3dev's run_to_abs_pos is not usable. Have to use my own PID controller.
 
         while 1:
-            for i in range(2):
-                self.drive_motors[i].run_to_abs_pos(position_sp=targets[i])
-                print "Motor:", i, " position:", self.drive_motors[i].position, "target:", targets[i]
-            if self.close_enough(self.drive_motors[0].position, targets[0]) and self.close_enough(self.drive_motors[1].position, targets[1]): break
-            time.sleep(0.09)
+            for motor, ctl in zip(self.drive_motors, self.drive_motor_controls):
+                #get motor positions
 
-    def close_enough(self, test, target):
-        return (target - self.precision) < test < (target + self.precision)
+                ctl.encoder = motor.position
+                motor.run_forever(duty_cycle_sp=ctl.calc_power())
+                if ctl.target_reached:
+                    motor.stop()
 
+            if all([ctl.target_reached for ctl in self.drive_motor_controls]): break
+
+            #We're done calculating and setting all motor speeds!
+            time.sleep(0.02)
 
     # Advanced plotting functions by chaining movement functions
     def test_drive(self):

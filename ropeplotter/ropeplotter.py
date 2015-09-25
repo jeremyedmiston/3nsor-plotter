@@ -21,7 +21,7 @@ class RopePlotter(object):
 
         if RPi_mode:
         # Start the BrickPi
-            self.pen_motor = ev3dev.motor(ev3dev.OUTPUT_D)Motoro
+            self.pen_motor = ev3dev.motor(ev3dev.OUTPUT_D)
             self.left_motor = ev3dev.motor(ev3dev.OUTPUT_B)
             self.right_motor = ev3dev.motor(ev3dev.OUTPUT_C)
         else:

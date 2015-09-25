@@ -182,6 +182,8 @@ class RopePlotter(object):
     def move_to_targets(self, targets):
 
         #Now wait for the motors to reach their targets
+        # Alas ev3dev's run_to_abs_pos is not usable. Have to use my own PID controller.
+
         while 1:
             for i in range(2):
                 self.drive_motors[i].run_to_abs_pos(position_sp=targets[i])

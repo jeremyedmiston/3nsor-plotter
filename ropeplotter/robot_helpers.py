@@ -88,11 +88,12 @@ class MotorPidControl(object):
     motor power for a servo.
     """
 
-    def __init__(self, motor_port, Kp=2, Ti=0, Td=0, Kp_neg=2, maxpower=255, direction=1, precision=12):
+    def __init__(self, motor_port, Kp=2, Ti=0, Td=0, Kp_neg_factor=1, maxpower=255, direction=1, precision=12):
         self.port = motor_port
         self.direction = direction
-        self.Kp = Kp
-        self.Kp_neg = Kp_neg    # Different feedback factor in the negative direction.
+        self.__Kp = Kp
+        self.Kp_neg_factor = Kp_neg_factor
+        self.Kp_neg = Kp * Kp_neg_factor    # Different feedback factor in the negative direction.
         self.Ti = Ti
         self.Td = Td
         self.zero = 0
@@ -104,6 +105,15 @@ class MotorPidControl(object):
         logname = "-".join([str(i) for i in ["motor",motor_port]])
         self.log = Logger(logname, to_file=True)
         self.log.log_line('target','error','output','integral','derivative')
+
+    @property
+    def Kp(self):
+        return self.__Kp
+
+    @Kp.setter
+    def Kp(self, Kp):
+        self.__Kp = Kp
+        self.Kp_neg = Kp * self.Kp_neg_factor
 
     @property   # getter
     def error(self):

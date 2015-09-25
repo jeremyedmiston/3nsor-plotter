@@ -273,6 +273,7 @@ if __name__ == "__main__":
 
     #set up web server
     application.listen(9093)  # starts the web sockets connection
+    print "Starting server..." # TODO Show IP address and port here
     try:
         tornado.ioloop.IOLoop.instance().start()
     except KeyboardInterrupt:  # Triggered by pressing Ctrl+C. Time to clean up.

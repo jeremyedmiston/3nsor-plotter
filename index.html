@@ -448,10 +448,10 @@
       }
 
       // we aren;t submitting any other data.
-      // var other_data = $('form').serializeArray();
-      // $.each(other_data,function(key,input){
-      //    fd.append(input.name,input.value);
-      // });
+      var other_data = $('form').serializeArray();
+      $.each(other_data,function(key,input){
+          fd.append(input.name,input.value);
+      });
 
       $.ajax({
           url: $(this).attr('action'),

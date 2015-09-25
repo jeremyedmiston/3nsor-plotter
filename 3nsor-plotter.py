@@ -89,9 +89,9 @@ class UploadHandler(tornado.web.RequestHandler):
     def post(self):
         print self.request
         print self.request.files.keys()
-        print self.request.files.items()[0][1]
+        print self.request.files.values()[0]
         if self.request.files:
-            uploaded_file = self.request.files.items()[0][1]    #Get one file only.
+            uploaded_file = self.request.files.values()[0]    #Get one file only.
             original_fname = uploaded_file['filename']
             extension = os.path.splitext(original_fname)[1]
             if extension == 'jpg':

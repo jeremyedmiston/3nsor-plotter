@@ -125,14 +125,14 @@ class RopePlotter(object):
     def motor_targets_from_coords(self,x, y):
         l_rope = (x ** 2 + y ** 2) ** 0.5
         r_rope = ((self.att_dist - x) ** 2 + y ** 2) ** 0.5
-        l_target = (l_rope - self.l_rope_0) * self.cm_to_deg
-        r_target = (r_rope - self.r_rope_0) * self.cm_to_deg
+        l_target = (l_rope - self.__l_rope_0) * self.cm_to_deg
+        r_target = (r_rope - self.__r_rope_0) * self.cm_to_deg
 
         return int(l_target), int(r_target)
 
     def coords_from_motor_pos(self,l_motor,r_motor):
-        l_rope = l_motor / self.cm_to_deg + self.l_rope_0
-        r_rope = r_motor / self.cm_to_deg + self.r_rope_0
+        l_rope = l_motor / self.cm_to_deg + self.__l_rope_0
+        r_rope = r_motor / self.cm_to_deg + self.__r_rope_0
         y = self.triangle_area(l_rope,r_rope,self.att_dist)*2/self.att_dist
         x = (l_rope**2 - y**2)**0.5
         y_norm = (y - self.v_margin)/self.canvas_size
@@ -186,7 +186,6 @@ class RopePlotter(object):
                 ctl.encoder = motor.position
                 motor.run_forever(duty_cycle_sp=ctl.calc_power())
 
-            print [ctl.target_reached for ctl in self.drive_motor_controls]
             if all([ctl.target_reached for ctl in self.drive_motor_controls]):
                 self.left_motor.stop()
                 self.right_motor.stop()

@@ -180,6 +180,7 @@ class MotorPidControl(object):
 
 class MotorPid(ev3dev.motor):
     def __init__(self, motor_port, Kp=2, Ti=0, Td=0, Kp_neg_factor=1, maxpower=100, direction=1, precision=12):
+        ev3dev.motor.__init__(self, motor_port)
         self.direction = direction
         self.__Kp = Kp
         self.Kp_neg_factor = Kp_neg_factor
@@ -193,7 +194,6 @@ class MotorPid(ev3dev.motor):
         logname = "-".join([str(i) for i in ["motor",motor_port]])
         self.log = Logger(logname, to_file=True)
         self.log.log_line('target', 'error', 'output', 'integral', 'derivative', 'reached')
-        ev3dev.motor.__init__(self, motor_port)
 
     @property
     def Kp(self):

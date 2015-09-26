@@ -155,7 +155,7 @@ class RopePlotter(object):
         self.pen_motor.run_timed(time_sp=150, duty_cycle_sp=-30)
 
     def set_control_zeroes(self):
-        for ctl, motor in zip(self.drive_motor_controls + [self.pen_motor_control], self.drive_motors + [self.pen_motor]):
+        for ctl, motor in zip(self.all_motor_controls, self.all_motors):
             ctl.zero = motor.position
 
     def move_to_coord(self,x,y):
@@ -183,8 +183,8 @@ class RopePlotter(object):
                 # Get motor positions:
                 ctl.encoder = motor.position
                 motor.run_forever(duty_cycle_sp=ctl.calc_power())
-                print ctl.target_reached
 
+            print [ctl.target_reached for ctl in self.drive_motor_controls]
             if all([ctl.target_reached for ctl in self.drive_motor_controls]): break
 
             #We're done calculating and setting all motor speeds!

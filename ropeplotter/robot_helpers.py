@@ -2,6 +2,7 @@ __author__ = 'anton'
 
 import time
 from collections import deque
+import ev3dev
 
 
 def clamp(n, (minn, maxn)):
@@ -103,7 +104,7 @@ class MotorPidControl(object):
 
         self.maxpower = maxpower
         logname = "-".join([str(i) for i in ["motor",motor_port]])
-        self.log = Logger(logname, to_file=True)
+        self.log = Logger(logname, to_file=False)
         self.log.log_line('target','error','output','integral','derivative')
 
     @property
@@ -177,3 +178,84 @@ class MotorPidControl(object):
         return int(clamp(output,(-self.maxpower,self.maxpower)))
 
 
+class MotorPid(ev3dev.motor):
+    def __init__(self, motor_port, Kp=2, Ti=0, Td=0, Kp_neg_factor=1, maxpower=100, direction=1, precision=12):
+        self.direction = direction
+        self.__Kp = Kp
+        self.Kp_neg_factor = Kp_neg_factor
+        self.Kp_neg = Kp * Kp_neg_factor    # Different feedback factor in the negative direction.
+        self.Ti = Ti
+        self.Td = Td
+        self.precision = precision
+        self.target = 0         # This also initializes other properties using setter
+        self.maxpower = maxpower
+
+        logname = "-".join([str(i) for i in ["motor",motor_port]])
+        self.log = Logger(logname, to_file=True)
+        self.log.log_line('target', 'error', 'output', 'integral', 'derivative', 'reached')
+        ev3dev.motor.__init__(self)
+
+    @property
+    def Kp(self):
+        return self.__Kp
+
+    @Kp.setter
+    def Kp(self, Kp):
+        self.__Kp = Kp
+        self.Kp_neg = Kp * self.Kp_neg_factor
+
+    @property   # getter
+    def error(self):
+        return self.__target - self.position
+
+    @property   # getter
+    def target(self):
+        return self.__target
+
+    @target.setter  # setter, python style!
+    def target(self, target):
+        self.__target = target * self.direction
+        self.integral = 0
+        self.prev_error = self.error
+        self.timestamp = time.time()-0.02
+
+    @property
+    def target_reached(self):
+        return abs(self.error) < self.precision
+
+    def calc_power(self):
+        """
+        Saves a timestamp, integral and previous error and does PID calculations.
+        Always feed this to a motor.
+        :return: int motor power
+        """
+
+        #get error & save timestamps
+        error = self.error
+
+        # calculate integral
+        dt = time.time() - self.timestamp
+        self.integral += error * dt
+        self.integral = clamp(self.integral,(-self.maxpower/2,self.maxpower/2)) #when driving a long time, this number can get too high.
+
+        #calculate derivative.
+        derivative = (error - self.prev_error) / dt
+
+        #calculate output
+        if error < 0:
+            Kp = self.Kp_neg
+        else:
+            Kp = self.Kp
+        output = Kp * ( error + self.integral * self.Ti + self.Td * derivative )
+        self.log.log_line(self.target, error, output, self.integral, derivative, self.target_reached)
+
+        #save error & time for next time.
+        self.prev_error = error
+        self.timestamp = time.time()
+
+        return int(clamp(output,(-self.maxpower,self.maxpower)))
+
+    def run(self, **kwargs):
+        if kwargs['target']:
+            self.target = kwargs['target']
+        self.run_forever(duty_cycle_sp=self.calc_power())

@@ -242,7 +242,7 @@ class MotorThread(threading.Thread):
 
             elif c == 'zero':
                 wsSend("zero motor positions")
-                self.plotter.set_motor_zeroes()
+                self.plotter.set_control_zeroes()
                 c = ''
             elif c == 'plotcircles':
                 wsSend("Plotting circles")

@@ -24,6 +24,7 @@ class RopePlotter(object):
         self.right_motor = ev3dev.motor(ev3dev.OUTPUT_C)
 
         self.drive_motors = [self.left_motor, self.right_motor]
+        self.all_motors = [self.left_motor, self.right_motor, self.pen_motor]
 
         # Initialise motor PID control classes
         # TODO Refactor this so motors and controllers are not seprate classes anymore
@@ -31,9 +32,10 @@ class RopePlotter(object):
         right_motor_control = MotorPidControl(ev3dev.OUTPUT_C, Kp, Ti, Td, Kp_neg_factor=Kp_neg_factor, maxpower=maxpower, direction=self.direction)
         self.pen_motor_control = MotorPidControl(ev3dev.OUTPUT_D)
         self.drive_motor_controls = [left_motor_control, right_motor_control]
+        self.all_motor_controls = [left_motor_control, right_motor_control, self.pen_motor_control]
 
         # Set starting point
-        self.set_motor_zeroes()
+        self.set_control_zeroes()
 
     # Getters & setters for plotter properties. Python style, Baby!
     # After setting these, some calculations need to be done, that's why I define special functions
@@ -152,7 +154,7 @@ class RopePlotter(object):
     def pen_down(self):
         self.pen_motor.run_timed(time_sp=150, duty_cycle_sp=-30)
 
-    def set_motor_zeroes(self):
+    def set_control_zeroes(self):
         for ctl, motor in zip(self.drive_motor_controls + [self.pen_motor_control], self.drive_motors + [self.pen_motor]):
             ctl.zero = motor.position
 
@@ -181,8 +183,7 @@ class RopePlotter(object):
                 # Get motor positions:
                 ctl.encoder = motor.position
                 motor.run_forever(duty_cycle_sp=ctl.calc_power())
-                if ctl.target_reached:
-                    motor.stop()
+                print ctl.target_reached
 
             if all([ctl.target_reached for ctl in self.drive_motor_controls]): break
 
@@ -193,7 +194,7 @@ class RopePlotter(object):
     def test_drive(self):
         # A little disturbance in the force
         self.move_to_norm_coord(0.05,0.05)
-        self.move_to_norm_coord(0.0,0.05)
+        self.move_to_norm_coord(0.0,0.1)
         self.move_to_norm_coord(0.0,0.0)
 
     def plot_from_file(self, filename):
@@ -370,3 +371,7 @@ class RopePlotter(object):
             return 0.0
         else:
             return ev3dev.power_supply.battery.measured_voltage / 1000000.0
+
+
+
+

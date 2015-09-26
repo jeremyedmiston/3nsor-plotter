@@ -155,6 +155,8 @@ class RopePlotter(object):
         self.pen_motor.run_timed(time_sp=150, duty_cycle_sp=-30)
 
     def set_control_zeroes(self):
+        for motor in self.all_motors:
+            motor.position = 0
         for ctl, motor in zip(self.all_motor_controls, self.all_motors):
             ctl.zero = motor.position
 
@@ -173,7 +175,7 @@ class RopePlotter(object):
         # Set targets
         for ctl, tgt in zip(self.drive_motor_controls, targets):
             ctl.target = tgt
-
+        print targets
         # Now wait for the motors to reach their targets
         # Alas ev3dev's run_to_abs_pos is not usable. Have to use my own PID controller.
 
@@ -198,6 +200,7 @@ class RopePlotter(object):
         # A little disturbance in the force
         self.move_to_norm_coord(0.05,0.05)
         self.move_to_norm_coord(0.0,0.1)
+        print "Moving home"
         self.move_to_norm_coord(0.0,0.0)
 
     def plot_from_file(self, filename):

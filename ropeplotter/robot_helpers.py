@@ -105,7 +105,7 @@ class MotorPidControl(object):
         self.maxpower = maxpower
         logname = "-".join([str(i) for i in ["motor",motor_port]])
         self.log = Logger(logname, to_file=True)
-        self.log.log_line('zero','target','error','output','integral','derivative','reached')
+        self.log.log_line('position','target','error','output','integral','derivative','reached')
 
     @property
     def Kp(self):
@@ -167,11 +167,13 @@ class MotorPidControl(object):
         else:
             Kp = self.Kp
         output = Kp * ( error + self.integral * self.Ti + self.Td * derivative )   #Ti should be 1/Ti.
-        self.log.log_line(self.zero, self.target, error, output, self.integral, derivative, self.target_reached)
 
         #save error & time for next time.
         self.prev_error = error
         self.timestamp = time.time()
+
+        self.log.log_line(self.position, self.target, error, output, self.integral, derivative, self.target_reached)
+
         #self.errors.append(error)
         #self.timestamps.append(time.time())
 

@@ -9,7 +9,7 @@ import ev3dev
 
 
 class RopePlotter(object):
-    def __init__(self,l_rope_0, r_rope_0, attachment_distance, pulley_diam=4.4, Kp=2.2, Ti=0.2, Td=0.02, Kp_neg_factor=.5, maxpower=100):
+    def __init__(self, l_rope_0, r_rope_0, attachment_distance, pulley_diam=4.4, Kp=2.2, Ti=0.2, Td=0.02, Kp_neg_factor=.5, maxpower=100):
         self.__l_rope_0 = l_rope_0
         self.__r_rope_0 = r_rope_0
         self.__att_dist = attachment_distance
@@ -73,7 +73,7 @@ class RopePlotter(object):
         return self.__l_rope_0
 
     @l_rope_0.setter
-    def l_rope_0(self,length):
+    def l_rope_0(self, length):
         self.__l_rope_0 = length
         self.calc_constants()
 
@@ -82,7 +82,7 @@ class RopePlotter(object):
         return self.__r_rope_0
 
     @r_rope_0.setter
-    def r_rope_0(self,length):
+    def r_rope_0(self, length):
         self.__r_rope_0 = length
         self.calc_constants()
 
@@ -99,7 +99,7 @@ class RopePlotter(object):
         # now some math to calculate the rest of the plotter parameters
         #angle-in-deg = l-in-cm/(diameter/2) * 360 /(2*PI) * num_teeth_large_gear / num_teeth_small_gear
         #-2 is BrickPi weirdness. Encoders run backwards in half degrees.
-        self.cm_to_deg = -1 * 180 / 3.1415 * 2 / self.pulley_diam * 24 / 8
+        self.cm_to_deg = -2 * 180 / 3.1415 * 2 / self.pulley_diam * 24 / 8
         self.v_margin = self.triangle_area(self.__l_rope_0, self.__r_rope_0, self.__att_dist) / self.__att_dist * 2  #height of triangle
         self.h_margin = (self.__l_rope_0 ** 2 - self.v_margin ** 2) ** 0.5  #pythagoras to find distance from triangle point to left doorframe
         self.canvas_size = self.__att_dist - 2 * self.h_margin
@@ -123,8 +123,9 @@ class RopePlotter(object):
         return self.motor_targets_from_coords(x,y)
 
     def motor_targets_from_coords(self,x, y):
+        print self.__l_rope_0, self.r_rope_0
         l_rope = (x ** 2 + y ** 2) ** 0.5
-        r_rope = ((self.att_dist - x) ** 2 + y ** 2) ** 0.5
+        r_rope = ((self.__att_dist - x) ** 2 + y ** 2) ** 0.5
         l_target = (l_rope - self.__l_rope_0) * self.cm_to_deg
         r_target = (r_rope - self.__r_rope_0) * self.cm_to_deg
 

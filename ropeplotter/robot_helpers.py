@@ -89,7 +89,7 @@ class MotorPidControl(object):
     motor power for a servo.
     """
 
-    def __init__(self, motor_port, Kp=2, Ti=0, Td=0, Kp_neg_factor=1, maxpower=255, direction=1, precision=12):
+    def __init__(self, motor_port, Kp=2, Ti=0, Td=0, Kp_neg_factor=1, maxpower=255, direction=1, precision=8):
         self.port = motor_port
         self.direction = direction
         self.__Kp = Kp
@@ -104,8 +104,8 @@ class MotorPidControl(object):
 
         self.maxpower = maxpower
         logname = "-".join([str(i) for i in ["motor",motor_port]])
-        self.log = Logger(logname, to_file=False)
-        self.log.log_line('target','error','output','integral','derivative')
+        self.log = Logger(logname, to_file=True)
+        self.log.log_line('zero','target','error','output','integral','derivative','reached')
 
     @property
     def Kp(self):
@@ -167,7 +167,7 @@ class MotorPidControl(object):
         else:
             Kp = self.Kp
         output = Kp * ( error + self.integral * self.Ti + self.Td * derivative )   #Ti should be 1/Ti.
-        self.log.log_line(self.target, error, output, self.integral, derivative)
+        self.log.log_line(self.zero, self.target, error, output, self.integral, derivative, self.target_reached)
 
         #save error & time for next time.
         self.prev_error = error

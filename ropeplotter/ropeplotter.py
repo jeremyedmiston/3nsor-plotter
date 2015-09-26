@@ -99,7 +99,7 @@ class RopePlotter(object):
         # now some math to calculate the rest of the plotter parameters
         #angle-in-deg = l-in-cm/(diameter/2) * 360 /(2*PI) * num_teeth_large_gear / num_teeth_small_gear
         #-2 is BrickPi weirdness. Encoders run backwards in half degrees.
-        self.cm_to_deg = -2 * 180 / 3.1415 * 2 / self.pulley_diam * 24 / 8
+        self.cm_to_deg = -1 * 180 / 3.1415 * 2 / self.pulley_diam * 24 / 8
         self.v_margin = self.triangle_area(self.__l_rope_0, self.__r_rope_0, self.__att_dist) / self.__att_dist * 2  #height of triangle
         self.h_margin = (self.__l_rope_0 ** 2 - self.v_margin ** 2) ** 0.5  #pythagoras to find distance from triangle point to left doorframe
         self.canvas_size = self.__att_dist - 2 * self.h_margin
@@ -185,7 +185,10 @@ class RopePlotter(object):
                 motor.run_forever(duty_cycle_sp=ctl.calc_power())
 
             print [ctl.target_reached for ctl in self.drive_motor_controls]
-            if all([ctl.target_reached for ctl in self.drive_motor_controls]): break
+            if all([ctl.target_reached for ctl in self.drive_motor_controls]):
+                self.left_motor.stop()
+                self.right_motor.stop()
+                break
 
             #We're done calculating and setting all motor speeds!
             time.sleep(0.02)

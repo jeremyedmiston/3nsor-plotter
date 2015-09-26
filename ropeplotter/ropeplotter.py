@@ -278,7 +278,7 @@ class RopePlotter(object):
                 while 1:
                     # Look at the pixel we're at and move pen up or down accordingly
                     x_norm, y_norm = self.coords_from_motor_pos(self.drive_motors[0].position, self.drive_motors[1].position)
-                    pixel_location = tuple([clamp(c,(0,1)) * w for c in (x_norm, y_norm)])
+                    pixel_location = (clamp(x_norm * w, (0,w)), clamp(y_norm * w, (0,h)))
                     print "looking at pixel ", pixel_location
                     if pixels[pixel_location] < 80: # About 33% gray
                         self.pen_motor.run_to_abs_pos(position_sp=DOWN)
@@ -321,7 +321,8 @@ class RopePlotter(object):
                 while 1:
                     # Look at the pixel we're at and move pen up or down accordingly
                     x_norm, y_norm = self.coords_from_motor_pos(self.drive_motors[0].position, self.drive_motors[1].position)
-                    pixel_location = tuple([clamp(c,(0,1)) * w for c in (x_norm, y_norm)])
+                    pixel_location = (clamp(x_norm * w, (0,w)), clamp(y_norm * w, (0,h)))
+
                     if pixels[pixel_location] < 80: # About 33% gray
                         self.pen_motor.run_to_abs_pos(position_sp=DOWN)
                     else:

@@ -363,8 +363,8 @@ class RopePlotter(object):
             motor.stop()
 
     def get_voltage(self):
-        if 0:
-            import smbus
+        if 1:
+            # import smbus
 
             #TODO smbus stuff
             return 0.0

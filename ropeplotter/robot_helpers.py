@@ -193,7 +193,7 @@ class MotorPid(ev3dev.motor):
         logname = "-".join([str(i) for i in ["motor",motor_port]])
         self.log = Logger(logname, to_file=True)
         self.log.log_line('target', 'error', 'output', 'integral', 'derivative', 'reached')
-        ev3dev.motor.__init__(self)
+        ev3dev.motor.__init__(self, motor_port)
 
     @property
     def Kp(self):

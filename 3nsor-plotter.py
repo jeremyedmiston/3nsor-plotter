@@ -58,9 +58,9 @@ from ropeplotter import RopePlotter, Logger, Throttler
 
 
 MOTOR_CMD_RATE = 20         # Max number of motor commands per second
-L_ROPE_0 = 63 #60.5             # Length of left rope in cm when pen is at 0,0 (top left)
-R_ROPE_0 = 102 #88.5             # same for right rope
-ROPE_ATTACHMENT_WIDTH = 117 #90  # space between the two attachment points of the plotter.In my case: door width. In cm.
+L_ROPE_0 = 108 #60.5             # Length of left rope in cm when pen is at 0,0 (top left)
+R_ROPE_0 = 123 #88.5             # same for right rope
+ROPE_ATTACHMENT_WIDTH = 90 #90  # space between the two attachment points of the plotter.In my case: door width. In cm.
 PULLEY_DIAMETER = 4.4
 KP=1
 TI=0.3

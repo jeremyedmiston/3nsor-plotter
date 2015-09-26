@@ -10,8 +10,8 @@ import ev3dev
 
 class RopePlotter(object):
     def __init__(self, l_rope_0, r_rope_0, attachment_distance, pulley_diam=4.4, Kp=2.2, Ti=0.2, Td=0.02, Kp_neg_factor=.5, maxpower=100):
-        self.__l_rope_0 = l_rope_0
-        self.__r_rope_0 = r_rope_0
+        self.__l_rope_0 = float(l_rope_0)
+        self.__r_rope_0 = float(r_rope_0)
         self.__att_dist = attachment_distance
         self.pulley_diam = pulley_diam
         self.direction = 1 # -1 is for reversing motors
@@ -123,7 +123,6 @@ class RopePlotter(object):
         return self.motor_targets_from_coords(x,y)
 
     def motor_targets_from_coords(self,x, y):
-        print self.__l_rope_0, self.r_rope_0
         l_rope = (x ** 2 + y ** 2) ** 0.5
         r_rope = ((self.__att_dist - x) ** 2 + y ** 2) ** 0.5
         l_target = (l_rope - self.__l_rope_0) * self.cm_to_deg
@@ -163,7 +162,6 @@ class RopePlotter(object):
 
     def move_to_coord(self,x,y):
         motor_b_target, motor_c_target  = self.motor_targets_from_coords(x, y)
-        #print "Moving to ", x, ",", y, "(At", motor_b_target, motor_c_target, ")"
         self.move_to_targets((motor_b_target, motor_c_target))
 
 
@@ -176,7 +174,6 @@ class RopePlotter(object):
         # Set targets
         for ctl, tgt in zip(self.drive_motor_controls, targets):
             ctl.target = tgt
-        print targets
         # Now wait for the motors to reach their targets
         # Alas ev3dev's run_to_abs_pos is not usable. Have to use my own PID controller.
 
@@ -200,7 +197,6 @@ class RopePlotter(object):
         # A little disturbance in the force
         self.move_to_norm_coord(0.05,0.05)
         self.move_to_norm_coord(0.0,0.1)
-        print "Moving home"
         self.move_to_norm_coord(0.0,0.0)
 
     def plot_from_file(self, filename):
@@ -262,7 +258,7 @@ class RopePlotter(object):
             # First draw circles with left anchor point as center.
             for i in range(1, num_circles, 2):
                 # Move to the starting point at x,y
-                # Caculate where a circle with radius r_min+r_step*i crosses the left margin.
+                # Calculate where a circle with radius r_min+r_step*i crosses the left margin.
                 x = self.h_margin + (right_side_mode * self.canvas_size)
                 y = ((r_min+r_step*i)**2 - self.h_margin ** 2) ** 0.5   # This is the same left and right
                 if y > self.v_margin+self.canvas_size:
@@ -285,9 +281,9 @@ class RopePlotter(object):
                     pixel_location = tuple([clamp(c,(0,1)) * w for c in (x_norm, y_norm)])
                     print "looking at pixel ", pixel_location
                     if pixels[pixel_location] < 80: # About 33% gray
-                        self.pen_motor.run_to_abs_position(position_sp=DOWN)
+                        self.pen_motor.run_to_abs_pos(position_sp=DOWN)
                     else:
-                        self.pen_motor.run_to_abs_position(position_sp=UP)
+                        self.pen_motor.run_to_abs_pos(position_sp=UP)
 
                     if y_norm <= 0:
                         break # reached the top
@@ -296,8 +292,9 @@ class RopePlotter(object):
                     if right_side_mode and x_norm <= 0:
                         break
 
+                drive_motor.stop()
                 # Pen up
-                self.pen_motor.run_to_abs_position(position_sp=UP)
+                self.pen_motor.run_to_abs_pos(position_sp=UP)
 
                 # Yield to allow pause/stop and show percentage
                 yield i*(50.0+right_side_mode*50.0)/num_circles
@@ -326,9 +323,9 @@ class RopePlotter(object):
                     x_norm, y_norm = self.coords_from_motor_pos(self.drive_motors[0].position, self.drive_motors[1].position)
                     pixel_location = tuple([clamp(c,(0,1)) * w for c in (x_norm, y_norm)])
                     if pixels[pixel_location] < 80: # About 33% gray
-                        self.pen_motor.run_to_abs_position(position_sp=DOWN)
+                        self.pen_motor.run_to_abs_pos(position_sp=DOWN)
                     else:
-                        self.pen_motor.run_to_abs_position(position_sp=UP)
+                        self.pen_motor.run_to_abs_pos(position_sp=UP)
 
                     if y_norm >= 1:
                         break # reached the bottom
@@ -338,8 +335,9 @@ class RopePlotter(object):
                         break
                     time.sleep(0.02)
 
+                drive_motor.stop()
                 # Pen up
-                self.pen_motor.run_to_abs_position(position_sp=UP)
+                self.pen_motor.run_to_abs_pos(position_sp=UP)
 
                 # Yield to allow pause/stop and show percentage
                 yield (i+1)*(50.0+right_side_mode*50.0)/num_circles

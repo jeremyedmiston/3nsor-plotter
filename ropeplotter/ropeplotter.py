@@ -195,8 +195,8 @@ class RopePlotter(object):
     # Advanced plotting functions by chaining movement functions
     def test_drive(self):
         # A little disturbance in the force
-        self.move_to_norm_coord(0.05,0.05)
-        self.move_to_norm_coord(0.0,0.1)
+        self.move_to_norm_coord(0.1,0.1)
+        self.move_to_norm_coord(0.5,0.5)
         self.move_to_norm_coord(0.0,0.0)
 
     def plot_from_file(self, filename):

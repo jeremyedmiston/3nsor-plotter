@@ -53,7 +53,6 @@ import json,os
 
 # My own stuff
 from ropeplotter import RopePlotter, Logger, Throttler, get_ip_address
-
 from settings import *
 
 ################## Globals. I know. #################

@@ -391,8 +391,9 @@ class RopePlotter(object):
         self.right_motor.run_forever(duty_cycle_sp=-40 * self.direction)
 
     def stop_all_motors(self):
-        for motor in self.drive_motors + [self.pen_motor]:
+        for motor in self.all_motors:
             motor.stop()
+        print "Motors stopped"
 
     ### Other functions ###
     def get_voltage(self):

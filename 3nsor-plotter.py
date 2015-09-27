@@ -263,4 +263,4 @@ if __name__ == "__main__":
         #Close all sockets
         for ws in websockets:
             ws.close()
-        print "Motors & motor thread stopped"
+        print "Motor thread stopped"

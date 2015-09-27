@@ -325,9 +325,11 @@ class RopePlotter(object):
                 if (not right_side_mode) and x > (self.h_margin + self.canvas_size): # Reached right side
                     x = self.h_margin + self.canvas_size
                     y = ((r_min+r_step*(i+1)) ** 2 - (self.h_margin+self.canvas_size) ** 2) ** 0.5
+                    print "Moving to y:",y
                 if right_side_mode and x < self.h_margin: # Reached left side
                     x = self.h_margin
                     y = ((r_min+r_step*(i+1)) ** 2 - (self.h_margin+self.canvas_size) ** 2) ** 0.5
+                    print "Moving to y:",y
                 self.move_to_coord(x, y)
 
                 #turn on right motor, slowly to draw circles from right to left.

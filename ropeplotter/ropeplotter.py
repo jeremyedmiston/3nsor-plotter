@@ -31,7 +31,7 @@ class RopePlotter(object):
         # TODO Refactor this so motors and controllers are not separate classes anymore
         left_motor_control = MotorPidControl(ev3dev.OUTPUT_B, Kp, Ti, Td, Kp_neg_factor=Kp_neg_factor, maxpower=maxpower, direction=self.direction)
         right_motor_control = MotorPidControl(ev3dev.OUTPUT_C, Kp, Ti, Td, Kp_neg_factor=Kp_neg_factor, maxpower=maxpower, direction=self.direction)
-        self.pen_motor_control = MotorPidControl(ev3dev.OUTPUT_D, maxpower=50)
+        self.pen_motor_control = MotorPidControl(ev3dev.OUTPUT_D, maxpower=20)
         self.drive_motor_controls = [left_motor_control, right_motor_control]
         self.all_motor_controls = [left_motor_control, right_motor_control, self.pen_motor_control]
 
@@ -253,7 +253,7 @@ class RopePlotter(object):
         self.move_to_norm_coord(0, 0)
         yield 100
 
-    def plot_circles(self, num_circles=30):
+    def plot_circles(self, num_circles=60):
         UP = 0
         DOWN = -30
 
@@ -316,7 +316,7 @@ class RopePlotter(object):
                 self.pen_motor.run_to_abs_pos(position_sp=UP)
 
                 # Yield to allow pause/stop and show percentage
-                yield i*(50.0+right_side_mode*50.0)/num_circles
+                yield (i*50.0+right_side_mode*50.0)/num_circles
 
                 #Good, now move to the next point and roll down.
                 if right_side_mode:
@@ -367,7 +367,7 @@ class RopePlotter(object):
                 self.pen_motor.run_to_abs_pos(position_sp=UP)
 
                 # Yield to allow pause/stop and show percentage
-                yield (i+1)*(50.0+right_side_mode*50.0)/num_circles
+                yield ((i+1)*50.0+right_side_mode*50.0)/num_circles
 
 
 

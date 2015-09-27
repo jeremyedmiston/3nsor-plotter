@@ -301,6 +301,7 @@ class RopePlotter(object):
                     else:
                         self.pen_motor_control.target = UP
                         #self.pen_motor.run_to_abs_pos(position_sp=UP)
+                    self.pen_motor_control.encoder = self.pen_motor.position
                     self.pen_motor.run_forever(duty_cycle_sp=self.pen_motor_control.calc_power())
 
                     if y_norm <= 0:
@@ -350,6 +351,7 @@ class RopePlotter(object):
                     else:
                         self.pen_motor_control.target = UP
                         #self.pen_motor.run_to_abs_pos(position_sp=UP)
+                    self.pen_motor_control.encoder = self.pen_motor.position
                     self.pen_motor.run_forever(duty_cycle_sp=self.pen_motor_control.calc_power())
 
                     if y_norm >= 1:

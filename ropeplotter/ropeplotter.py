@@ -280,7 +280,7 @@ class RopePlotter(object):
                 if y > self.v_margin+self.canvas_size:
                     # We reached the bottom, now we check where circles cross the bottom margin
                     if right_side_mode:
-                        x = self.h_margin + self.canvas_size - ((r_min + r_step*i) ** 2 - (self.v_margin + self.canvas_size) ** 2) ** 0.5
+                        x = self.h_margin*2 + self.canvas_size - ((r_min + r_step*i) ** 2 - (self.v_margin + self.canvas_size) ** 2) ** 0.5
                     else:
                         x = ((r_min + r_step*i) ** 2 - (self.v_margin + self.canvas_size) ** 2) ** 0.5
                     y = self.v_margin+self.canvas_size  # This is the same left and right
@@ -316,7 +316,8 @@ class RopePlotter(object):
 
                 #Good, now move to the next point and roll down.
                 if right_side_mode:
-                    x = self.h_margin + self.canvas_size - ((r_min + r_step*(i+1)) ** 2 - self.v_margin ** 2) ** 0.5
+                    x = self.h_margin*2 + self.canvas_size - ((r_min + r_step*(i+1)) ** 2 - self.v_margin ** 2) ** 0.5
+
                 else:
                     x = ((r_min + r_step*(i+1)) ** 2 - self.v_margin ** 2) ** 0.5
                 y = self.v_margin

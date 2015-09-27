@@ -253,9 +253,9 @@ class RopePlotter(object):
         self.move_to_norm_coord(0, 0)
         yield 100
 
-    def plot_circles(self, num_circles=12):
+    def plot_circles(self, num_circles=20):
         UP = 0
-        DOWN = -60
+        DOWN = -30
 
         im = Image.open("uploads/picture.jpg").convert("L")
         w, h = im.size
@@ -287,7 +287,7 @@ class RopePlotter(object):
                 self.move_to_coord(x,y)
 
                 #turn on right motor, slowly, to draw circles upwards
-                drive_motor.run_forever(duty_cycle_sp=50)
+                drive_motor.run_forever(duty_cycle_sp=40)
 
                 # Now calculate coordinates continuously until we reach the top, or right side of the canvas
                 # Motor B is off, so let's get it's encoder only once
@@ -337,7 +337,7 @@ class RopePlotter(object):
                 self.move_to_coord(x, y)
 
                 #turn on right motor, slowly to draw circles from right to left.
-                drive_motor.run_forever(duty_cycle_sp=-30)
+                drive_motor.run_forever(duty_cycle_sp=-10)
 
                 # Calculate coordinates continuously until we reach the top, or right side of the canvas
                 while 1:

@@ -52,22 +52,9 @@ import tornado.template
 import json,os
 
 # My own stuff
-from ropeplotter import RopePlotter, Logger, Throttler
+from ropeplotter import RopePlotter, Logger, Throttler, get_ip_address
 
-################### Settings ################
-
-
-MOTOR_CMD_RATE = 20         # Max number of motor commands per second
-# Make sure to type floats for rope lengths! not 45 but 45.0
-L_ROPE_0 = 96.0 #60.5             # Length of left rope in cm when pen is at 0,0 (top left)
-R_ROPE_0 = 122.5 #88.5             # same for right rope
-ROPE_ATTACHMENT_WIDTH = 90.0 #90  # space between the two attachment points of the plotter.In my case: door width. In cm.
-PULLEY_DIAMETER = 4.4
-KP=1
-TI=0.3
-TD=0.02
-MAXPWR=100
-
+from settings import *
 
 ################## Globals. I know. #################
 
@@ -268,7 +255,7 @@ if __name__ == "__main__":
 
     #set up web server
     application.listen(9093)  # starts the web sockets connection
-    print "Starting server..." # TODO Show IP address and port here
+    print "Starting web server at {0}:9030".format(get_ip_address('wlan0'))
     try:
         tornado.ioloop.IOLoop.instance().start()
     except KeyboardInterrupt:  # Triggered by pressing Ctrl+C. Time to clean up.

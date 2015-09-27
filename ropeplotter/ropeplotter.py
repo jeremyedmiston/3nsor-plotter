@@ -296,9 +296,12 @@ class RopePlotter(object):
                     x_norm, y_norm = self.coords_from_motor_pos(self.drive_motors[0].position, self.drive_motors[1].position)
                     pixel_location = (clamp(x_norm * w, (0,w-1)), clamp(y_norm * w, (0,h-1)))
                     if pixels[pixel_location] < 80: # About 33% gray
-                        self.pen_motor.run_to_abs_pos(position_sp=DOWN)
+                        self.pen_motor_control.target = DOWN
+                        #self.pen_motor.run_to_abs_pos(position_sp=DOWN)
                     else:
-                        self.pen_motor.run_to_abs_pos(position_sp=UP)
+                        self.pen_motor_control.target = UP
+                        #self.pen_motor.run_to_abs_pos(position_sp=UP)
+                    self.pen_motor.run_forever(duty_cycle_sp=self.pen_motor_control.calc_power())
 
                     if y_norm <= 0:
                         break # reached the top
@@ -325,11 +328,11 @@ class RopePlotter(object):
                 if (not right_side_mode) and x > (self.h_margin + self.canvas_size): # Reached right side
                     x = self.h_margin + self.canvas_size
                     y = ((r_min+r_step*(i+1)) ** 2 - (self.h_margin+self.canvas_size) ** 2) ** 0.5
-                    print "Moving to y:",y
+
                 if right_side_mode and x < self.h_margin: # Reached left side
                     x = self.h_margin
                     y = ((r_min+r_step*(i+1)) ** 2 - (self.h_margin+self.canvas_size) ** 2) ** 0.5
-                    print "Moving to y:",y
+
                 self.move_to_coord(x, y)
 
                 #turn on right motor, slowly to draw circles from right to left.
@@ -342,9 +345,12 @@ class RopePlotter(object):
                     pixel_location = (int(clamp(x_norm * w, (0,w-1))), int(clamp(y_norm * w, (0,h-1))))
 
                     if pixels[pixel_location] < 80: # About 33% gray
-                        self.pen_motor.run_to_abs_pos(position_sp=DOWN)
+                        self.pen_motor_control.target = DOWN
+                        #self.pen_motor.run_to_abs_pos(position_sp=DOWN)
                     else:
-                        self.pen_motor.run_to_abs_pos(position_sp=UP)
+                        self.pen_motor_control.target = UP
+                        #self.pen_motor.run_to_abs_pos(position_sp=UP)
+                    self.pen_motor.run_forever(duty_cycle_sp=self.pen_motor_control.calc_power())
 
                     if y_norm >= 1:
                         break # reached the bottom

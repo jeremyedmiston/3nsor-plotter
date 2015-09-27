@@ -10,6 +10,7 @@ a web interface with tornado. The video is done with the BrickPi branch of this 
 - Raspberry Pi with a BrickPi or BrickPi+ shield. The model doesn't matter, model A, B, B+ and v2 all work.
 - ...OR an Ev3 brain
 - A robot with two ropes attached to motors B and C, and a pen to motor D.
+- A small USB wifi stick. Can't leave the robot connected while it's plotting
 
 ## Software requirements ##
 - **Tornado**

@@ -29,10 +29,12 @@ def get_brickpi_voltage():
 
     :return: voltage (float)
     """
-    bus = smbus.SMBus(1)            # SMBUS 1 because we're using greater than V1.
-    address = 0x48
-    # time.sleep(0.1) #Is this necessary?
+
     try:
+            bus = smbus.SMBus(1)            # SMBUS 1 because we're using greater than V1.
+            address = 0x48
+            # time.sleep(0.1) #Is this necessary?
+
             # read data from i2c bus. the 0 command is mandatory for the protocol but not used in this chip.
             data = bus.read_word_data(address, 0)
 

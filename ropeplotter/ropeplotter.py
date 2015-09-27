@@ -253,7 +253,7 @@ class RopePlotter(object):
         self.move_to_norm_coord(0, 0)
         yield 100
 
-    def plot_circles(self, num_circles=60):
+    def plot_circles(self, num_circles=100):
         UP = 0
         DOWN = -30
 
@@ -295,7 +295,7 @@ class RopePlotter(object):
                     # Look at the pixel we're at and move pen up or down accordingly
                     x_norm, y_norm = self.coords_from_motor_pos(self.drive_motors[0].position, self.drive_motors[1].position)
                     pixel_location = (clamp(x_norm * w, (0,w-1)), clamp(y_norm * w, (0,h-1)))
-                    if pixels[pixel_location] < 80: # About 33% gray
+                    if pixels[pixel_location] < 60 + 60 * right_side_mode:
                         self.pen_motor_control.target = DOWN
                         #self.pen_motor.run_to_abs_pos(position_sp=DOWN)
                     else:
@@ -345,7 +345,7 @@ class RopePlotter(object):
                     x_norm, y_norm = self.coords_from_motor_pos(self.drive_motors[0].position, self.drive_motors[1].position)
                     pixel_location = (int(clamp(x_norm * w, (0,w-1))), int(clamp(y_norm * w, (0,h-1))))
 
-                    if pixels[pixel_location] < 80: # About 33% gray
+                    if pixels[pixel_location] < 60 + 60 * right_side_mode: # About 33% gray
                         self.pen_motor_control.target = DOWN
                         #self.pen_motor.run_to_abs_pos(position_sp=DOWN)
                     else:

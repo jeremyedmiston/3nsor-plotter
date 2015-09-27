@@ -4,7 +4,7 @@ import time
 
 from PIL import Image
 
-from robot_helpers import MotorPidControl, clamp
+from robot_helpers import MotorPidControl, clamp, get_brickpi_voltage
 import ev3dev
 
 
@@ -18,16 +18,17 @@ class RopePlotter(object):
         self.calc_constants()
         self.maxpower = maxpower
 
-        # Start the BrickPi
+        # Start the engines
         self.pen_motor = ev3dev.motor(ev3dev.OUTPUT_D)
         self.left_motor = ev3dev.motor(ev3dev.OUTPUT_B)
         self.right_motor = ev3dev.motor(ev3dev.OUTPUT_C)
 
+        # Build lists for iterating over all motors
         self.drive_motors = [self.left_motor, self.right_motor]
         self.all_motors = [self.left_motor, self.right_motor, self.pen_motor]
 
         # Initialise motor PID control classes
-        # TODO Refactor this so motors and controllers are not seprate classes anymore
+        # TODO Refactor this so motors and controllers are not separate classes anymore
         left_motor_control = MotorPidControl(ev3dev.OUTPUT_B, Kp, Ti, Td, Kp_neg_factor=Kp_neg_factor, maxpower=maxpower, direction=self.direction)
         right_motor_control = MotorPidControl(ev3dev.OUTPUT_C, Kp, Ti, Td, Kp_neg_factor=Kp_neg_factor, maxpower=maxpower, direction=self.direction)
         self.pen_motor_control = MotorPidControl(ev3dev.OUTPUT_D)
@@ -37,13 +38,23 @@ class RopePlotter(object):
         # Set starting point
         self.set_control_zeroes()
 
+        # Let's see if we are on an Ev3 or a brickpi for voltage reading
+        try:
+            voltage = ev3dev.power_supply.battery.measured_voltage / 1000000.0
+            self.brickpi_mode = False
+        except:
+            import smbus
+            self.brickpi_mode = True
+
+
+
     # Getters & setters for plotter properties. Python style, Baby!
     # After setting these, some calculations need to be done, that's why I define special functions
     # And decorate them as setters and getters.
 
     @property
     def Kp(self):
-        return 0
+        return self.drive_motor_controls[0].Kp
 
     @Kp.setter
     def Kp(self,Kp):
@@ -52,21 +63,21 @@ class RopePlotter(object):
 
     @property
     def Ti(self):
-        return 0
+        return self.drive_motor_controls[0].Ti
 
     @Ti.setter
-    def Ti(self,Ki):
+    def Ti(self, Ti):
         for motor in self.drive_motor_controls:
-            motor.Ti = Ki
+            motor.Ti = Ti
 
     @property
     def Td(self):
-        return 0
+        return self.drive_motor_controls[0].Td
 
     @Td.setter
-    def Td(self,Kd):
+    def Td(self, Td):
         for motor in self.drive_motor_controls:
-            motor.Td = Kd
+            motor.Td = Td
 
     @property
     def l_rope_0(self):
@@ -96,12 +107,17 @@ class RopePlotter(object):
         self.calc_constants()
 
     def calc_constants(self):
-        # now some math to calculate the rest of the plotter parameters
-        #angle-in-deg = l-in-cm/(diameter/2) * 360 /(2*PI) * num_teeth_large_gear / num_teeth_small_gear
-        #-2 is BrickPi weirdness. Encoders run backwards in half degrees.
+        # Some math to calculate the plotter parameters
+
         self.cm_to_deg = -2 * 180 / 3.1415 * 2 / self.pulley_diam * 24 / 8
-        self.v_margin = self.triangle_area(self.__l_rope_0, self.__r_rope_0, self.__att_dist) / self.__att_dist * 2  #height of triangle
-        self.h_margin = (self.__l_rope_0 ** 2 - self.v_margin ** 2) ** 0.5  #pythagoras to find distance from triangle point to left doorframe
+
+        # Calculate the height of triangle made up by the two ropes
+        self.v_margin = self.triangle_area(self.__l_rope_0, self.__r_rope_0, self.__att_dist) / self.__att_dist * 2
+
+        # Using pythagoras to find distance from bottom triangle point to left doorframe
+        self.h_margin = (self.__l_rope_0 ** 2 - self.v_margin ** 2) ** 0.5
+
+        # For convenience, the canvas is square and centered between the attachment points
         self.canvas_size = self.__att_dist - 2 * self.h_margin
 
     @staticmethod
@@ -117,7 +133,7 @@ class RopePlotter(object):
         half_p = (a + b + c) / 2
         return (half_p * (half_p - a) * (half_p - b) * (half_p - c)) ** 0.5
 
-    # Calculations for global to local coordinates and back.
+    ### Calculations for global (doorframe) to local (canvas) coordinates and back. ###
     def motor_targets_from_norm_coords(self,x_norm, y_norm):
         x,y = self.normalized_to_global_coords(x_norm,y_norm)
         return self.motor_targets_from_coords(x,y)
@@ -147,7 +163,7 @@ class RopePlotter(object):
 
         return x,y
 
-    # Movement functions
+    ### Movement functions ###
     def pen_up(self):
         self.pen_motor.run_timed(time_sp=150, duty_cycle_sp=30)
 
@@ -192,7 +208,7 @@ class RopePlotter(object):
             #We're done calculating and setting all motor speeds!
             time.sleep(0.02)
 
-    # Advanced plotting functions by chaining movement functions
+    ### Advanced plotting functions by chaining movement functions ###
     def test_drive(self):
         # A little disturbance in the force
         self.move_to_norm_coord(0.1,0.1)
@@ -239,7 +255,7 @@ class RopePlotter(object):
 
     def plot_circles(self, num_circles=12):
         UP = 0
-        DOWN = -30
+        DOWN = -60
 
         im = Image.open("uploads/picture.jpg").convert("L")
         w, h = im.size
@@ -271,7 +287,7 @@ class RopePlotter(object):
                 self.move_to_coord(x,y)
 
                 #turn on right motor, slowly, to draw circles upwards
-                drive_motor.run_forever(duty_cycle_sp=60)
+                drive_motor.run_forever(duty_cycle_sp=50)
 
                 # Now calculate coordinates continuously until we reach the top, or right side of the canvas
                 # Motor B is off, so let's get it's encoder only once
@@ -314,7 +330,7 @@ class RopePlotter(object):
                 self.move_to_coord(x, y)
 
                 #turn on right motor, slowly to draw circles from right to left.
-                drive_motor.run_forever(duty_cycle_sp=-40)
+                drive_motor.run_forever(duty_cycle_sp=-30)
 
                 # Calculate coordinates continuously until we reach the top, or right side of the canvas
                 while 1:
@@ -344,7 +360,7 @@ class RopePlotter(object):
 
 
 
-    # Calibration & manual movement functions
+    ### Calibration & manual movement functions ###
     def left_fwd(self):
         self.left_motor.run_forever(duty_cycle_sp=70 * self.direction)
 
@@ -367,12 +383,20 @@ class RopePlotter(object):
         for motor in self.drive_motors + [self.pen_motor]:
             motor.stop()
 
+    ### Other functions ###
     def get_voltage(self):
-        if 1:
-            # import smbus
+        """
+        Reads the digital output code of the MCP3021 chip on the BrickPi+ over i2c.
+        Some bit operation magic to get a voltage floating number.
 
-            #TODO smbus stuff
-            return 0.0
+        If this doesnt work try this on the command line: i2cdetect -y 1
+        The 1 in there is the bus number, same as in bus = smbus.SMBus(1)
+        Google the resulting error.
+
+        :return: voltage (float)
+        """
+        if self.brickpi_mode:
+            return get_brickpi_voltage()
         else:
             return ev3dev.power_supply.battery.measured_voltage / 1000000.0
 

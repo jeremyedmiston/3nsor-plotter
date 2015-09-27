@@ -88,7 +88,6 @@ class MainHandler(tornado.web.RequestHandler):
 
 class UploadHandler(tornado.web.RequestHandler):
     def post(self):
-        print self.request.files
         if self.request.files:
             uploaded_file = self.request.files.values()[0][0]    #Get one file only.
             original_fname = uploaded_file['filename']
@@ -103,7 +102,6 @@ class UploadHandler(tornado.web.RequestHandler):
 
             output_file = open("uploads/" + final_filename, 'w')
             output_file.write(uploaded_file['body'])
-            #self.redirect('/')
             wsSend("file " + final_filename + " is uploaded")
             self.finish("file" + final_filename + " is uploaded")
         else:

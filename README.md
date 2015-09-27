@@ -6,17 +6,20 @@
 This plotter is hung by two pieces of rope on a door and controlled by a BrickPi. Since BrickPi has no screen I built
 a web interface with tornado. The video is done with the BrickPi branch of this repo. The newest branch is on Ev3dev.
 
-## Requirements ##
+## Hardware requirements ##
+- Raspberry Pi with a BrickPi or BrickPi+ shield. The model doesn't matter, model A, B, B+ and v2 all work.
+- ...OR an Ev3 brain
+- A robot with two ropes attached to motors B and C, and a pen to motor D.
+
+## Software requirements ##
 - **Tornado**
 - **Ev3dev** and of course the python bindings.
-- **python-pillow**
 
 ## Installation ##
 
 1. Get yourself a micro SD with the right Ev3dev image. They exist for both BrickPi and Ev3. http://www.ev3dev.org/docs/getting-started/
 2. Install python ev3dev bindings as described here: https://github.com/ddemidov/ev3dev-lang-python
 2. Install tornado as described here under *manual*(!) installation here: http://www.tornadoweb.org/en/stable/#installation
-2. Install pillow: `pip install pillow`
 2. Clone this repo: `git clone https://github.com/antonvh/3nsor-plotter/`
 
 ## Usage ##
@@ -34,4 +37,4 @@ a web interface with tornado. The video is done with the BrickPi branch of this 
 ## Good to know ##
 - On the Raspberry Pi, My wifi dongle went to sleep all the time, while I was working on this project. I used this to fix it: http://raspberrypi.stackexchange.com/questions/1384/how-do-i-disable-suspend-mode
 As long as the server is running, there's no problem.
-- The script has virtually no error catching. It will crash if you throw data at it, that it is not expecting.
+- The script has virtually no error catching. It will crash if you throw data at it that it is not expecting.

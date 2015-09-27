@@ -35,6 +35,9 @@ a web interface with tornado. The video is done with the BrickPi branch of this 
 6. Upload the file
 6. Start plotting
 
+## Please fork me ##
+And help improve the web interface.
+
 ## Good to know ##
 - On the Raspberry Pi, My wifi dongle went to sleep all the time, while I was working on this project. I used this to fix it: http://raspberrypi.stackexchange.com/questions/1384/how-do-i-disable-suspend-mode
 As long as the server is running, there's no problem.

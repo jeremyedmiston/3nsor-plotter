@@ -42,3 +42,11 @@ And help improve the web interface.
 - On the Raspberry Pi, My wifi dongle went to sleep all the time, while I was working on this project. I used this to fix it: http://raspberrypi.stackexchange.com/questions/1384/how-do-i-disable-suspend-mode
 As long as the server is running, there's no problem.
 - The script has virtually no error catching. It will crash if you throw data at it that it is not expecting.
+
+## To do ##
+- Increase precision on circle plot drawing
+- Build stronger gear box
+- Find a way to plot horizontal lines
+- Improve rope guiding
+- Fix voltage reading over i2c on BrickPi
+- Drive slower when drawing, faster when not

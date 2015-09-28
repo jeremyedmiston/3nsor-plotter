@@ -12,11 +12,11 @@ class RopePlotter(object):
     def __init__(self, l_rope_0, r_rope_0, attachment_distance, pulley_diam=4.4, Kp=2.2, Ti=0.2, Td=0.02, Kp_neg_factor=.5, maxpower=100):
         self.__l_rope_0 = float(l_rope_0)
         self.__r_rope_0 = float(r_rope_0)
-        self.__att_dist = attachment_distance
-        self.pulley_diam = pulley_diam
+        self.__att_dist = float(attachment_distance)
+        self.pulley_diam = float(pulley_diam)
         self.direction = 1 # -1 is for reversing motors
         self.calc_constants()
-        self.maxpower = maxpower
+        self.maxpower = min(maxpower,100)
 
         # Start the engines
         self.pen_motor = ev3dev.motor(ev3dev.OUTPUT_D)
@@ -59,7 +59,7 @@ class RopePlotter(object):
     @Kp.setter
     def Kp(self,Kp):
         for motor in self.drive_motor_controls:
-            motor.Kp = Kp
+            motor.Kp = float(Kp)
 
     @property
     def Ti(self):
@@ -68,7 +68,7 @@ class RopePlotter(object):
     @Ti.setter
     def Ti(self, Ti):
         for motor in self.drive_motor_controls:
-            motor.Ti = Ti
+            motor.Ti = float(Ti)
 
     @property
     def Td(self):
@@ -77,7 +77,7 @@ class RopePlotter(object):
     @Td.setter
     def Td(self, Td):
         for motor in self.drive_motor_controls:
-            motor.Td = Td
+            motor.Td = float(Td)
 
     @property
     def l_rope_0(self):
@@ -85,7 +85,7 @@ class RopePlotter(object):
 
     @l_rope_0.setter
     def l_rope_0(self, length):
-        self.__l_rope_0 = length
+        self.__l_rope_0 = float(length)
         self.calc_constants()
 
     @property
@@ -94,7 +94,7 @@ class RopePlotter(object):
 
     @r_rope_0.setter
     def r_rope_0(self, length):
-        self.__r_rope_0 = length
+        self.__r_rope_0 = float(length)
         self.calc_constants()
 
     @property
@@ -103,7 +103,7 @@ class RopePlotter(object):
 
     @att_dist.setter
     def att_dist(self,length):
-        self.__att_dist = length
+        self.__att_dist = float(length)
         self.calc_constants()
 
     def calc_constants(self):

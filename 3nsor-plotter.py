@@ -153,16 +153,16 @@ class MotorThread(threading.Thread):
                 # We got settings
                 if 'kp' in c:
                     #We got pid settings
-                    self.plotter.Kp = float(c['kp'])
-                    self.plotter.Ti = float(c['ti'])
-                    self.plotter.Td = float(c['td'])
+                    self.plotter.Kp = c['kp']
+                    self.plotter.Ti = c['ti']
+                    self.plotter.Td = c['td']
                     wsSend("PID parameters set")
 
                 if 'll' in c:
                     #we got rope length settings
-                    self.plotter.l_rope_0 = float(c['ll'])
-                    self.plotter.r_rope_0 = float(c['lr'])
-                    self.plotter.att_dist = float(c['aw'])
+                    self.plotter.l_rope_0 = c['ll']
+                    self.plotter.r_rope_0 = c['lr']
+                    self.plotter.att_dist = c['aw']
                     wsSend("Plotter settings set")
                 c=''
 

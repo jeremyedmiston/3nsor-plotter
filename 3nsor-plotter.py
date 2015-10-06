@@ -50,6 +50,7 @@ import tornado.web
 import tornado.websocket
 import tornado.template
 import json,os
+import sys
 
 # My own stuff
 from ropeplotter import RopePlotter, Logger, Throttler, get_ip_address
@@ -266,3 +267,6 @@ if __name__ == "__main__":
         for ws in websockets:
             ws.close()
         print "Motor thread stopped"
+    except:
+        print "Unexpected error:", sys.exc_info()[0]
+        raise

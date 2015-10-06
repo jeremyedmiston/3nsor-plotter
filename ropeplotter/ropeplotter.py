@@ -19,9 +19,9 @@ class RopePlotter(object):
         self.maxpower = min(maxpower,100)
 
         # Start the engines
-        self.pen_motor = ev3dev.Motor(ev3dev.OUTPUT_D)
-        self.left_motor = ev3dev.Motor(ev3dev.OUTPUT_B)
-        self.right_motor = ev3dev.Motor(ev3dev.OUTPUT_C)
+        self.pen_motor = ev3dev.Motor(name="motor3") # Port D (motors go from 0-3)
+        self.left_motor = ev3dev.Motor(name="motor1")
+        self.right_motor = ev3dev.Motor(name="motor2")
 
         # Build lists for iterating over all motors
         self.drive_motors = [self.left_motor, self.right_motor]
@@ -29,9 +29,9 @@ class RopePlotter(object):
 
         # Initialise motor PID control classes
         # TODO Refactor this so motors and controllers are not separate classes anymore
-        left_motor_control = MotorPidControl(ev3dev.OUTPUT_B, Kp, Ti, Td, Kp_neg_factor=Kp_neg_factor, maxpower=maxpower, direction=self.direction)
-        right_motor_control = MotorPidControl(ev3dev.OUTPUT_C, Kp, Ti, Td, Kp_neg_factor=Kp_neg_factor, maxpower=maxpower, direction=self.direction)
-        self.pen_motor_control = MotorPidControl(ev3dev.OUTPUT_D, maxpower=20)
+        left_motor_control = MotorPidControl("motor1", Kp, Ti, Td, Kp_neg_factor=Kp_neg_factor, maxpower=maxpower, direction=self.direction)
+        right_motor_control = MotorPidControl("motor2", Kp, Ti, Td, Kp_neg_factor=Kp_neg_factor, maxpower=maxpower, direction=self.direction)
+        self.pen_motor_control = MotorPidControl("motor3", maxpower=20)
         self.drive_motor_controls = [left_motor_control, right_motor_control]
         self.all_motor_controls = [left_motor_control, right_motor_control, self.pen_motor_control]
 

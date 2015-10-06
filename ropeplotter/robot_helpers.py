@@ -230,12 +230,12 @@ class MotorPidControl(object):
         return int(clamp(output,(-self.maxpower,self.maxpower)))
 
 
-class MotorPid(ev3dev.motor):
+class MotorPid(ev3dev.Motor):
     """
     This is an attemptempt to subclass the ev3dev motor, but it doesn't work and I can't figure out why.
     """
     def __init__(self, motor_port, Kp=1, Ti=0, Td=0, Kp_neg_factor=1, maxpower=100, direction=1, precision=12):
-        ev3dev.motor.__init__(self, motor_port)
+        ev3dev.Motor.__init__(self, motor_port)
         self.direction = direction
         self.__Kp = Kp
         self.Kp_neg_factor = Kp_neg_factor

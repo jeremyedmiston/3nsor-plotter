@@ -69,7 +69,9 @@ class MainHandler(tornado.web.RequestHandler):
     def get(self):
         #loader = tornado.template.Loader(".")
         #self.write(loader.load("index.html").generate())
+        print " get request"
         self.render("index.html", kp=KP, ti=TI, td=TD, ll=L_ROPE_0, lr=R_ROPE_0, aw=ROPE_ATTACHMENT_WIDTH)
+        print "request handled"
 
 
 class UploadHandler(tornado.web.RequestHandler):

@@ -108,8 +108,9 @@ class RopePlotter(object):
 
     def calc_constants(self):
         # Some math to calculate the plotter parameters
-
-        self.cm_to_deg = -2 * 180 / 3.1415 * 2 / self.pulley_diam * 24 / 8
+        large_gear_teeth = 20
+        small_gear_teeth = 12
+        self.cm_to_deg = -2 * 180 / 3.1415 * 2 / self.pulley_diam * large_gear_teeth / small_gear_teeth
 
         # Calculate the height of triangle made up by the two ropes
         self.v_margin = self.triangle_area(self.__l_rope_0, self.__r_rope_0, self.__att_dist) / self.__att_dist * 2

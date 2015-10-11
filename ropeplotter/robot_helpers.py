@@ -139,7 +139,7 @@ class MotorPidControl(object):
     motor power for a servo.
     """
 
-    def __init__(self, motor_port, Kp=1, Ti=0, Td=0, Kp_neg_factor=1, maxpower=100, direction=1, precision=15):
+    def __init__(self, motor_port, Kp=1, Ti=0, Td=0, Kp_neg_factor=1, maxpower=100, direction=1, precision=15, ramp_up=0.3):
         self.port = motor_port
         self.direction = direction
         self.__Kp = Kp
@@ -151,6 +151,7 @@ class MotorPidControl(object):
         self.encoder = 0
         self.precision = precision
         self.target = 0         # This also initializes other properties using setter
+        self.ramp_up = ramp_up
 
         self.maxpower = maxpower
         logname = "-".join([str(i) for i in ["motor",motor_port]])
@@ -178,14 +179,15 @@ class MotorPidControl(object):
     def target(self):
         return self.__target
 
-    @target.setter  # setter, python style!
+    @target.setter
     def target(self, target):
-        self.__target = target * self.direction
-        self.integral = 0
-        self.prev_error = self.error
-        #self.errors = deque([self.error], maxlen=6)
-        self.timestamp = time.time()-0.02
-        #self.timestamps = deque([self.timestamp],maxlen=6)
+        # Setter, python style!
+        # Not only set a new target, but also reset other steering factors
+        self.__target = target * self.direction     # Change direction if necessary
+        self.integral = 0                           # Reset integral part
+        self.prev_error = self.error                # Reset errors
+        self.timestamp = time.time()-0.02           # Reset derivative timer
+        self.start_time = time.time()               # Set starttime for ramping up
 
     @property
     def target_reached(self):
@@ -206,26 +208,29 @@ class MotorPidControl(object):
         self.integral += error * dt
         self.integral = clamp(self.integral,(-self.maxpower/2,self.maxpower/2)) #when driving a long time, this number can get too high.
 
-        #calculate derivative. Use the error value from 6 cycles back, because of jitter.
+        #calculate derivative.
         derivative = (error - self.prev_error) / dt
-        #dt6 = (time.time() - self.timestamps[0])
-        #derivative = (error - self.errors[0]) / dt6
-
-        #calculate output
-        if error < 0:
-            Kp = self.Kp_neg
-        else:
-            Kp = self.Kp
-        output = Kp * ( error + self.integral * self.Ti + self.Td * derivative )   #Ti should be 1/Ti.
 
         #save error & time for next time.
         self.prev_error = error
         self.timestamp = time.time()
 
-        self.log.log_line(self.position, self.target, error, output, self.integral, derivative, self.target_reached)
+        # Use different proportional factor for running backwards if the load is different.
+        if error < 0:
+            Kp = self.Kp_neg
+        else:
+            Kp = self.Kp
 
-        #self.errors.append(error)
-        #self.timestamps.append(time.time())
+        # Ramp up
+        if self.ramp_up:
+            countdown = max((self.start_time + self.ramp_up) - time.time(), 0) # if this is 0, we're at full power
+            ramp_factor = 1.0 - countdown / self.ramp_up
+        else:
+            ramp_factor = 1.0
+
+        output = Kp * ( error + self.integral * self.Ti + self.Td * derivative ) * ramp_factor
+
+        self.log.log_line(self.position, self.target, error, output, self.integral, derivative, self.target_reached)
 
         return int(clamp(output,(-self.maxpower,self.maxpower)))
 

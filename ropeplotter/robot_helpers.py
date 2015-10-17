@@ -139,7 +139,7 @@ class MotorPidControl(object):
     motor power for a servo.
     """
 
-    def __init__(self, motor_port, Kp=1, Ti=0, Td=0, Kp_neg_factor=1, maxpower=100, direction=1, precision=15, ramp_up=0.3):
+    def __init__(self, motor_port, Kp=1, Ti=0, Td=0, Kp_neg_factor=1, maxpower=100, direction=1, precision=15, ramp_up=0):
         self.port = motor_port
         self.direction = direction
         self.__Kp = Kp

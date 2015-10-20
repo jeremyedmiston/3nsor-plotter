@@ -237,7 +237,7 @@ class PIDMotor(ev3dev.Motor):
 
     @position_sp.setter
     def position_sp(self,tgt):
-        self.f.positionPID.target = tgt
+        self.positionPID.target = tgt
 
     def run(self):
         self.positionPID.position = self.position

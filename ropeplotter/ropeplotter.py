@@ -4,7 +4,7 @@ import time
 
 from PIL import Image
 
-from robot_helpers import MotorPidControl, clamp, get_brickpi_voltage
+from robot_helpers import PIDControl, clamp, get_brickpi_voltage
 import ev3dev
 
 
@@ -29,9 +29,9 @@ class RopePlotter(object):
 
         # Initialise motor PID control classes
         # TODO Refactor this so motors and controllers are not separate classes anymore
-        left_motor_control = MotorPidControl("motor1", Kp, Ti, Td, Kp_neg_factor=Kp_neg_factor, maxpower=maxpower, direction=self.direction)
-        right_motor_control = MotorPidControl("motor2", Kp, Ti, Td, Kp_neg_factor=Kp_neg_factor, maxpower=maxpower, direction=self.direction)
-        self.pen_motor_control = MotorPidControl("motor3", maxpower=20)
+        left_motor_control = PIDControl(Kp, Ti, Td, Kp_neg_factor=Kp_neg_factor, maxpower=maxpower, direction=self.direction)
+        right_motor_control = PIDControl(Kp, Ti, Td, Kp_neg_factor=Kp_neg_factor, maxpower=maxpower, direction=self.direction)
+        self.pen_motor_control = PIDControl(maxpower=20)
         self.drive_motor_controls = [left_motor_control, right_motor_control]
         self.all_motor_controls = [left_motor_control, right_motor_control, self.pen_motor_control]
 
@@ -198,7 +198,7 @@ class RopePlotter(object):
             for motor, ctl in zip(self.drive_motors, self.drive_motor_controls):
 
                 # Get motor positions:
-                ctl.encoder = motor.position
+                ctl.position = motor.position
                 motor.run_forever(duty_cycle_sp=ctl.calc_power())
 
             if all([ctl.target_reached for ctl in self.drive_motor_controls]):

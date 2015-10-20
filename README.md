@@ -46,8 +46,7 @@ As long as the server is running, there's no problem.
 
 ## To do ##
 - Increase precision on circle plot drawing
-- Build stronger gear box
 - Find a way to plot horizontal lines
-- Improve rope guiding
-- Fix voltage reading over i2c on BrickPi
 - Drive slower when drawing, faster when not
+- Create speed regulation
+- 

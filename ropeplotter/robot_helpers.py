@@ -247,10 +247,11 @@ class PIDMotor(ev3dev.Motor):
         self.run_forever()
 
     def run_at_speed_sp(self, spd):
-        self.speedPID.target = spd
-        self.speedPID.position = self.speed
-        self.duty_cycle_sp = self.speedPID.calc_power()
-        self.run_forever()
+        while 1:
+            self.speedPID.target = spd
+            self.speedPID.position = self.speed
+            self.duty_cycle_sp = self.speedPID.calc_power()
+            self.run_forever()
 
     def run_to_position_sp(self):
         while not self.positionPID.target_reached:

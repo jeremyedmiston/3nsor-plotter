@@ -147,9 +147,9 @@ class PIDControl(object):
         self.Ti = Ti
         self.Td = Td
         self.zero = 0
-        self.__position = 0
+        self.__current = 0
         self.precision = precision
-        self.target = 0         # This also initializes other properties using setter
+        self.set_point = 0         # This also initializes other properties using setter
         self.maxpower = maxpower
         self.maxintegral = maxintegral
 
@@ -164,25 +164,25 @@ class PIDControl(object):
 
     @property   # getter
     def error(self):
-        return self.__target - self.position
+        return self.__set_point - self.current
 
     @property   # getter
-    def position(self):
-        return self.__position - self.zero
+    def current(self):
+        return self.__current - self.zero
 
-    @position.setter   # setter
-    def position(self, pos):
-        self.__position = pos
+    @current.setter   # setter
+    def current(self, point):
+        self.__current = point
 
     @property   # getter
-    def target(self):
-        return self.__target
+    def set_point(self):
+        return self.__set_point
 
-    @target.setter
-    def target(self, target):
+    @set_point.setter
+    def set_point(self, target):
         # Setter, python style!
         # Not only set a new target, but also reset other steering factors
-        self.__target = target * self.direction     # Change direction if necessary
+        self.__set_point = target * self.direction     # Change direction if necessary
         self.integral = 0                           # Reset integral part
         self.prev_error = self.error                # Reset errors
         self.timestamp = time.time()-0.02           # Reset derivative timer
@@ -233,25 +233,31 @@ class PIDMotor(ev3dev.Motor):
 
     @property
     def position_sp(self):
-        return self.positionPID.target
+        return self.positionPID.set_point
 
     @position_sp.setter
     def position_sp(self,tgt):
-        self.positionPID.target = tgt
+        self.positionPID.set_point = tgt
 
     def run(self):
-        self.positionPID.position = self.position
-        self.speedPID.target = self.positionPID.calc_power()
-        self.speedPID.position = self.speed
-        self.duty_cycle_sp = self.speedPID.calc_power()
+        self.positionPID.current = self.position
+        self.speedPID.set_point = self.positionPID.calc_power()
+        self.speedPID.current = self.speed
+        power = clamp((self.duty_cycle_sp + self.speedPID.calc_power()), (-100, 100))
+        self.duty_cycle_sp = power
         self.run_forever()
 
     def run_at_speed_sp(self, spd):
-        while 1:
-            self.speedPID.target = spd
-            self.speedPID.position = self.speed
-            self.duty_cycle_sp = self.speedPID.calc_power()
-            self.run_forever()
+        self.speedPID.set_point = spd
+        self.speedPID.current = self.speed
+        power = clamp((self.duty_cycle_sp + self.speedPID.calc_power()), (-100, 100))
+        self.duty_cycle_sp = power
+        self.run_forever()
+
+    def run_for_time(self, time_in_s, speed):
+        end_time = time.time() + time_in_s
+        while time.time() < end_time:
+            self.run_at_speed_sp(speed)
 
     def run_to_position_sp(self):
         while not self.positionPID.target_reached:

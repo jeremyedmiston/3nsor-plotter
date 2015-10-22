@@ -370,6 +370,31 @@ class RopePlotter(object):
                 # Yield to allow pause/stop and show percentage
                 yield ((i+1)*50.0+right_side_mode*50.0)/num_circles
 
+        # Now draw horizontal lines.
+        for i in range(num_circles):
+            x = self.h_margin
+            y = self.v_margin + i * self.canvas_size * 1.0 / num_circles
+            self.move_to_coord(x,y)
+
+            #turn on motors in different direction to draw horizontalish lines
+            self.right_motor.run_forever(duty_cycle_sp=30)
+            self.left_motor.run_forever(duty_cycle_sp=-30)
+
+            while 1:
+                    # Look at the pixel we're at and move pen up or down accordingly
+                    x_norm, y_norm = self.coords_from_motor_pos(self.drive_motors[0].position, self.drive_motors[1].position)
+                    pixel_location = (clamp(x_norm * w, (0,w-1)), clamp(y_norm * w, (0,h-1)))
+                    if pixels[pixel_location] < 160:
+                        self.pen_motor_control.target = DOWN
+
+                    else:
+                        self.pen_motor_control.target = UP
+
+                    self.pen_motor_control.encoder = self.pen_motor.position
+                    self.pen_motor.run_forever(duty_cycle_sp=self.pen_motor_control.calc_power())
+                    if x_norm > 1:
+                        break
+
 
 
     ### Calibration & manual movement functions ###

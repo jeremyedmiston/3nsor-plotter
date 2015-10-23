@@ -14,12 +14,11 @@ a web interface with tornado. The video is done with the BrickPi branch of this 
 
 ## Software requirements ##
 - **Tornado**
-- **Ev3dev** and of course the python bindings.
+- **Ev3dev**
 
 ## Installation ##
 
 1. Get yourself a micro SD with the right Ev3dev image. They exist for both BrickPi and Ev3. http://www.ev3dev.org/docs/getting-started/
-2. Install python ev3dev bindings as described here: https://github.com/ddemidov/ev3dev-lang-python
 2. Install tornado as described here under *manual*(!) installation here: http://www.tornadoweb.org/en/stable/#installation
 2. Clone this repo: `git clone https://github.com/antonvh/3nsor-plotter/`
 5. To get battery voltage readings on a BrickPi add `i2c-dev` to `/etc/modules-load.d/modules.conf` and reboot.

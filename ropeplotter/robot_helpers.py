@@ -139,7 +139,7 @@ class PIDControl(object):
     feedback power.
     """
 
-    def __init__(self, Kp=1, Ti=0, Td=0, Kp_neg_factor=1, maxpower=100, maxintegral = 100, direction=1, precision=15):
+    def __init__(self, Kp=1.0, Ti=0.0, Td=0.0, Kp_neg_factor=1, maxpower=100, maxintegral = 100, direction=1, precision=15):
         self.direction = direction
         self.__Kp = Kp
         self.Kp_neg_factor = Kp_neg_factor

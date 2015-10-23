@@ -19,9 +19,9 @@ class RopePlotter(object):
         self.maxpower = min(maxpower,100)
 
         # Start the engines
-        self.pen_motor = ev3dev.Motor(name="motor3") # Port D (motors go from 0-3)
-        self.left_motor = ev3dev.Motor(name="motor1")
-        self.right_motor = ev3dev.Motor(name="motor2")
+        self.pen_motor = ev3dev.Motor(ev3dev.OUTPUT_D) # Port D (motors go from 0-3)
+        self.left_motor = ev3dev.Motor(ev3dev.OUTPUT_B)
+        self.right_motor = ev3dev.Motor(ev3dev.OUTPUT_C)
 
         # Build lists for iterating over all motors
         self.drive_motors = [self.left_motor, self.right_motor]

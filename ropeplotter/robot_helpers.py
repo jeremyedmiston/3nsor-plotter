@@ -246,7 +246,7 @@ class PIDMotor(ev3dev.Motor):
         self.speedPID.current = self.speed
         power = clamp((self.duty_cycle + self.speedPID.calc_power()), (-100, 100))
         self.duty_cycle_sp = power
-        print self.position, self.speed, pospower, self.speedPID.calc_power(), power, self.duty_cycle, self.position_sp
+        print self.position, self.speed, pospower, power, self.duty_cycle, self.position_sp
         self.run_forever()
 
     def run_at_speed_sp(self, spd):

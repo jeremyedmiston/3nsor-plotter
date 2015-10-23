@@ -262,8 +262,8 @@ class PIDMotor(ev3dev.Motor):
         while time.time() < end_time:
             self.run_at_speed_sp(speed)
 
-    def run_to_position_sp(self, *args):
-        if args[0]: self.position_sp = args[0]
+    def run_to_position_sp(self, pos=None):
+        if pos is not None: self.position_sp = pos
         while not self.positionPID.target_reached:
             self.run()
         if self.brake:

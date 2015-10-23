@@ -79,7 +79,6 @@ class UploadHandler(tornado.web.RequestHandler):
             uploaded_file = self.request.files.values()[0][0]    #Get one file only.
             original_fname = uploaded_file['filename']
             extension = os.path.splitext(original_fname)[1]
-            print os.path.splitext(original_fname)[1]
             if extension == '.jpg':
                 final_filename = "picture.jpg"
             elif extension == '.csv':
@@ -255,7 +254,7 @@ if __name__ == "__main__":
 
     #set up web server
     application.listen(9093)  # starts the web sockets connection
-    print "Starting web server at {0}:9030".format(get_ip_address('wlan0'))
+    print "Starting web server at {0}:9093".format(get_ip_address('wlan0'))
     try:
         tornado.ioloop.IOLoop.instance().start()
     except KeyboardInterrupt:  # Triggered by pressing Ctrl+C. Time to clean up.

@@ -133,14 +133,13 @@ class Logger(object):
         self.newline()
 
 
-class MotorPidControl(object):
+class PIDControl(object):
     """
     Helper class that remembers the integral and derivative of an error and uses that to calculate
-    motor power for a servo.
+    feedback power.
     """
 
-    def __init__(self, motor_port, Kp=1, Ti=0, Td=0, Kp_neg_factor=1, maxpower=100, direction=1, precision=15):
-        self.port = motor_port
+    def __init__(self, Kp=1, Ti=0, Td=0, Kp_neg_factor=1, maxpower=100, maxintegral = 100, direction=1, precision=15):
         self.direction = direction
         self.__Kp = Kp
         self.Kp_neg_factor = Kp_neg_factor
@@ -148,14 +147,11 @@ class MotorPidControl(object):
         self.Ti = Ti
         self.Td = Td
         self.zero = 0
-        self.encoder = 0
+        self.__current = 0
         self.precision = precision
-        self.target = 0         # This also initializes other properties using setter
-
+        self.set_point = 0         # This also initializes other properties using setter
         self.maxpower = maxpower
-        logname = "-".join([str(i) for i in ["motor",motor_port]])
-        self.log = Logger(logname, to_file=True)
-        self.log.log_line('position','target','error','output','integral','derivative','reached')
+        self.maxintegral = maxintegral
 
     @property
     def Kp(self):
@@ -168,24 +164,29 @@ class MotorPidControl(object):
 
     @property   # getter
     def error(self):
-        return self.__target - self.position
+        return self.__set_point - self.current
 
     @property   # getter
-    def position(self):
-        return self.encoder - self.zero
+    def current(self):
+        return self.__current - self.zero
+
+    @current.setter   # setter
+    def current(self, point):
+        self.__current = point
 
     @property   # getter
-    def target(self):
-        return self.__target
+    def set_point(self):
+        return self.__set_point
 
-    @target.setter  # setter, python style!
-    def target(self, target):
-        self.__target = target * self.direction
-        self.integral = 0
-        self.prev_error = self.error
-        #self.errors = deque([self.error], maxlen=6)
-        self.timestamp = time.time()-0.02
-        #self.timestamps = deque([self.timestamp],maxlen=6)
+    @set_point.setter
+    def set_point(self, target):
+        # Setter, python style!
+        # Not only set a new target, but also reset other steering factors
+        self.__set_point = target * self.direction     # Change direction if necessary
+        self.integral = 0                           # Reset integral part
+        self.prev_error = self.error                # Reset errors
+        self.timestamp = time.time()-0.02           # Reset derivative timer
+        self.start_time = time.time()               # Set starttime for ramping up
 
     @property
     def target_reached(self):
@@ -206,25 +207,102 @@ class MotorPidControl(object):
         self.integral += error * dt
         self.integral = clamp(self.integral,(-self.maxpower/2,self.maxpower/2)) #when driving a long time, this number can get too high.
 
-        #calculate derivative. Use the error value from 6 cycles back, because of jitter.
+        #calculate derivative.
         derivative = (error - self.prev_error) / dt
-        #dt6 = (time.time() - self.timestamps[0])
-        #derivative = (error - self.errors[0]) / dt6
-
-        #calculate output
-        if error < 0:
-            Kp = self.Kp_neg
-        else:
-            Kp = self.Kp
-        output = Kp * ( error + self.integral * self.Ti + self.Td * derivative )   #Ti should be 1/Ti.
 
         #save error & time for next time.
         self.prev_error = error
         self.timestamp = time.time()
 
-        self.log.log_line(self.position, self.target, error, output, self.integral, derivative, self.target_reached)
+        # Use different proportional factor for running backwards if the load is different.
+        if error < 0:
+            Kp = self.Kp_neg
+        else:
+            Kp = self.Kp
 
-        #self.errors.append(error)
-        #self.timestamps.append(time.time())
+        output = Kp * ( error + self.integral * self.Ti + self.Td * derivative )
 
         return int(clamp(output,(-self.maxpower,self.maxpower)))
+
+
+class PIDMotor(ev3dev.Motor):
+    def __init__(self, port=None, name='*', **kwargs):
+        ev3dev.Motor.__init__(self, port, name)
+        self.positionPID = PIDControl()
+        self.speedPID = PIDControl()
+
+    @property
+    def position_sp(self):
+        return self.positionPID.set_point
+
+    @position_sp.setter
+    def position_sp(self,tgt):
+        self.positionPID.set_point = tgt
+
+    def run(self):
+        self.positionPID.current = self.position
+        self.speedPID.set_point = self.positionPID.calc_power()
+        self.speedPID.current = self.speed
+        power = clamp((self.duty_cycle_sp + self.speedPID.calc_power()), (-100, 100))
+        self.duty_cycle_sp = power
+        self.run_forever()
+
+    def run_at_speed_sp(self, spd):
+        self.speedPID.set_point = spd
+        self.speedPID.current = self.speed
+        power = clamp((self.duty_cycle_sp + self.speedPID.calc_power()), (-100, 100))
+        self.duty_cycle_sp = power
+        self.run_forever()
+
+    def run_for_time(self, time_in_s, speed):
+        end_time = time.time() + time_in_s
+        while time.time() < end_time:
+            self.run_at_speed_sp(speed)
+
+    def run_to_position_sp(self):
+        while not self.positionPID.target_reached:
+            self.run()
+        self.stop()
+
+class BrickPiPowerSupply(object):
+    def __int__(self):
+        try:
+            self.bus = smbus.SMBus(1)            # SMBUS 1 because we're using greater than V1.
+        except:
+            self.bus = None
+
+    def measured_voltage(self):
+        """
+        The measured voltage that the battery is supplying (in microvolts)
+
+        Reads the digital output code of the MCP3021 chip on the BrickPi+ over i2c.
+        Some bit operation magic to get a voltage floating number.
+
+        If this doesnt work try this on the command line: i2cdetect -y 1
+        The 1 in there is the bus number, same as in bus = smbus.SMBus(1)
+        Google the resulting error.
+
+        :return: voltage (float)
+        """
+        if self.bus:
+                address = 0x48
+                # time.sleep(0.1) #Is this necessary?
+
+                # read data from i2c bus. the 0 command is mandatory for the protocol but not used in this chip.
+                data = self.bus.read_word_data(address, 0)
+
+                # from this data we need the last 4 bites and the first 6.
+                last_4 = data & 0b1111 # using a byte mask
+                first_6 = data >> 10 # left shift 10 because data is 16 bits
+
+                # together they make the voltage conversion ratio
+                # to make it all easier the last_4 bits are most significant :S
+                vdata = ((last_4 << 6) | first_6)
+
+                # Now we can calculate the battery voltage like so:
+                voltage = vdata * 0.0179 * 1000   # This is an empyrical number for voltage conversion.
+
+                return int(voltage)
+
+        else:
+                return 0

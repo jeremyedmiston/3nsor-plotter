@@ -228,8 +228,9 @@ class PIDControl(object):
 class PIDMotor(ev3dev.Motor):
     def __init__(self, port=None, name='*', **kwargs):
         ev3dev.Motor.__init__(self, port, name)
-        self.positionPID = PIDControl()
-        self.speedPID = PIDControl()
+        self.positionPID = PIDControl(Kp=6, Ti=0.1, Td=0.2, maxpower=600)
+        self.speedPID = PIDControl(Kp=0.07, Ti=0.1, Td=0.2)
+        self.brake = True
 
     @property
     def position_sp(self):
@@ -261,9 +262,14 @@ class PIDMotor(ev3dev.Motor):
         while time.time() < end_time:
             self.run_at_speed_sp(speed)
 
-    def run_to_position_sp(self):
+    def run_to_position_sp(self, *args):
+        if args[0]: self.position_sp = args[0]
         while not self.positionPID.target_reached:
             self.run()
+        if self.brake:
+            t_end = time.time() + 0.2
+            while time.time() < t_end:
+                self.run()
         self.stop()
 
 class BrickPiPowerSupply(object):

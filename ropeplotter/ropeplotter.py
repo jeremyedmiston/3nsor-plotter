@@ -387,22 +387,22 @@ class RopePlotter(object):
 
     ### Calibration & manual movement functions ###
     def left_fwd(self):
-        self.left_motor.run_forever(duty_cycle_sp=70 * self.direction)
+        self.left_motor.run_at_speed_sp(200)
 
     def left_stop(self):
         self.left_motor.stop()
 
     def left_back(self):
-        self.left_motor.run_forever(duty_cycle_sp=-40 * self.direction)
+        self.left_motor.run_at_speed_sp(-200)
 
     def right_fwd(self):
-        self.right_motor.run_forever(duty_cycle_sp=70 * self.direction)
+        self.right_motor.run_at_speed_sp(200)
 
     def right_stop(self):
         self.right_motor.stop()
 
     def right_back(self):
-        self.right_motor.run_forever(duty_cycle_sp=-40 * self.direction)
+        self.right_motor.run_at_speed_sp(-200)
 
     def stop_all_motors(self):
         for motor in self.all_motors:

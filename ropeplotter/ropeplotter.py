@@ -4,7 +4,7 @@ import time
 
 from PIL import Image
 
-from robot_helpers import PIDControl, clamp, get_brickpi_voltage
+from robot_helpers import PIDControl, PIDMotor, clamp, get_brickpi_voltage
 import ev3dev
 
 
@@ -19,21 +19,13 @@ class RopePlotter(object):
         self.maxpower = min(maxpower,100)
 
         # Start the engines
-        self.pen_motor = ev3dev.Motor(ev3dev.OUTPUT_D) # Port D (motors go from 0-3)
-        self.left_motor = ev3dev.Motor(ev3dev.OUTPUT_B)
-        self.right_motor = ev3dev.Motor(ev3dev.OUTPUT_C)
+        self.pen_motor = PIDMotor(ev3dev.OUTPUT_D) # Port D (motors go from 0-3)
+        self.left_motor = PIDMotor(ev3dev.OUTPUT_B)
+        self.right_motor = PIDMotor(ev3dev.OUTPUT_C)
 
         # Build lists for iterating over all motors
         self.drive_motors = [self.left_motor, self.right_motor]
         self.all_motors = [self.left_motor, self.right_motor, self.pen_motor]
-
-        # Initialise motor PID control classes
-        # TODO Refactor this so motors and controllers are not separate classes anymore
-        left_motor_control = PIDControl(Kp, Ti, Td, Kp_neg_factor=Kp_neg_factor, maxpower=maxpower, direction=self.direction)
-        right_motor_control = PIDControl(Kp, Ti, Td, Kp_neg_factor=Kp_neg_factor, maxpower=maxpower, direction=self.direction)
-        self.pen_motor_control = PIDControl(maxpower=20)
-        self.drive_motor_controls = [left_motor_control, right_motor_control]
-        self.all_motor_controls = [left_motor_control, right_motor_control, self.pen_motor_control]
 
         # Set starting point
         self.set_control_zeroes()
@@ -54,30 +46,30 @@ class RopePlotter(object):
 
     @property
     def Kp(self):
-        return self.drive_motor_controls[0].Kp
+        return self.drive_motors[0].positionPID.Kp
 
     @Kp.setter
     def Kp(self,Kp):
-        for motor in self.drive_motor_controls:
-            motor.Kp = float(Kp)
+        for motor in self.drive_motors:
+            motor.positionPID.Kp = float(Kp)
 
     @property
     def Ti(self):
-        return self.drive_motor_controls[0].Ti
+        return self.drive_motors[0].positionPID.Ti
 
     @Ti.setter
     def Ti(self, Ti):
-        for motor in self.drive_motor_controls:
-            motor.Ti = float(Ti)
+        for motor in self.drive_motors:
+            motor.positionPID.Ti = float(Ti)
 
     @property
     def Td(self):
-        return self.drive_motor_controls[0].Td
+        return self.drive_motors[0].positionPID.Td
 
     @Td.setter
     def Td(self, Td):
-        for motor in self.drive_motor_controls:
-            motor.Td = float(Td)
+        for motor in self.drive_motors:
+            motor.positionPID.Td = float(Td)
 
     @property
     def l_rope_0(self):
@@ -174,13 +166,11 @@ class RopePlotter(object):
     def set_control_zeroes(self):
         for motor in self.all_motors:
             motor.position = 0
-        for ctl, motor in zip(self.all_motor_controls, self.all_motors):
-            ctl.zero = motor.position
+            motor.positionPID.zero = motor.position
 
     def move_to_coord(self,x,y):
         motor_b_target, motor_c_target  = self.motor_targets_from_coords(x, y)
         self.move_to_targets((motor_b_target, motor_c_target))
-
 
     def move_to_norm_coord(self, x_norm, y_norm):
         motor_b_target, motor_c_target = self.motor_targets_from_norm_coords(x_norm, y_norm)
@@ -189,19 +179,16 @@ class RopePlotter(object):
 
     def move_to_targets(self, targets):
         # Set targets
-        for ctl, tgt in zip(self.drive_motor_controls, targets):
-            ctl.target = tgt
+        for motor, tgt in zip(self.drive_motors, targets):
+            motor.position_sp = tgt
         # Now wait for the motors to reach their targets
         # Alas ev3dev's run_to_abs_pos is not usable. Have to use my own PID controller.
 
         while 1:
-            for motor, ctl in zip(self.drive_motors, self.drive_motor_controls):
+            for motor in self.drive_motors:
+                motor.run()
 
-                # Get motor positions:
-                ctl.position = motor.position
-                motor.run_forever(duty_cycle_sp=ctl.calc_power())
-
-            if all([ctl.target_reached for ctl in self.drive_motor_controls]):
+            if all([motor.positionPID.target_reached for motor in self.drive_motors]):
                 self.left_motor.stop()
                 self.right_motor.stop()
                 break
@@ -288,7 +275,7 @@ class RopePlotter(object):
                 self.move_to_coord(x,y)
 
                 #turn on right motor, slowly, to draw circles upwards
-                drive_motor.run_forever(duty_cycle_sp=30)
+                drive_motor.run_at_speed(150)
 
                 # Now calculate coordinates continuously until we reach the top, or right side of the canvas
                 # Motor B is off, so let's get it's encoder only once
@@ -297,13 +284,12 @@ class RopePlotter(object):
                     x_norm, y_norm = self.coords_from_motor_pos(self.drive_motors[0].position, self.drive_motors[1].position)
                     pixel_location = (clamp(x_norm * w, (0,w-1)), clamp(y_norm * w, (0,h-1)))
                     if pixels[pixel_location] < 60 + 60 * right_side_mode:
-                        self.pen_motor_control.target = DOWN
+                        self.pen_motor.position_sp = DOWN
                         #self.pen_motor.run_to_abs_pos(position_sp=DOWN)
                     else:
-                        self.pen_motor_control.target = UP
+                        self.pen_motor.position_sp = UP
                         #self.pen_motor.run_to_abs_pos(position_sp=UP)
-                    self.pen_motor_control.encoder = self.pen_motor.position
-                    self.pen_motor.run_forever(duty_cycle_sp=self.pen_motor_control.calc_power())
+                    self.pen_motor.run()
 
                     if y_norm <= 0:
                         break # reached the top
@@ -314,7 +300,7 @@ class RopePlotter(object):
 
                 drive_motor.stop()
                 # Pen up
-                self.pen_motor.run_to_abs_pos(position_sp=UP)
+                self.pen_motor.run_to_position_sp(UP)
 
                 # Yield to allow pause/stop and show percentage
                 yield (i*50.0+right_side_mode*50.0)/num_circles
@@ -347,13 +333,12 @@ class RopePlotter(object):
                     pixel_location = (int(clamp(x_norm * w, (0,w-1))), int(clamp(y_norm * w, (0,h-1))))
 
                     if pixels[pixel_location] < 60 + 60 * right_side_mode: # About 33% gray
-                        self.pen_motor_control.target = DOWN
+                        self.pen_motor.position_sp = DOWN
                         #self.pen_motor.run_to_abs_pos(position_sp=DOWN)
                     else:
-                        self.pen_motor_control.target = UP
+                        self.pen_motor.position_sp = UP
                         #self.pen_motor.run_to_abs_pos(position_sp=UP)
-                    self.pen_motor_control.encoder = self.pen_motor.position
-                    self.pen_motor.run_forever(duty_cycle_sp=self.pen_motor_control.calc_power())
+                    self.pen_motor.run()
 
                     if y_norm >= 1:
                         break # reached the bottom
@@ -365,7 +350,7 @@ class RopePlotter(object):
 
                 drive_motor.stop()
                 # Pen up
-                self.pen_motor.run_to_abs_pos(position_sp=UP)
+                self.pen_motor.run_to_position_sp(UP)
 
                 # Yield to allow pause/stop and show percentage
                 yield ((i+1)*50.0+right_side_mode*50.0)/num_circles
@@ -377,24 +362,27 @@ class RopePlotter(object):
             self.move_to_coord(x,y)
 
             #turn on motors in different direction to draw horizontalish lines
-            self.right_motor.run_forever(duty_cycle_sp=30)
-            self.left_motor.run_forever(duty_cycle_sp=-30)
+            self.right_motor.run_at_speed_sp(100)
+            self.left_motor.run_at_speed_sp(-100)
 
             while 1:
                     # Look at the pixel we're at and move pen up or down accordingly
                     x_norm, y_norm = self.coords_from_motor_pos(self.drive_motors[0].position, self.drive_motors[1].position)
                     pixel_location = (clamp(x_norm * w, (0,w-1)), clamp(y_norm * w, (0,h-1)))
                     if pixels[pixel_location] < 160:
-                        self.pen_motor_control.target = DOWN
+                        self.pen_motor.position_sp = DOWN
 
                     else:
-                        self.pen_motor_control.target = UP
-
-                    self.pen_motor_control.encoder = self.pen_motor.position
-                    self.pen_motor.run_forever(duty_cycle_sp=self.pen_motor_control.calc_power())
+                        self.pen_motor.position_sp = UP
+                    self.pen_motor.run()
                     if x_norm > 1:
                         break
 
+            self.right_motor.stop()
+            self.left_motor.stop()
+            # Pen up
+            self.pen_motor.run_to_position_sp(UP)
+            yield "hor"
 
 
     ### Calibration & manual movement functions ###

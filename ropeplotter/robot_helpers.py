@@ -228,9 +228,9 @@ class PIDControl(object):
 class PIDMotor(ev3dev.Motor):
     def __init__(self, port=None, name='*', **kwargs):
         ev3dev.Motor.__init__(self, port, name)
-        self.positionPID = PIDControl(Kp=6, Ti=0.1, Td=0.07, maxpower=600)
+        self.positionPID = PIDControl(Kp=7, Ti=0.1, Td=0.07, maxpower=800)
         self.speedPID = PIDControl(Kp=0.07, Ti=0.1, Td=0.07)
-        self.brake = True
+        self.brake = False
 
     @property
     def position_sp(self):
@@ -247,7 +247,7 @@ class PIDMotor(ev3dev.Motor):
         self.speedPID.current = self.speed
         power = clamp((self.duty_cycle + self.speedPID.calc_power()), (-100, 100))
         self.duty_cycle_sp = power
-        print self.position, self.speed, pospower, power, self.duty_cycle, self.position_sp
+        #print self.position, self.speed, pospower, power, self.duty_cycle, self.position_sp
         self.run_forever()
 
     def run_at_speed_sp(self, spd):

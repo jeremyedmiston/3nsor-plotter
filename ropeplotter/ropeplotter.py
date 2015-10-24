@@ -251,7 +251,7 @@ class RopePlotter(object):
 
     def plot_circles(self, num_circles=10):
         UP = 0
-        DOWN = 12
+        DOWN = -15
         SLOW = 150
         FAST = 300
 

@@ -176,7 +176,7 @@ class RopePlotter(object):
     def set_control_zeroes(self):
         for motor in self.all_motors:
             motor.position = 0
-            motor.positionPID.zero = motor.position
+            #motor.positionPID.zero = motor.position
 
     def move_to_coord(self,x,y):
         motor_b_target, motor_c_target  = self.motor_targets_from_coords(x, y)

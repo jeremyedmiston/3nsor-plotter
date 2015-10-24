@@ -8,9 +8,9 @@ from robot_helpers import PIDMotor, clamp, BrickPiPowerSupply
 import ev3dev
 
 UP = 0      # pen up
-DOWN = -30
-SLOW = 90
-FAST = 180
+DOWN = -25
+SLOW = 110
+FAST = 220
 
 class RopePlotter(object):
     def __init__(self, l_rope_0, r_rope_0, attachment_distance, pulley_diam=4.4, Kp=2.2, Ki=0.2, Kd=0.02, Kp_neg_factor=.5, max_spd=800):

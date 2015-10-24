@@ -7,6 +7,10 @@ from PIL import Image
 from robot_helpers import PIDMotor, clamp, BrickPiPowerSupply
 import ev3dev
 
+UP = 0      # pen up
+DOWN = -11
+SLOW = 90
+FAST = 180
 
 class RopePlotter(object):
     def __init__(self, l_rope_0, r_rope_0, attachment_distance, pulley_diam=4.4, Kp=2.2, Ki=0.2, Kd=0.02, Kp_neg_factor=.5, max_spd=800):
@@ -166,12 +170,6 @@ class RopePlotter(object):
         return x,y
 
     ### Movement functions ###
-    def pen_up(self):
-        self.pen_motor.run_timed(time_sp=150, duty_cycle_sp=30)
-
-    def pen_down(self):
-        self.pen_motor.run_timed(time_sp=150, duty_cycle_sp=-30)
-
     def set_control_zeroes(self):
         for motor in self.all_motors:
             motor.position = 0
@@ -251,10 +249,7 @@ class RopePlotter(object):
         yield 100
 
     def plot_circles(self, num_circles=20):
-        UP = 0
-        DOWN = -11
-        SLOW = 90
-        FAST = 180
+
 
         im = Image.open("uploads/picture.jpg").convert("L")
         w, h = im.size
@@ -426,6 +421,12 @@ class RopePlotter(object):
 
 
     ### Calibration & manual movement functions ###
+    def pen_up(self):
+        self.pen_motor.run_to_position_sp(UP)
+
+    def pen_down(self):
+        self.pen_motor.run_to_position_sp(DOWN)
+
     def left_fwd(self):
         self.left_motor.run_at_speed_sp(400)
 

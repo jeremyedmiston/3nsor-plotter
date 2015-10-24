@@ -254,7 +254,7 @@ class PIDMotor(ev3dev.Motor):
         self.positionPID.current = self.position
         pospower = self.positionPID.calc_power()
         self.speedPID.set_point = pospower
-        self.speedPID.current = self.positionPID.derivative
+        self.speedPID.current = -self.positionPID.derivative
         power = int(clamp((self.duty_cycle + self.speedPID.calc_power()), (-100, 100)))
         self.duty_cycle_sp = power
         if self.verbose: print self.position, self.speed, pospower, self.speedPID.output, power, self.position_sp

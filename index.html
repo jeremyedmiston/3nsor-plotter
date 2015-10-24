@@ -184,7 +184,8 @@
             <img src="static/pid.png">
 
             <form class="form-inline" id="pid" action="" method="post">
-              <p>
+
+
 
               <div class="form-group">
                 <label> Kp </label>
@@ -198,7 +199,11 @@
                 <label> Kd </label>
                 <input type="text" name="td" size="10" value="{{ td }}"/>
               </div>
-              </p>
+              <div class="form-group">
+                <label> Max speed </label>
+                <input type="text" name="max_speed" size="10" value="{{ max_speed }}"/>
+              </div>
+
               <p>
                 <button id="sendPID" type="submit" class="btn btn-primary">Send</button>
                   <span class="controls"><button class="btn btn-default" data-down="" data-up="testdrive">Test drive

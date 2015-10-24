@@ -141,7 +141,7 @@ class PIDControl(object):
     feedback power.
     """
 
-    def __init__(self, Kp=1.0, Ti=0.0, Td=0.0, Kp_neg_factor=1, maxpower=100, maxintegral = 100, direction=1, precision=15):
+    def __init__(self, Kp=1.0, Ti=0.0, Td=0.0, Kp_neg_factor=1, max_out=100, maxintegral = 100, direction=1, precision=15):
         self.direction = direction
         self.__Kp = Kp
         self.Kp_neg_factor = Kp_neg_factor
@@ -152,7 +152,7 @@ class PIDControl(object):
         self.__current = 0
         self.precision = precision
         self.set_point = 0         # This also initializes other properties using setter
-        self.maxpower = maxpower
+        self.max_out = max_out
         self.maxintegral = maxintegral
 
     @property
@@ -224,13 +224,13 @@ class PIDControl(object):
 
         output = Kp * ( error + self.integral * self.Ti + self.Td * derivative )
 
-        return int(clamp(output,(-self.maxpower,self.maxpower)))
+        return int(clamp(output,(-self.max_out,self.max_out)))
 
 
 class PIDMotor(ev3dev.Motor):
-    def __init__(self, port=None, name='*', **kwargs):
+    def __init__(self, port=None, name='*', Kp=7, Ki=0.1, Kd=0.07, max_spd=800, **kwargs):
         ev3dev.Motor.__init__(self, port, name)
-        self.positionPID = PIDControl(Kp=7, Ti=0.1, Td=0.07, maxpower=800)
+        self.positionPID = PIDControl(Kp=Kp, Ti=Ki, Td=Kd, max_out=max_spd)
         self.speedPID = PIDControl(Kp=0.07, Ti=0.2, Td=0.02)
         self.brake = False
 

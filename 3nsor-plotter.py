@@ -70,7 +70,7 @@ class MainHandler(tornado.web.RequestHandler):
     def get(self):
         #loader = tornado.template.Loader(".")
         #self.write(loader.load("index.html").generate())
-        self.render("index.html", kp=KP, ti=TI, td=TD, ll=L_ROPE_0, lr=R_ROPE_0, aw=ROPE_ATTACHMENT_WIDTH)
+        self.render("index.html", kp=KP, ti=TI, td=TD, ll=L_ROPE_0, lr=R_ROPE_0, aw=ROPE_ATTACHMENT_WIDTH, max_speed=MAX_SPEED)
 
 
 class UploadHandler(tornado.web.RequestHandler):
@@ -142,7 +142,7 @@ class MotorThread(threading.Thread):
     def __init__(self):
         self.motor_log = Logger("Motors")
         threading.Thread.__init__(self)
-        self.plotter = RopePlotter(L_ROPE_0, R_ROPE_0, ROPE_ATTACHMENT_WIDTH, Kp=KP, Ti=TI, Td=TD, maxpower=MAXPWR)
+        self.plotter = RopePlotter(L_ROPE_0, R_ROPE_0, ROPE_ATTACHMENT_WIDTH, Kp=KP, Ki=TI, Kd=TD, max_spd=MAX_SPEED)
         self.throttle = Throttler(MOTOR_CMD_RATE)
 
     def run(self):
@@ -156,6 +156,7 @@ class MotorThread(threading.Thread):
                     self.plotter.Kp = c['kp']
                     self.plotter.Ti = c['ti']
                     self.plotter.Td = c['td']
+                    self.plotter.max_speed = c['max_speed']
                     wsSend("PID parameters set")
 
                 if 'll' in c:

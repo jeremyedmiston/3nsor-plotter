@@ -369,19 +369,21 @@ class RopePlotter(object):
             y = self.v_margin + i * self.canvas_size * 1.0 / num_circles
             self.move_to_coord(x,y)
             while 1:
-                    #turn on motors in different direction to draw horizontalish lines
-                    self.right_motor.run_at_speed_sp(200)
-                    self.left_motor.run_at_speed_sp(-200)
+
                     # Look at the pixel we're at and move pen up or down accordingly
                     x_norm, y_norm = self.coords_from_motor_pos(self.drive_motors[0].position, self.drive_motors[1].position)
                     pixel_location = (clamp(x_norm * w, (0,w-1)), clamp(y_norm * w, (0,h-1)))
                     if pixels[pixel_location] < 160:
-                        self.pen_motor.position_sp = DOWN
-
+                        self.pen_motor.run_to_position_sp(DOWN)
+                        #turn on motors in different direction to draw horizontalish lines
+                        self.right_motor.run_at_speed_sp(100)
+                        self.left_motor.run_at_speed_sp(-100)
                     else:
-                        self.pen_motor.position_sp = UP
-                    self.pen_motor.run()
-                    if x_norm > 1:
+                        self.pen_motor.run_to_position_sp(UP)
+                        #turn on motors in different direction to draw horizontalish lines
+                        self.right_motor.run_at_speed_sp(200)
+                        self.left_motor.run_at_speed_sp(-200)
+                    if x_norm >= 1:
                         break
 
             self.right_motor.stop()
@@ -394,19 +396,21 @@ class RopePlotter(object):
             y = self.v_margin + (i+1) * self.canvas_size * 1.0 / num_circles
             self.move_to_coord(x,y)
             while 1:
-                    #turn on motors in different direction to draw horizontalish lines
-                    self.right_motor.run_at_speed_sp(-200)
-                    self.left_motor.run_at_speed_sp(200)
+
                     # Look at the pixel we're at and move pen up or down accordingly
                     x_norm, y_norm = self.coords_from_motor_pos(self.drive_motors[0].position, self.drive_motors[1].position)
                     pixel_location = (clamp(x_norm * w, (0,w-1)), clamp(y_norm * w, (0,h-1)))
                     if pixels[pixel_location] < 160:
-                        self.pen_motor.position_sp = DOWN
-
+                        self.pen_motor.run_to_position_sp(DOWN)
+                        #turn on motors in different direction to draw horizontalish lines
+                        self.right_motor.run_at_speed_sp(-100)
+                        self.left_motor.run_at_speed_sp(100)
                     else:
-                        self.pen_motor.position_sp = UP
-                    self.pen_motor.run()
-                    if x_norm > 1:
+                        self.pen_motor.run_to_position_sp(UP)
+                        self.right_motor.run_at_speed_sp(-200)
+                        self.left_motor.run_at_speed_sp(200)
+
+                    if x_norm <= 0:
                         break
 
             self.right_motor.stop()

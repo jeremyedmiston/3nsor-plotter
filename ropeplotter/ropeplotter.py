@@ -261,107 +261,107 @@ class RopePlotter(object):
         r_max = ((self.h_margin+self.canvas_size)**2 + (self.v_margin+self.canvas_size)**2)**0.5
         r_step = (r_max-r_min)/num_circles
 
-        for right_side_mode in [0, 1]: # Multiply all terms that only apply to the right side circles with right_side_mode
-            if right_side_mode:
-                drive_motor, anchor_motor = self.drive_motors
-            else:
-                anchor_motor, drive_motor = self.drive_motors
-
-            # First draw circles with left anchor point as center.
-            for i in range(1, num_circles, 2):
-                # Move to the starting point at x,y
-                # Calculate where a circle with radius r_min+r_step*i crosses the left margin.
-                x = self.h_margin + (right_side_mode * self.canvas_size)
-                y = ((r_min+r_step*i)**2 - self.h_margin ** 2) ** 0.5   # This is the same left and right
-                if y > self.v_margin+self.canvas_size:
-                    # We reached the bottom, now we check where circles cross the bottom margin
-                    if right_side_mode:
-                        x = self.h_margin*2 + self.canvas_size - ((r_min + r_step*i) ** 2 - (self.v_margin + self.canvas_size) ** 2) ** 0.5
-                    else:
-                        x = ((r_min + r_step*i) ** 2 - (self.v_margin + self.canvas_size) ** 2) ** 0.5
-                    y = self.v_margin+self.canvas_size  # This is the same left and right
-                self.move_to_coord(x,y)
-
-                #turn on right motor, slowly, to draw circles upwards
-                drive_motor.run_at_speed(150)
-
-                # Now calculate coordinates continuously until we reach the top, or right side of the canvas
-                # Motor B is off, so let's get it's encoder only once
-                while 1:
-                    # Look at the pixel we're at and move pen up or down accordingly
-                    x_norm, y_norm = self.coords_from_motor_pos(self.drive_motors[0].position, self.drive_motors[1].position)
-                    pixel_location = (clamp(x_norm * w, (0,w-1)), clamp(y_norm * w, (0,h-1)))
-                    if pixels[pixel_location] < 60 + 60 * right_side_mode:
-                        self.pen_motor.position_sp = DOWN
-                        #self.pen_motor.run_to_abs_pos(position_sp=DOWN)
-                    else:
-                        self.pen_motor.position_sp = UP
-                        #self.pen_motor.run_to_abs_pos(position_sp=UP)
-                    self.pen_motor.run()
-
-                    if y_norm <= 0:
-                        break # reached the top
-                    if (not right_side_mode) and x_norm >= 1:
-                        break # reached the right side
-                    if right_side_mode and x_norm <= 0:
-                        break
-
-                drive_motor.stop()
-                # Pen up
-                self.pen_motor.run_to_position_sp(UP)
-
-                # Yield to allow pause/stop and show percentage
-                yield (i*50.0+right_side_mode*50.0)/num_circles
-
-                #Good, now move to the next point and roll down.
-                if right_side_mode:
-                    x = self.h_margin*2 + self.canvas_size - ((r_min + r_step*(i+1)) ** 2 - self.v_margin ** 2) ** 0.5
-
-                else:
-                    x = ((r_min + r_step*(i+1)) ** 2 - self.v_margin ** 2) ** 0.5
-                y = self.v_margin
-
-                if (not right_side_mode) and x > (self.h_margin + self.canvas_size): # Reached right side
-                    x = self.h_margin + self.canvas_size
-                    y = ((r_min+r_step*(i+1)) ** 2 - (self.h_margin+self.canvas_size) ** 2) ** 0.5
-
-                if right_side_mode and x < self.h_margin: # Reached left side
-                    x = self.h_margin
-                    y = ((r_min+r_step*(i+1)) ** 2 - (self.h_margin+self.canvas_size) ** 2) ** 0.5
-
-                self.move_to_coord(x, y)
-
-                #turn on right motor, slowly to draw circles from right to left.
-                drive_motor.run_forever(duty_cycle_sp=-10)
-
-                # Calculate coordinates continuously until we reach the top, or right side of the canvas
-                while 1:
-                    # Look at the pixel we're at and move pen up or down accordingly
-                    x_norm, y_norm = self.coords_from_motor_pos(self.drive_motors[0].position, self.drive_motors[1].position)
-                    pixel_location = (int(clamp(x_norm * w, (0,w-1))), int(clamp(y_norm * w, (0,h-1))))
-
-                    if pixels[pixel_location] < 60 + 60 * right_side_mode: # About 33% gray
-                        self.pen_motor.position_sp = DOWN
-                        #self.pen_motor.run_to_abs_pos(position_sp=DOWN)
-                    else:
-                        self.pen_motor.position_sp = UP
-                        #self.pen_motor.run_to_abs_pos(position_sp=UP)
-                    self.pen_motor.run()
-
-                    if y_norm >= 1:
-                        break # reached the bottom
-                    if x_norm <= 0 and not right_side_mode:
-                        break # reached the left side
-                    if x_norm >= 1 and right_side_mode:
-                        break
-                    time.sleep(0.02)
-
-                drive_motor.stop()
-                # Pen up
-                self.pen_motor.run_to_position_sp(UP)
-
-                # Yield to allow pause/stop and show percentage
-                yield ((i+1)*50.0+right_side_mode*50.0)/num_circles
+        # for right_side_mode in [0, 1]: # Multiply all terms that only apply to the right side circles with right_side_mode
+        #     if right_side_mode:
+        #         drive_motor, anchor_motor = self.drive_motors
+        #     else:
+        #         anchor_motor, drive_motor = self.drive_motors
+        #
+        #     # First draw circles with left anchor point as center.
+        #     for i in range(1, num_circles, 2):
+        #         # Move to the starting point at x,y
+        #         # Calculate where a circle with radius r_min+r_step*i crosses the left margin.
+        #         x = self.h_margin + (right_side_mode * self.canvas_size)
+        #         y = ((r_min+r_step*i)**2 - self.h_margin ** 2) ** 0.5   # This is the same left and right
+        #         if y > self.v_margin+self.canvas_size:
+        #             # We reached the bottom, now we check where circles cross the bottom margin
+        #             if right_side_mode:
+        #                 x = self.h_margin*2 + self.canvas_size - ((r_min + r_step*i) ** 2 - (self.v_margin + self.canvas_size) ** 2) ** 0.5
+        #             else:
+        #                 x = ((r_min + r_step*i) ** 2 - (self.v_margin + self.canvas_size) ** 2) ** 0.5
+        #             y = self.v_margin+self.canvas_size  # This is the same left and right
+        #         self.move_to_coord(x,y)
+        #
+        #         #turn on right motor, slowly, to draw circles upwards
+        #         drive_motor.run_at_speed(150)
+        #
+        #         # Now calculate coordinates continuously until we reach the top, or right side of the canvas
+        #         # Motor B is off, so let's get it's encoder only once
+        #         while 1:
+        #             # Look at the pixel we're at and move pen up or down accordingly
+        #             x_norm, y_norm = self.coords_from_motor_pos(self.drive_motors[0].position, self.drive_motors[1].position)
+        #             pixel_location = (clamp(x_norm * w, (0,w-1)), clamp(y_norm * w, (0,h-1)))
+        #             if pixels[pixel_location] < 60 + 60 * right_side_mode:
+        #                 self.pen_motor.position_sp = DOWN
+        #                 #self.pen_motor.run_to_abs_pos(position_sp=DOWN)
+        #             else:
+        #                 self.pen_motor.position_sp = UP
+        #                 #self.pen_motor.run_to_abs_pos(position_sp=UP)
+        #             self.pen_motor.run()
+        #
+        #             if y_norm <= 0:
+        #                 break # reached the top
+        #             if (not right_side_mode) and x_norm >= 1:
+        #                 break # reached the right side
+        #             if right_side_mode and x_norm <= 0:
+        #                 break
+        #
+        #         drive_motor.stop()
+        #         # Pen up
+        #         self.pen_motor.run_to_position_sp(UP)
+        #
+        #         # Yield to allow pause/stop and show percentage
+        #         yield (i*50.0+right_side_mode*50.0)/num_circles
+        #
+        #         #Good, now move to the next point and roll down.
+        #         if right_side_mode:
+        #             x = self.h_margin*2 + self.canvas_size - ((r_min + r_step*(i+1)) ** 2 - self.v_margin ** 2) ** 0.5
+        #
+        #         else:
+        #             x = ((r_min + r_step*(i+1)) ** 2 - self.v_margin ** 2) ** 0.5
+        #         y = self.v_margin
+        #
+        #         if (not right_side_mode) and x > (self.h_margin + self.canvas_size): # Reached right side
+        #             x = self.h_margin + self.canvas_size
+        #             y = ((r_min+r_step*(i+1)) ** 2 - (self.h_margin+self.canvas_size) ** 2) ** 0.5
+        #
+        #         if right_side_mode and x < self.h_margin: # Reached left side
+        #             x = self.h_margin
+        #             y = ((r_min+r_step*(i+1)) ** 2 - (self.h_margin+self.canvas_size) ** 2) ** 0.5
+        #
+        #         self.move_to_coord(x, y)
+        #
+        #         #turn on right motor, slowly to draw circles from right to left.
+        #         drive_motor.run_forever(duty_cycle_sp=-10)
+        #
+        #         # Calculate coordinates continuously until we reach the top, or right side of the canvas
+        #         while 1:
+        #             # Look at the pixel we're at and move pen up or down accordingly
+        #             x_norm, y_norm = self.coords_from_motor_pos(self.drive_motors[0].position, self.drive_motors[1].position)
+        #             pixel_location = (int(clamp(x_norm * w, (0,w-1))), int(clamp(y_norm * w, (0,h-1))))
+        #
+        #             if pixels[pixel_location] < 60 + 60 * right_side_mode: # About 33% gray
+        #                 self.pen_motor.position_sp = DOWN
+        #                 #self.pen_motor.run_to_abs_pos(position_sp=DOWN)
+        #             else:
+        #                 self.pen_motor.position_sp = UP
+        #                 #self.pen_motor.run_to_abs_pos(position_sp=UP)
+        #             self.pen_motor.run()
+        #
+        #             if y_norm >= 1:
+        #                 break # reached the bottom
+        #             if x_norm <= 0 and not right_side_mode:
+        #                 break # reached the left side
+        #             if x_norm >= 1 and right_side_mode:
+        #                 break
+        #             time.sleep(0.02)
+        #
+        #         drive_motor.stop()
+        #         # Pen up
+        #         self.pen_motor.run_to_position_sp(UP)
+        #
+        #         # Yield to allow pause/stop and show percentage
+        #         yield ((i+1)*50.0+right_side_mode*50.0)/num_circles
 
         # Now draw horizontal lines.
         for i in range(num_circles):

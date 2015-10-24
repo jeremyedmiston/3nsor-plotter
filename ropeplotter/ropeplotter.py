@@ -8,7 +8,7 @@ from robot_helpers import PIDMotor, clamp, BrickPiPowerSupply
 import ev3dev
 
 UP = 0      # pen up
-DOWN = -11
+DOWN = -30
 SLOW = 90
 FAST = 180
 
@@ -26,7 +26,7 @@ class RopePlotter(object):
         #self.pen_motor.positionPID.precision = 3
         self.pen_motor = ev3dev.Motor()
         self.pen_motor.stop_command = self.pen_motor.stop_command_brake
-        self.pen_motor.speed_regulation_enabled = self.pen_motor.speed_regulation_on
+        self.pen_motor.speed_regulation_enabled = 'on'
         self.left_motor = PIDMotor(ev3dev.OUTPUT_B, Kp=Kp, Ki=Ki, Kd=Kd, max_spd=max_spd)
         self.right_motor = PIDMotor(ev3dev.OUTPUT_C, Kp=Kp, Ki=Ki, Kd=Kd, max_spd=max_spd)
 

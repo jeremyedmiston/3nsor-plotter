@@ -18,8 +18,8 @@ class RopePlotter(object):
         self.calc_constants()
 
         # Start the engines
-        self.pen_motor = PIDMotor(ev3dev.OUTPUT_D, Kp=2, brake=0.3) # Port D (motors go from 0-3)
-        self.pen_motor.positionPID.precision = 6
+        self.pen_motor = PIDMotor(ev3dev.OUTPUT_D, Kp=1.5, brake=0.3) # Port D (motors go from 0-3)
+        self.pen_motor.positionPID.precision = 3
         self.left_motor = PIDMotor(ev3dev.OUTPUT_B, Kp=Kp, Ki=Ki, Kd=Kd, max_spd=max_spd)
         self.right_motor = PIDMotor(ev3dev.OUTPUT_C, Kp=Kp, Ki=Ki, Kd=Kd, max_spd=max_spd)
 
@@ -252,7 +252,7 @@ class RopePlotter(object):
 
     def plot_circles(self, num_circles=20):
         UP = 0
-        DOWN = -12
+        DOWN = -11
         SLOW = 90
         FAST = 180
 
@@ -292,10 +292,12 @@ class RopePlotter(object):
                     x_norm, y_norm = self.coords_from_motor_pos(self.drive_motors[0].position, self.drive_motors[1].position)
                     pixel_location = (clamp(x_norm * w, (0,w-1)), clamp(y_norm * w, (0,h-1)))
                     if pixels[pixel_location] < 60 + 60 * right_side_mode:
+                        drive_motor.stop()
                         self.pen_motor.run_to_position_sp(DOWN)
                         #turn on motors in different direction to draw horizontalish lines
                         drive_motor.run_at_speed_sp(SLOW)
                     else:
+                        drive_motor.stop()
                         self.pen_motor.run_to_position_sp(UP)
                         #turn on motors in different direction to draw horizontalish lines
                         drive_motor.run_at_speed_sp(FAST)
@@ -339,9 +341,11 @@ class RopePlotter(object):
                     pixel_location = (int(clamp(x_norm * w, (0,w-1))), int(clamp(y_norm * w, (0,h-1))))
 
                     if pixels[pixel_location] < 60 + 60 * right_side_mode: # About 33% gray
+                        drive_motor.stop()
                         self.pen_motor.run_to_position_sp(DOWN)
                         drive_motor.run_at_speed_sp(-SLOW)
                     else:
+                        drive_motor.stop()
                         self.pen_motor.run_to_position_sp(UP)
                         drive_motor.run_at_speed_sp(-FAST)
 
@@ -369,6 +373,8 @@ class RopePlotter(object):
                     x_norm, y_norm = self.coords_from_motor_pos(self.drive_motors[0].position, self.drive_motors[1].position)
                     pixel_location = (clamp(x_norm * w, (0,w-1)), clamp(y_norm * w, (0,h-1)))
                     if pixels[pixel_location] < 160:
+                        self.right_motor.stop()
+                        self.left_motor.stop()
                         self.pen_motor.run_to_position_sp(DOWN)
                         #turn on motors in different direction to draw horizontalish lines
                         self.right_motor.run_at_speed_sp(SLOW)

@@ -229,9 +229,9 @@ class PIDControl(object):
         else:
             Kp = self.Kp
 
-        output = Kp * ( error + self.integral * self.Ti + self.Td * derivative )
+        self.output = clamp(Kp * ( error + self.integral * self.Ti + self.Td * derivative ),(-self.max_out,self.max_out))
 
-        return int(clamp(output,(-self.max_out,self.max_out)))
+        return self.output
 
 
 class PIDMotor(ev3dev.Motor):
@@ -255,9 +255,9 @@ class PIDMotor(ev3dev.Motor):
         pospower = self.positionPID.calc_power()
         self.speedPID.set_point = pospower
         self.speedPID.current = self.speed
-        power = clamp((self.duty_cycle + self.speedPID.calc_power()), (-100, 100))
+        power = int(clamp((self.duty_cycle + self.speedPID.calc_power()), (-100, 100)))
         self.duty_cycle_sp = power
-        #print self.position, self.speed, pospower, power, self.duty_cycle, self.position_sp
+        print self.position, self.speed, pospower, power, self.duty_cycle, self.position_sp
         self.run_forever()
 
     def run_at_speed_sp(self, spd):
@@ -273,15 +273,14 @@ class PIDMotor(ev3dev.Motor):
             self.run_at_speed_sp(speed)
 
     def run_to_abs_pos(self, position_sp=None):
-        print "overriden"
         if position_sp is not None:
             self.positionPID.set_point = position_sp
-            print "Target =", position_sp
         while not self.positionPID.target_reached:
             self.run()
 
         t_end = time.time() + self.brake
         while time.time() < t_end:
+            print "Braking"
             self.run()
 
         self.stop()

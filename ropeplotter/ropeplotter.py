@@ -18,7 +18,8 @@ class RopePlotter(object):
         self.calc_constants()
 
         # Start the engines
-        self.pen_motor = PIDMotor(ev3dev.OUTPUT_D) # Port D (motors go from 0-3)
+        self.pen_motor = PIDMotor(ev3dev.OUTPUT_D, Kp=2, brake=0.3) # Port D (motors go from 0-3)
+        self.pen_motor.positionPID.precision = 6
         self.left_motor = PIDMotor(ev3dev.OUTPUT_B, Kp=Kp, Ki=Ki, Kd=Kd, max_spd=max_spd)
         self.right_motor = PIDMotor(ev3dev.OUTPUT_C, Kp=Kp, Ki=Ki, Kd=Kd, max_spd=max_spd)
 
@@ -249,14 +250,12 @@ class RopePlotter(object):
         self.move_to_norm_coord(0, 0)
         yield 100
 
-    def plot_circles(self, num_circles=10):
+    def plot_circles(self, num_circles=20):
         UP = 0
         DOWN = -12
-        SLOW = 150
-        FAST = 300
+        SLOW = 90
+        FAST = 180
 
-        self.pen_motor.positionPID.precision = 6
-        self.pen_motor.positionPID.Kp = 2
         im = Image.open("uploads/picture.jpg").convert("L")
         w, h = im.size
         pixels = im.load()
@@ -414,6 +413,8 @@ class RopePlotter(object):
             # Pen up
             self.pen_motor.run_to_position_sp(UP)
             yield 66 + (i+1) * 33.33 / num_circles
+
+        self.move_to_norm_coord(0,0)
 
 
     ### Calibration & manual movement functions ###

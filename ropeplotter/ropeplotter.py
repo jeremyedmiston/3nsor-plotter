@@ -292,8 +292,8 @@ class RopePlotter(object):
                     pixel_location = (clamp(x_norm * w, (0,w-1)), clamp(y_norm * w, (0,h-1)))
                     if pixels[pixel_location] < 60 + 60 * right_side_mode:
                         self.pen_motor.position_sp = DOWN
-                        #if not self.pen_motor.positionPID.target_reached: drive_motor.stop()
-                        if not DOWN-3 < self.pen_motor.position < DOWN + 3: drive_motor.stop()
+                        if not self.pen_motor.positionPID.target_reached: drive_motor.stop()
+                        #if not DOWN-3 < self.pen_motor.position < DOWN + 3: drive_motor.stop()
                         self.pen_motor.run_to_abs_pos()
                         #turn on motors in different direction to draw horizontalish lines
                         drive_motor.run_at_speed_sp(SLOW)

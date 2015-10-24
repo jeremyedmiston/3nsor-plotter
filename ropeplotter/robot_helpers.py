@@ -248,6 +248,7 @@ class PIDMotor(ev3dev.Motor):
     @position_sp.setter
     def position_sp(self,tgt):
         self.positionPID.set_point = tgt
+        self.position_sp = tgt #just to be sure
 
     def run(self):
         self.positionPID.current = self.position
@@ -271,8 +272,8 @@ class PIDMotor(ev3dev.Motor):
         while time.time() < end_time:
             self.run_at_speed_sp(speed)
 
-    def run_to_position_sp(self, position_sp=None):
-        if position_sp is not None: self.position_sp = position_sp
+    def run_to_abs_pos(self, position_sp=None):
+        if position_sp is not None: self.positionPID.set_point = position_sp
         while not self.positionPID.target_reached:
             self.run()
 

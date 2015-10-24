@@ -364,17 +364,14 @@ class RopePlotter(object):
         #         yield ((i+1)*50.0+right_side_mode*50.0)/num_circles
 
         # Now draw horizontal lines.
-        for i in range(num_circles):
+        for i in range(0,num_circles, 2):
             x = self.h_margin
             y = self.v_margin + i * self.canvas_size * 1.0 / num_circles
             self.move_to_coord(x,y)
-
-
-
             while 1:
                     #turn on motors in different direction to draw horizontalish lines
-                    self.right_motor.run_at_speed_sp(100)
-                    self.left_motor.run_at_speed_sp(-100)
+                    self.right_motor.run_at_speed_sp(200)
+                    self.left_motor.run_at_speed_sp(-200)
                     # Look at the pixel we're at and move pen up or down accordingly
                     x_norm, y_norm = self.coords_from_motor_pos(self.drive_motors[0].position, self.drive_motors[1].position)
                     pixel_location = (clamp(x_norm * w, (0,w-1)), clamp(y_norm * w, (0,h-1)))
@@ -391,7 +388,32 @@ class RopePlotter(object):
             self.left_motor.stop()
             # Pen up
             self.pen_motor.run_to_position_sp(UP)
-            yield "hor"
+            yield i
+
+            x = self.h_margin + self.canvas_size
+            y = self.v_margin + (i+1) * self.canvas_size * 1.0 / num_circles
+            self.move_to_coord(x,y)
+            while 1:
+                    #turn on motors in different direction to draw horizontalish lines
+                    self.right_motor.run_at_speed_sp(-200)
+                    self.left_motor.run_at_speed_sp(200)
+                    # Look at the pixel we're at and move pen up or down accordingly
+                    x_norm, y_norm = self.coords_from_motor_pos(self.drive_motors[0].position, self.drive_motors[1].position)
+                    pixel_location = (clamp(x_norm * w, (0,w-1)), clamp(y_norm * w, (0,h-1)))
+                    if pixels[pixel_location] < 160:
+                        self.pen_motor.position_sp = DOWN
+
+                    else:
+                        self.pen_motor.position_sp = UP
+                    self.pen_motor.run()
+                    if x_norm > 1:
+                        break
+
+            self.right_motor.stop()
+            self.left_motor.stop()
+            # Pen up
+            self.pen_motor.run_to_position_sp(UP)
+            yield i+1
 
 
     ### Calibration & manual movement functions ###

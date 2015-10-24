@@ -22,8 +22,11 @@ class RopePlotter(object):
         self.calc_constants()
 
         # Start the engines
-        self.pen_motor = PIDMotor(ev3dev.OUTPUT_D, Kp=0.5, Ki=0, Kd=0, brake=0.3, max_spd=100) # Port D (motors go from 0-3)
-        self.pen_motor.positionPID.precision = 3
+        #self.pen_motor = PIDMotor(ev3dev.OUTPUT_D, Kp=0.5, Ki=0, Kd=0, brake=0.3, max_spd=100) # Port D (motors go from 0-3)
+        #self.pen_motor.positionPID.precision = 3
+        self.pen_motor = ev3dev.Motor()
+        self.pen_motor.stop_command = self.pen_motor.stop_command_brake
+        self.pen_motor.speed_regulation_enabled = self.pen_motor.speed_regulation_on
         self.left_motor = PIDMotor(ev3dev.OUTPUT_B, Kp=Kp, Ki=Ki, Kd=Kd, max_spd=max_spd)
         self.right_motor = PIDMotor(ev3dev.OUTPUT_C, Kp=Kp, Ki=Ki, Kd=Kd, max_spd=max_spd)
 
@@ -288,12 +291,13 @@ class RopePlotter(object):
                     pixel_location = (clamp(x_norm * w, (0,w-1)), clamp(y_norm * w, (0,h-1)))
                     if pixels[pixel_location] < 60 + 60 * right_side_mode:
                         self.pen_motor.position_sp = DOWN
-                        if not self.pen_motor.positionPID.target_reached: drive_motor.stop()
-                        self.pen_motor.run_to_position_sp()
+                        #if not self.pen_motor.positionPID.target_reached: drive_motor.stop()
+                        if not DOWN-3 < self.pen_motor.position < DOWN + 3: drive_motor.stop()
+                        self.pen_motor.run_to_abs_pos()
                         #turn on motors in different direction to draw horizontalish lines
                         drive_motor.run_at_speed_sp(SLOW)
                     else:
-                        self.pen_motor.run_to_position_sp(UP)
+                        self.pen_motor.run_to_abs_pos(position_sp=UP)
                         #turn on motors in different direction to draw horizontalish lines
                         drive_motor.run_at_speed_sp(FAST)
 
@@ -306,7 +310,7 @@ class RopePlotter(object):
 
                 drive_motor.stop()
                 # Pen up
-                self.pen_motor.run_to_position_sp(UP)
+                self.pen_motor.run_to_abs_pos(position_sp=UP)
 
                 # Yield to allow pause/stop and show percentage
                 yield (i*50.0+right_side_mode*50.0)/num_circles * 0.66
@@ -338,10 +342,10 @@ class RopePlotter(object):
                     if pixels[pixel_location] < 60 + 60 * right_side_mode: # About 33% gray
                         self.pen_motor.position_sp = DOWN
                         if not self.pen_motor.positionPID.target_reached: drive_motor.stop()
-                        self.pen_motor.run_to_position_sp()
+                        self.pen_motor.run_to_abs_pos()
                         drive_motor.run_at_speed_sp(-SLOW)
                     else:
-                        self.pen_motor.run_to_position_sp(UP)
+                        self.pen_motor.run_to_abs_pos(position_sp=UP)
                         drive_motor.run_at_speed_sp(-FAST)
 
                     if y_norm >= 1:
@@ -353,7 +357,7 @@ class RopePlotter(object):
                     time.sleep(0.02)
 
                 drive_motor.stop()
-                self.pen_motor.run_to_position_sp(UP)
+                self.pen_motor.run_to_abs_pos(position_sp=UP)
 
                 # Yield to allow pause/stop and show percentage
                 yield ((i+1)*50.0+right_side_mode*50.0)/num_circles * 0.66
@@ -372,12 +376,12 @@ class RopePlotter(object):
                         if not self.pen_motor.positionPID.target_reached:
                             self.right_motor.stop()
                             self.left_motor.stop()
-                        self.pen_motor.run_to_position_sp()
+                        self.pen_motor.position_sp()
                         #turn on motors in different direction to draw horizontalish lines
                         self.right_motor.run_at_speed_sp(SLOW)
                         self.left_motor.run_at_speed_sp(-SLOW)
                     else:
-                        self.pen_motor.run_to_position_sp(UP)
+                        self.pen_motor.position_sp(position_sp=UP)
                         #turn on motors in different direction to draw horizontalish lines
                         self.right_motor.run_at_speed_sp(FAST)
                         self.left_motor.run_at_speed_sp(-FAST)
@@ -387,7 +391,7 @@ class RopePlotter(object):
             self.right_motor.stop()
             self.left_motor.stop()
             # Pen up
-            self.pen_motor.run_to_position_sp(UP)
+            self.pen_motor.run_to_abs_pos(position_sp=UP)
             yield 66 + i * 33.33 / num_circles
 
             x = self.h_margin + self.canvas_size
@@ -399,12 +403,12 @@ class RopePlotter(object):
                     x_norm, y_norm = self.coords_from_motor_pos(self.drive_motors[0].position, self.drive_motors[1].position)
                     pixel_location = (clamp(x_norm * w, (0,w-1)), clamp(y_norm * w, (0,h-1)))
                     if pixels[pixel_location] < 160:
-                        self.pen_motor.run_to_position_sp(DOWN)
+                        self.pen_motor.run_to_abs_pos(position_sp=DOWN)
                         #turn on motors in different direction to draw horizontalish lines
                         self.right_motor.run_at_speed_sp(-SLOW)
                         self.left_motor.run_at_speed_sp(SLOW)
                     else:
-                        self.pen_motor.run_to_position_sp(UP)
+                        self.pen_motor.run_to_abs_pos(position_sp=UP)
                         self.right_motor.run_at_speed_sp(-FAST)
                         self.left_motor.run_at_speed_sp(FAST)
 
@@ -414,7 +418,7 @@ class RopePlotter(object):
             self.right_motor.stop()
             self.left_motor.stop()
             # Pen up
-            self.pen_motor.run_to_position_sp(UP)
+            self.pen_motor.run_to_abs_pos(position_sp=UP)
             yield 66 + (i+1) * 33.33 / num_circles
 
         self.move_to_norm_coord(0,0)
@@ -422,10 +426,10 @@ class RopePlotter(object):
 
     ### Calibration & manual movement functions ###
     def pen_up(self):
-        self.pen_motor.run_to_position_sp(UP)
+        self.pen_motor.run_to_abs_pos(position_sp=UP)
 
     def pen_down(self):
-        self.pen_motor.run_to_position_sp(DOWN)
+        self.pen_motor.run_to_abs_pos(position_sp=DOWN)
 
     def left_fwd(self):
         self.left_motor.run_at_speed_sp(400)

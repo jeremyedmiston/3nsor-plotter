@@ -273,7 +273,10 @@ class PIDMotor(ev3dev.Motor):
             self.run_at_speed_sp(speed)
 
     def run_to_abs_pos(self, position_sp=None):
-        if position_sp is not None: self.positionPID.set_point = position_sp
+        print "overriden"
+        if position_sp is not None:
+            self.positionPID.set_point = position_sp
+            print "Target =", position_sp
         while not self.positionPID.target_reached:
             self.run()
 

@@ -221,7 +221,7 @@ class MotorThread(threading.Thread):
             elif c == 'plotting':
                 try:
                     pct_done = next(plot_action)
-                    wsSend("[ {0:.2f}V ] Plot {1:.2f} Percent done".format(self.plotter.get_voltage(),pct_done))
+                    wsSend("[ {0:.2f}V ] Plot {1:.2f}% done".format(self.plotter.battery.measured_voltage/1000.0, pct_done))
                 except StopIteration:
                     c = ''
                     wsSend("Done plotting")

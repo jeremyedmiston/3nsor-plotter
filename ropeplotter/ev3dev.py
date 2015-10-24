@@ -1810,6 +1810,9 @@ class PowerSupply(Device):
 
 
 #~autogen
+
+
+
 #~autogen python_generic-class classes.legoPort>currentClass
 
 

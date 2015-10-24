@@ -4,7 +4,7 @@ import time
 
 from PIL import Image
 
-from robot_helpers import PIDControl, PIDMotor, clamp, get_brickpi_voltage
+from robot_helpers import PIDMotor, clamp, BrickPiPowerSupply
 import ev3dev
 
 
@@ -28,14 +28,10 @@ class RopePlotter(object):
 
         # Set starting point
         self.set_control_zeroes()
-
-        # Let's see if we are on an Ev3 or a brickpi for voltage reading
-        try:
-            voltage = ev3dev.power_supply.battery.measured_voltage / 1000000.0
-            self.brickpi_mode = False
-        except:
-            import smbus
-            self.brickpi_mode = True
+        if ev3dev.current_platform() == 'brickpi':
+            self.battery = BrickPiPowerSupply()
+        else:
+            self.battery = ev3dev.PowerSupply()
 
 
 
@@ -110,7 +106,11 @@ class RopePlotter(object):
         # Some math to calculate the plotter parameters
         large_gear_teeth = 24
         small_gear_teeth = 8
-        self.cm_to_deg = -2 * 180 / 3.1415 * 2 / self.pulley_diam * large_gear_teeth / small_gear_teeth
+        if ev3dev.current_platform() == 'brickpi':
+            factor = 2
+        else:
+            factor = 1
+        self.cm_to_deg = -factor * 180 / 3.1415 * 2 / self.pulley_diam * large_gear_teeth / small_gear_teeth
 
         # Calculate the height of triangle made up by the two ropes
         self.v_margin = self.triangle_area(self.__l_rope_0, self.__r_rope_0, self.__att_dist) / self.__att_dist * 2
@@ -417,22 +417,6 @@ class RopePlotter(object):
             motor.stop()
         print "Motors stopped"
 
-    ### Other functions ###
-    def get_voltage(self):
-        """
-        Reads the digital output code of the MCP3021 chip on the BrickPi+ over i2c.
-        Some bit operation magic to get a voltage floating number.
-
-        If this doesnt work try this on the command line: i2cdetect -y 1
-        The 1 in there is the bus number, same as in bus = smbus.SMBus(1)
-        Google the resulting error.
-
-        :return: voltage (float)
-        """
-        if self.brickpi_mode:
-            return get_brickpi_voltage()
-        else:
-            return ev3dev.power_supply.battery.measured_voltage / 1000000.0
 
 
 

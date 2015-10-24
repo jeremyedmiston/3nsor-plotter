@@ -23,41 +23,45 @@ def get_ip_address(ifname=None):
     except:
         return "No IP Address on " + ifname
 
-def get_brickpi_voltage():
-    """
-    Reads the digital output code of the MCP3021 chip on the BrickPi+ over i2c.
-    Some bit operation magic to get a voltage floating number.
 
-    If this doesnt work try this on the command line: i2cdetect -y 1
-    The 1 in there is the bus number, same as in bus = smbus.SMBus(1)
-    Google the resulting error.
+class BrickpiPowerSupply(object):
 
-    :return: voltage (float)
-    """
+    @staticmethod
+    def measured_voltage():
+        """
+        Reads the digital output code of the MCP3021 chip on the BrickPi+ over i2c.
+        Some bit operation magic to get a voltage floating number.
 
-    try:
-            bus = smbus.SMBus(1)            # SMBUS 1 because we're using greater than V1.
-            address = 0x48
-            # time.sleep(0.1) #Is this necessary?
+        If this doesnt work try this on the command line: i2cdetect -y 1
+        The 1 in there is the bus number, same as in bus = smbus.SMBus(1)
+        Google the resulting error.
 
-            # read data from i2c bus. the 0 command is mandatory for the protocol but not used in this chip.
-            data = bus.read_word_data(address, 0)
+        :return: voltage (float)
+        """
 
-            # from this data we need the last 4 bites and the first 6.
-            last_4 = data & 0b1111 # using a byte mask
-            first_6 = data >> 10 # left shift 10 because data is 16 bits
+        try:
+                bus = smbus.SMBus(1)            # SMBUS 1 because we're using greater than V1.
+                address = 0x48
+                # time.sleep(0.1) #Is this necessary?
 
-            # together they make the voltage conversion ratio
-            # to make it all easier the last_4 bits are most significant :S
-            vdata = ((last_4 << 6) | first_6)
+                # read data from i2c bus. the 0 command is mandatory for the protocol but not used in this chip.
+                data = bus.read_word_data(address, 0)
 
-            # Now we can calculate the battery voltage like so:
-            voltage = vdata * 0.0179    # This is an empyrical number for voltage conversion.
+                # from this data we need the last 4 bites and the first 6.
+                last_4 = data & 0b1111 # using a byte mask
+                first_6 = data >> 10 # left shift 10 because data is 16 bits
 
-            return voltage
+                # together they make the voltage conversion ratio
+                # to make it all easier the last_4 bits are most significant :S
+                vdata = ((last_4 << 6) | first_6)
 
-    except:
-            return 0.0
+                # Now we can calculate the battery voltage like so:
+                voltage = vdata * 0.0179 * 1000    # This is an empyrical number for voltage conversion.
+
+                return voltage
+
+        except:
+                return 0.0
 
 
 def clamp(n, (minn, maxn)):

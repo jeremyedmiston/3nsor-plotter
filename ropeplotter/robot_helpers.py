@@ -217,7 +217,7 @@ class PIDControl(object):
         self.integral = clamp(self.integral,(-self.max_i,self.max_i)) #when driving a long time, this number can get too high.
 
         #calculate derivative.
-        derivative = (error - self.prev_error) / dt
+        self.derivative = (error - self.prev_error) / dt
 
         #save error & time for next time.
         self.prev_error = error
@@ -229,7 +229,7 @@ class PIDControl(object):
         else:
             Kp = self.Kp
 
-        self.output = clamp(Kp * ( error + self.integral * self.Ti + self.Td * derivative ),(-self.max_out,self.max_out))
+        self.output = clamp(Kp * ( error + self.integral * self.Ti + self.Td * self.derivative ),(-self.max_out,self.max_out))
 
         return self.output
 
@@ -254,7 +254,7 @@ class PIDMotor(ev3dev.Motor):
         self.positionPID.current = self.position
         pospower = self.positionPID.calc_power()
         self.speedPID.set_point = pospower
-        self.speedPID.current = self.speed
+        self.speedPID.current = self.positionPID.derivative
         power = int(clamp((self.duty_cycle + self.speedPID.calc_power()), (-100, 100)))
         self.duty_cycle_sp = power
         if self.verbose: print self.position, self.speed, pospower, self.speedPID.output, power, self.position_sp

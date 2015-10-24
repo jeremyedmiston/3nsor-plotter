@@ -251,11 +251,12 @@ class RopePlotter(object):
 
     def plot_circles(self, num_circles=10):
         UP = 0
-        DOWN = -20
+        DOWN = -12
         SLOW = 150
         FAST = 300
 
         self.pen_motor.positionPID.precision = 6
+        self.pen_motor.positionPID.Kp = 2
         im = Image.open("uploads/picture.jpg").convert("L")
         w, h = im.size
         pixels = im.load()

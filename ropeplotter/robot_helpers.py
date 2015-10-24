@@ -141,7 +141,7 @@ class PIDControl(object):
     feedback power.
     """
 
-    def __init__(self, Kp=1.0, Ti=0.0, Td=0.0, Kp_neg_factor=1, max_out=100, maxintegral = 100, direction=1, precision=15):
+    def __init__(self, Kp=1.0, Ti=0.0, Td=0.0, Kp_neg_factor=1, max_out=100, max_integral=100, direction=1, precision=15):
         self.direction = direction
         self.__Kp = Kp
         self.Kp_neg_factor = Kp_neg_factor
@@ -153,7 +153,7 @@ class PIDControl(object):
         self.precision = precision
         self.set_point = 0         # This also initializes other properties using setter
         self.max_out = max_out
-        self.maxintegral = maxintegral
+        self.max_i = max_integral
 
     @property
     def Kp(self):
@@ -207,7 +207,7 @@ class PIDControl(object):
         # calculate integral
         dt = time.time() - self.timestamp
         self.integral += error * dt
-        self.integral = clamp(self.integral,(-self.maxpower/2,self.maxpower/2)) #when driving a long time, this number can get too high.
+        self.integral = clamp(self.integral,(-self.max_i,self.max_i)) #when driving a long time, this number can get too high.
 
         #calculate derivative.
         derivative = (error - self.prev_error) / dt

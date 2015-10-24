@@ -160,8 +160,7 @@ class PIDControl(object):
         self.set_point = 0         # This also initializes other properties using setter
         self.max_out = max_out
         self.max_i = max_integral
-        self.history = deque(maxlen=3)
-        self.intervals = deque(maxlen=3)
+
 
 
     @property
@@ -198,6 +197,8 @@ class PIDControl(object):
         self.prev_error = self.error                # Reset errors
         self.timestamp = time.time()-0.02           # Reset derivative timer
         self.start_time = time.time()               # Set starttime for ramping up
+        self.history = deque(maxlen=3)
+        self.intervals = deque(maxlen=3)
 
     @property
     def target_reached(self):

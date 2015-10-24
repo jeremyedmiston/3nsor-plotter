@@ -8,7 +8,6 @@ import socket
 import fcntl
 import struct
 
-
 def get_ip_address(ifname=None):
     if not ifname:
         if ev3dev.current_platform() == 'ev3': ifname = 'bnep0'
@@ -161,6 +160,9 @@ class PIDControl(object):
         self.set_point = 0         # This also initializes other properties using setter
         self.max_out = max_out
         self.max_i = max_integral
+        self.history = deque(maxlen=3)
+        self.intervals = deque(maxlen=3)
+
 
     @property
     def Kp(self):
@@ -201,6 +203,10 @@ class PIDControl(object):
     def target_reached(self):
         return abs(self.error) < self.precision
 
+    @property
+    def speed(self):
+        return sum(self.history)/sum(self.intervals)
+
     def calc_power(self):
         """
         Saves a timestamp, integral and previous error and does PID calculations.
@@ -210,9 +216,11 @@ class PIDControl(object):
 
         #get error & save timestamps
         error = self.error
+        self.history.append(error)
 
         # calculate integral
         dt = time.time() - self.timestamp
+        self.intervals.append(dt)
         self.integral += error * dt
         self.integral = clamp(self.integral,(-self.max_i,self.max_i)) #when driving a long time, this number can get too high.
 
@@ -254,11 +262,12 @@ class PIDMotor(ev3dev.Motor):
         self.positionPID.current = self.position
         pospower = self.positionPID.calc_power()
         self.speedPID.set_point = pospower
-        self.speedPID.current = -self.positionPID.derivative
+        self.speedPID.current = -self.positionPID.speed
         power = int(clamp((self.duty_cycle + self.speedPID.calc_power()), (-100, 100)))
         self.duty_cycle_sp = power
         if self.verbose: print self.position, self.speed, -self.positionPID.derivative, pospower, self.speedPID.output, power, self.position_sp
         self.run_forever()
+        time.sleep(0.015)
 
     def run_at_speed_sp(self, spd):
         self.speedPID.set_point = spd

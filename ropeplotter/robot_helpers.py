@@ -56,7 +56,7 @@ class BrickpiPowerSupply(object):
                 vdata = ((last_4 << 6) | first_6)
 
                 # Now we can calculate the battery voltage like so:
-                voltage = vdata * 0.0179 * 1000    # This is an empyrical number for voltage conversion.
+                voltage = vdata * 0.0179 * 1000000    # This is an empirical number for voltage conversion.
 
                 return voltage
 

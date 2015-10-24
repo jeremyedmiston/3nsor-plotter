@@ -292,12 +292,12 @@ class RopePlotter(object):
                     x_norm, y_norm = self.coords_from_motor_pos(self.drive_motors[0].position, self.drive_motors[1].position)
                     pixel_location = (clamp(x_norm * w, (0,w-1)), clamp(y_norm * w, (0,h-1)))
                     if pixels[pixel_location] < 60 + 60 * right_side_mode:
-                        drive_motor.stop()
-                        self.pen_motor.run_to_position_sp(DOWN)
+                        self.pen_motor.position_sp = DOWN
+                        if not self.pen_motor.positionPID.target_reached: drive_motor.stop()
+                        self.pen_motor.run_to_position_sp()
                         #turn on motors in different direction to draw horizontalish lines
                         drive_motor.run_at_speed_sp(SLOW)
                     else:
-                        drive_motor.stop()
                         self.pen_motor.run_to_position_sp(UP)
                         #turn on motors in different direction to draw horizontalish lines
                         drive_motor.run_at_speed_sp(FAST)
@@ -341,11 +341,11 @@ class RopePlotter(object):
                     pixel_location = (int(clamp(x_norm * w, (0,w-1))), int(clamp(y_norm * w, (0,h-1))))
 
                     if pixels[pixel_location] < 60 + 60 * right_side_mode: # About 33% gray
-                        drive_motor.stop()
-                        self.pen_motor.run_to_position_sp(DOWN)
+                        self.pen_motor.position_sp = DOWN
+                        if not self.pen_motor.positionPID.target_reached: drive_motor.stop()
+                        self.pen_motor.run_to_position_sp()
                         drive_motor.run_at_speed_sp(-SLOW)
                     else:
-                        drive_motor.stop()
                         self.pen_motor.run_to_position_sp(UP)
                         drive_motor.run_at_speed_sp(-FAST)
 
@@ -373,9 +373,11 @@ class RopePlotter(object):
                     x_norm, y_norm = self.coords_from_motor_pos(self.drive_motors[0].position, self.drive_motors[1].position)
                     pixel_location = (clamp(x_norm * w, (0,w-1)), clamp(y_norm * w, (0,h-1)))
                     if pixels[pixel_location] < 160:
-                        self.right_motor.stop()
-                        self.left_motor.stop()
-                        self.pen_motor.run_to_position_sp(DOWN)
+                        self.pen_motor.position_sp = DOWN
+                        if not self.pen_motor.positionPID.target_reached:
+                            self.right_motor.stop()
+                            self.left_motor.stop()
+                        self.pen_motor.run_to_position_sp()
                         #turn on motors in different direction to draw horizontalish lines
                         self.right_motor.run_at_speed_sp(SLOW)
                         self.left_motor.run_at_speed_sp(-SLOW)

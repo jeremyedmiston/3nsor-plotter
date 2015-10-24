@@ -248,7 +248,6 @@ class PIDMotor(ev3dev.Motor):
     @position_sp.setter
     def position_sp(self,tgt):
         self.positionPID.set_point = tgt
-        self.position_sp = tgt #just to be sure
 
     def run(self):
         self.positionPID.current = self.position

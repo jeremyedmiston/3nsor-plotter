@@ -9,7 +9,10 @@ import fcntl
 import struct
 
 
-def get_ip_address(ifname):
+def get_ip_address(ifname=None):
+    if not ifname:
+        if ev3dev.current_platform() == 'ev3': ifname = 'bnep0'
+        if ev3dev.current_platform() == 'ev3': ifname = 'wlan0'
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         return socket.inet_ntoa(fcntl.ioctl(

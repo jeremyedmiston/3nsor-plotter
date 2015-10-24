@@ -279,7 +279,7 @@ class PIDMotor(ev3dev.Motor):
 
         t_end = time.time() + self.brake
         while time.time() < t_end:
-            print "Braking"
+            #print "Braking"
             self.run()
 
         self.stop()

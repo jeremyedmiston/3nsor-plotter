@@ -235,14 +235,18 @@ class PIDControl(object):
         elif output > 1:
             output += 15
 
+        self.output = output
         return int(clamp(output,(-self.max_out,self.max_out)))
 
 
 class PIDMotor(ev3.Motor):
     def __init__(self, port=None, name='*', Kp=7, Ki=0.1, Kd=0.07, max_spd=800, brake=0, verbose=False, speed_reg=False, **kwargs):
         ev3.Motor.__init__(self, port, name)
-        if not speed_reg: max_spd=100
-        self.positionPID = PIDControl(Kp=Kp, Ti=Ki, Td=Kd, max_out=max_spd)
+        if speed_reg:
+            self.positionPID = PIDControl(Kp=Kp, Ti=0, Td=0, max_out=max_spd)
+        else:
+            self.positionPID = PIDControl(Kp=Kp, Ti=Ki, Td=Kd, max_out=100)
+
         self.speedPID = PIDControl(Kp=0.07, Ti=0.2, Td=0.02, max_out=100)
         self.brake = brake
         self.verbose = verbose

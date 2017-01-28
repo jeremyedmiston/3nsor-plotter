@@ -37,7 +37,7 @@ class RopePlotter(object):
 
         # Set starting point
         self.set_control_zeroes()
-        if ev3.current_platform() == 'brickpi':
+        if ev3.current_platform == 'brickpi':
             self.battery = BrickPiPowerSupply()
         else:
             self.battery = ev3.PowerSupply()
@@ -115,7 +115,7 @@ class RopePlotter(object):
         # Some math to calculate the plotter parameters
         large_gear_teeth = 24
         small_gear_teeth = 8
-        if ev3.current_platform() == 'brickpi':
+        if ev3.current_platform == 'brickpi':
             factor = 2
         else:
             factor = 1

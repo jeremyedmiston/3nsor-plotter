@@ -10,8 +10,8 @@ import struct
 
 def get_ip_address(ifname=None):
     if not ifname:
-        if ev3.current_platform() == 'ev3': ifname = 'bnep0'
-        if ev3.current_platform() == 'brickpi': ifname = 'wlan0'
+        if ev3.current_platform == 'ev3': ifname = 'bnep0'
+        if ev3.current_platform == 'brickpi': ifname = 'wlan0'
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         return socket.inet_ntoa(fcntl.ioctl(

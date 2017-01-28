@@ -8,7 +8,7 @@ from ropeplotter.robot_helpers import PIDMotor, clamp, BrickPiPowerSupply
 import ev3dev.auto as ev3
 
 UP = 0      # pen up
-DOWN = -25
+DOWN = -75
 SLOW = 110
 FAST = 220
 

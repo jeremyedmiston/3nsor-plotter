@@ -12,7 +12,7 @@ def get_ip_address():
     return s.getsockname()[0]
 
 
-class BrickpiPowerSupply(object):
+class BrickPiPowerSupply(object):
 
     @staticmethod
     def measured_voltage():

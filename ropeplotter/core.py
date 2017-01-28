@@ -13,21 +13,35 @@ SLOW = 110
 FAST = 220
 
 class RopePlotter(object):
-    def __init__(self, l_rope_0, r_rope_0, attachment_distance, pulley_diam=4.4, Kp=2.2, Ki=0.2, Kd=0.02, Kp_neg_factor=.5, max_spd=800):
+    def __init__(self, l_rope_0, r_rope_0, attachment_distance, cm_to_deg=180, Kp=2.2, Ki=0.2, Kd=0.02, Kp_neg_factor=.5, max_spd=800):
+        if ev3.current_platform == 'brickpi':
+            self.battery = BrickPiPowerSupply()
+            factor = 2
+        else:
+            self.battery = ev3.PowerSupply()
+            factor = 1
+
         self.__l_rope_0 = float(l_rope_0)
         self.__r_rope_0 = float(r_rope_0)
         self.__att_dist = float(attachment_distance)
-        self.pulley_diam = float(pulley_diam)
         self.direction = 1 # -1 is for reversing motors
-        self.calc_constants()
+
+
+        self.cm_to_deg = cm_to_deg * factor
+
+        # Calculate the height of triangle made up by the two ropes
+        self.v_margin = self.triangle_area(self.__l_rope_0, self.__r_rope_0, self.__att_dist) / self.__att_dist * 2
+
+        # Using pythagoras to find distance from bottom triangle point to left doorframe
+        self.h_margin = (self.__l_rope_0 ** 2 - self.v_margin ** 2) ** 0.5
+
+        # For convenience, the canvas is square and centered between the attachment points
+        self.canvas_size = self.__att_dist - 2 * self.h_margin
 
         # Start the engines
-        self.pen_motor = PIDMotor(ev3.OUTPUT_A, Kp=1.5, Ki=1, Kd=0.05, brake=0.3, max_spd=100, verbose=True, speed_reg=False) # Port A (motors go from 0-3)
+        self.pen_motor = PIDMotor(ev3.OUTPUT_A, Kp=1.5, Ki=1, Kd=0.05, brake=0.3, max_spd=100, verbose=True, speed_reg=False)
         self.pen_motor.positionPID.precision = 4
         self.pen_motor.speedPID.Kp = 0.04
-        #self.pen_motor = ev3dev.Motor(ev3dev.OUTPUT_D)
-        #self.pen_motor.stop_command = self.pen_motor.stop_command_brake
-        #self.pen_motor.speed_regulation_enabled = 'on'
         self.left_motor = PIDMotor(ev3.OUTPUT_B, Kp=Kp, Ki=Ki, Kd=Kd, max_spd=max_spd)
         self.right_motor = PIDMotor(ev3.OUTPUT_C, Kp=Kp, Ki=Ki, Kd=Kd, max_spd=max_spd)
 
@@ -37,10 +51,7 @@ class RopePlotter(object):
 
         # Set starting point
         self.set_control_zeroes()
-        if ev3.current_platform == 'brickpi':
-            self.battery = BrickPiPowerSupply()
-        else:
-            self.battery = ev3.PowerSupply()
+
 
 
 
@@ -110,25 +121,6 @@ class RopePlotter(object):
     def att_dist(self,length):
         self.__att_dist = float(length)
         self.calc_constants()
-
-    def calc_constants(self):
-        # Some math to calculate the plotter parameters
-        large_gear_teeth = 24
-        small_gear_teeth = 8
-        if ev3.current_platform == 'brickpi':
-            factor = 2
-        else:
-            factor = 1
-        self.cm_to_deg = -104 #-factor * 180 / 3.1415 * 2 / self.pulley_diam * large_gear_teeth / small_gear_teeth
-
-        # Calculate the height of triangle made up by the two ropes
-        self.v_margin = self.triangle_area(self.__l_rope_0, self.__r_rope_0, self.__att_dist) / self.__att_dist * 2
-
-        # Using pythagoras to find distance from bottom triangle point to left doorframe
-        self.h_margin = (self.__l_rope_0 ** 2 - self.v_margin ** 2) ** 0.5
-
-        # For convenience, the canvas is square and centered between the attachment points
-        self.canvas_size = self.__att_dist - 2 * self.h_margin
 
     @staticmethod
     def triangle_area(a, b, c):

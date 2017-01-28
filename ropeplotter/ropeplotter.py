@@ -5,7 +5,7 @@ import time
 from PIL import Image
 
 from robot_helpers import PIDMotor, clamp, BrickPiPowerSupply
-import ev3dev
+import ev3dev.auto as ev3dev
 
 UP = 0      # pen up
 DOWN = -25

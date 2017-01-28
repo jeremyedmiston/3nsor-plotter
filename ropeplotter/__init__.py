@@ -1,2 +1,2 @@
-from .ropeplotter import *
-from .robot_helpers import *
+from ropeplotter.core import RopePlotter
+from ropeplotter.robot_helpers import *

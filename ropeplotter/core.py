@@ -4,7 +4,7 @@ import time
 
 from PIL import Image
 
-from .robot_helpers import PIDMotor, clamp, BrickPiPowerSupply
+from ropeplotter.robot_helpers import PIDMotor, clamp, BrickPiPowerSupply
 import ev3dev.auto as ev3
 
 UP = 0      # pen up

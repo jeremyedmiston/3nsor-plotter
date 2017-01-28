@@ -29,14 +29,7 @@ class RopePlotter(object):
 
         self.cm_to_deg = cm_to_deg * factor
 
-        # Calculate the height of triangle made up by the two ropes
-        self.v_margin = self.triangle_area(self.__l_rope_0, self.__r_rope_0, self.__att_dist) / self.__att_dist * 2
-
-        # Using pythagoras to find distance from bottom triangle point to left doorframe
-        self.h_margin = (self.__l_rope_0 ** 2 - self.v_margin ** 2) ** 0.5
-
-        # For convenience, the canvas is square and centered between the attachment points
-        self.canvas_size = self.__att_dist - 2 * self.h_margin
+        self.calc_constants()
 
         # Start the engines
         self.pen_motor = PIDMotor(ev3.OUTPUT_A, Kp=1.5, Ki=1, Kd=0.05, brake=0.3, max_spd=100, verbose=True, speed_reg=False)
@@ -134,6 +127,16 @@ class RopePlotter(object):
         """
         half_p = (a + b + c) / 2
         return (half_p * (half_p - a) * (half_p - b) * (half_p - c)) ** 0.5
+
+    def calc_constants(self):
+        # Calculate the height of triangle made up by the two ropes
+        self.v_margin = self.triangle_area(self.__l_rope_0, self.__r_rope_0, self.__att_dist) / self.__att_dist * 2
+
+        # Using pythagoras to find distance from bottom triangle point to left doorframe
+        self.h_margin = (self.__l_rope_0 ** 2 - self.v_margin ** 2) ** 0.5
+
+        # For convenience, the canvas is square and centered between the attachment points
+        self.canvas_size = self.__att_dist - 2 * self.h_margin
 
     ### Calculations for global (doorframe) to local (canvas) coordinates and back. ###
     def motor_targets_from_norm_coords(self,x_norm, y_norm):

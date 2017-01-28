@@ -228,7 +228,7 @@ class PIDControl(object):
         else:
             Kp = self.Kp
 
-        self.output = clamp(Kp * ( error + self.integral * self.Ti + self.Td * self.derivative )+10,(-self.max_out,self.max_out))
+        self.output = int(clamp(Kp * ( error + self.integral * self.Ti + self.Td * self.derivative )+10,(-self.max_out,self.max_out)))
 
         return self.output
 
@@ -236,8 +236,9 @@ class PIDControl(object):
 class PIDMotor(ev3.Motor):
     def __init__(self, port=None, name='*', Kp=7, Ki=0.1, Kd=0.07, max_spd=800, brake=0, verbose=False, speed_reg=False, **kwargs):
         ev3.Motor.__init__(self, port, name)
+        if not speed_reg: max_spd=100
         self.positionPID = PIDControl(Kp=Kp, Ti=Ki, Td=Kd, max_out=max_spd)
-        self.speedPID = PIDControl(Kp=0.07, Ti=0.2, Td=0.02)
+        self.speedPID = PIDControl(Kp=0.07, Ti=0.2, Td=0.02, max_out=100)
         self.brake = brake
         self.verbose = verbose
         self.speed_reg = speed_reg
@@ -258,9 +259,13 @@ class PIDMotor(ev3.Motor):
             self.speedPID.current = self.speed
             power = int(clamp((self.duty_cycle + self.speedPID.calc_power()), (-100, 100)))
             self.duty_cycle_sp = power
-            if self.verbose: print(self.position, self.speed, -self.positionPID.derivative, pospower, self.speedPID.output, power, self.position_sp)
+            #if self.verbose: print(self.position, self.speed, -self.positionPID.derivative, pospower, self.speedPID.output, power, self.position_sp)
         else:
-            self.duty_cycle_sp = int(pospower)
+            if pospower < -1:
+                pospower -= 15
+            elif pospower > 1:
+                pospower += 15
+            self.duty_cycle_sp = pospower
         self.run_direct()
 
     def run_at_speed_sp(self, spd):

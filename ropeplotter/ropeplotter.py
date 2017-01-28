@@ -22,7 +22,7 @@ class RopePlotter(object):
         self.calc_constants()
 
         # Start the engines
-        self.pen_motor = PIDMotor(ev3dev.OUTPUT_D, Kp=1.5, Ki=1, Kd=0.05, brake=0.3, max_spd=100, verbose=True, speed_reg=False) # Port D (motors go from 0-3)
+        self.pen_motor = PIDMotor(ev3dev.OUTPUT_A, Kp=1.5, Ki=1, Kd=0.05, brake=0.3, max_spd=100, verbose=True, speed_reg=False) # Port A (motors go from 0-3)
         self.pen_motor.positionPID.precision = 4
         self.pen_motor.speedPID.Kp = 0.04
         #self.pen_motor = ev3dev.Motor(ev3dev.OUTPUT_D)

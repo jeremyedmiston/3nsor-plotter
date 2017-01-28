@@ -5,22 +5,12 @@ from collections import deque
 import ev3dev.auto as ev3
 import smbus
 import socket
-import fcntl
-import struct
 
-def get_ip_address(ifname=None):
-    if not ifname:
-        if ev3.current_platform == 'ev3': ifname = 'bnep0'
-        if ev3.current_platform == 'brickpi': ifname = 'wlan0'
-    try:
+def get_ip_address():
+    def get_ip_address():
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        return socket.inet_ntoa(fcntl.ioctl(
-            s.fileno(),
-            0x8915,  # SIOCGIFADDR
-            struct.pack('256s', ifname[:15])
-        )[20:24])
-    except:
-        return "No IP Address on " + ifname
+        s.connect(("8.8.8.8", 80))
+        return s.getsockname()[0]
 
 
 class BrickpiPowerSupply(object):

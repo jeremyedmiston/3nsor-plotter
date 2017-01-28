@@ -255,7 +255,7 @@ if __name__ == "__main__":
 
     #set up web server
     application.listen(9093)  # starts the web sockets connection
-    print("Starting web server at {0}:9093".format(get_ip_address('wlan0')))
+    print("Starting web server at {0}:9093".format(get_ip_address()))
     try:
         tornado.ioloop.IOLoop.instance().start()
     except KeyboardInterrupt:  # Triggered by pressing Ctrl+C. Time to clean up.

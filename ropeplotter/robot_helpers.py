@@ -269,7 +269,7 @@ class PIDMotor(ev3dev.Motor):
             self.speedPID.current = self.speed
             power = int(clamp((self.duty_cycle + self.speedPID.calc_power()), (-100, 100)))
             self.duty_cycle_sp = power
-            if self.verbose: print self.position, self.speed, -self.positionPID.derivative, pospower, self.speedPID.output, power, self.position_sp
+            if self.verbose: print(self.position, self.speed, -self.positionPID.derivative, pospower, self.speedPID.output, power, self.position_sp)
         else:
             self.duty_cycle_sp = int(pospower)
         self.run_forever()

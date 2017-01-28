@@ -261,14 +261,14 @@ class PIDMotor(ev3.Motor):
             if self.verbose: print(self.position, self.speed, -self.positionPID.derivative, pospower, self.speedPID.output, power, self.position_sp)
         else:
             self.duty_cycle_sp = int(pospower)
-        self.run_forever()
+        self.run_direct()
 
     def run_at_speed_sp(self, spd):
         self.speedPID.set_point = spd
         self.speedPID.current = self.speed
         power = clamp((self.duty_cycle_sp + self.speedPID.calc_power()), (-100, 100))
         self.duty_cycle_sp = power
-        self.run_forever()
+        self.run_direct()
 
     def run_for_time(self, time_in_s, speed):
         end_time = time.time() + time_in_s

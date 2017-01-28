@@ -524,22 +524,22 @@ class RopePlotter(object):
         self.pen_motor.run_to_abs_pos(position_sp=DOWN)
 
     def left_fwd(self):
-        self.left_motor.run_at_speed_sp(400)
+        self.left_motor.run_direct(duty_cycle_sp=50)
 
     def left_stop(self):
         self.left_motor.stop()
 
     def left_back(self):
-        self.left_motor.run_at_speed_sp(-400)
+        self.left_motor.run_direct(duty_cycle_sp=-50)
 
     def right_fwd(self):
-        self.right_motor.run_at_speed_sp(400)
+        self.right_motor.run_direct(duty_cycle_sp=50)
 
     def right_stop(self):
         self.right_motor.stop()
 
     def right_back(self):
-        self.right_motor.run_at_speed_sp(-400)
+        self.right_motor.run_direct(duty_cycle_sp=-50)
 
     def stop_all_motors(self):
         for motor in self.all_motors:

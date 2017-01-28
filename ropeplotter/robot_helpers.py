@@ -63,13 +63,14 @@ class BrickpiPowerSupply(object):
                 return 0.0
 
 
-def clamp(n, (minn, maxn)):
+def clamp(n, clamp_range):
     """
     Given a number and a range, return the number, or the extreme it is closest to.
 
     :param n: number
     :return: number
     """
+    (minn, maxn) = clamp_range
     return max(min(maxn, n), minn)
 
 

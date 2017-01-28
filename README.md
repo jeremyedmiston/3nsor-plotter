@@ -25,8 +25,8 @@ a web interface with tornado. The video is done with the BrickPi branch of this 
 sudo apt-get install build-essential python-dev
 git clone https://github.com/tornadoweb/tornado
 cd tornado
-python setup.py build
-sudo python setyp.py install
+python3 setup.py build
+sudo python3 setyp.py install
 '''
 3. Install python PIL `sudo apt-get install python-pil`
 2. Clone this repo: `git clone https://github.com/antonvh/3nsor-plotter/`
@@ -35,7 +35,7 @@ sudo python setyp.py install
 ## Usage ##
 
 2. Type `cd 3nsor-plotter`. This is important, as tornado expects to be run from it's root.
-2. Type `python 3nsor-plotter.py`
+2. Type `python3 3nsor-plotter.py`
 3. Surf to `<yourbrickpiaddress>:9093`
 4. Move the plotter to the origin with the buttons/keyboard
 4. Measure and input rope lengths at origin. (Make sure your paper is in the middle between attachment points.)

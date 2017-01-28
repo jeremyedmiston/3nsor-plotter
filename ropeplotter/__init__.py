@@ -1,3 +1,2 @@
-from ropeplotter import RopePlotter
+from ropeplotter import *
 from robot_helpers import *
-from ev3dev import *

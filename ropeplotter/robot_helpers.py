@@ -244,7 +244,7 @@ class PIDControl(object):
         return self.output
 
 
-class PIDMotor(ev3dev.Motor):
+class PIDMotor(ev3.Motor):
     def __init__(self, port=None, name='*', Kp=7, Ki=0.1, Kd=0.07, max_spd=800, brake=0, verbose=False, speed_reg=False, **kwargs):
         ev3.Motor.__init__(self, port, name)
         self.positionPID = PIDControl(Kp=Kp, Ti=Ki, Td=Kd, max_out=max_spd)

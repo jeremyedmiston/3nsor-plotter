@@ -5,7 +5,7 @@ import time
 from PIL import Image
 
 from robot_helpers import PIDMotor, clamp, BrickPiPowerSupply
-import ev3dev.auto as ev3dev
+import ev3dev.auto as ev3
 
 UP = 0      # pen up
 DOWN = -25
@@ -22,14 +22,14 @@ class RopePlotter(object):
         self.calc_constants()
 
         # Start the engines
-        self.pen_motor = PIDMotor(ev3dev.OUTPUT_A, Kp=1.5, Ki=1, Kd=0.05, brake=0.3, max_spd=100, verbose=True, speed_reg=False) # Port A (motors go from 0-3)
+        self.pen_motor = PIDMotor(ev3.OUTPUT_A, Kp=1.5, Ki=1, Kd=0.05, brake=0.3, max_spd=100, verbose=True, speed_reg=False) # Port A (motors go from 0-3)
         self.pen_motor.positionPID.precision = 4
         self.pen_motor.speedPID.Kp = 0.04
         #self.pen_motor = ev3dev.Motor(ev3dev.OUTPUT_D)
         #self.pen_motor.stop_command = self.pen_motor.stop_command_brake
         #self.pen_motor.speed_regulation_enabled = 'on'
-        self.left_motor = PIDMotor(ev3dev.OUTPUT_B, Kp=Kp, Ki=Ki, Kd=Kd, max_spd=max_spd)
-        self.right_motor = PIDMotor(ev3dev.OUTPUT_C, Kp=Kp, Ki=Ki, Kd=Kd, max_spd=max_spd)
+        self.left_motor = PIDMotor(ev3.OUTPUT_B, Kp=Kp, Ki=Ki, Kd=Kd, max_spd=max_spd)
+        self.right_motor = PIDMotor(ev3.OUTPUT_C, Kp=Kp, Ki=Ki, Kd=Kd, max_spd=max_spd)
 
         # Build lists for iterating over all motors
         self.drive_motors = [self.left_motor, self.right_motor]
@@ -37,10 +37,10 @@ class RopePlotter(object):
 
         # Set starting point
         self.set_control_zeroes()
-        if ev3dev.current_platform() == 'brickpi':
+        if ev3.current_platform() == 'brickpi':
             self.battery = BrickPiPowerSupply()
         else:
-            self.battery = ev3dev.PowerSupply()
+            self.battery = ev3.PowerSupply()
 
 
 
@@ -115,7 +115,7 @@ class RopePlotter(object):
         # Some math to calculate the plotter parameters
         large_gear_teeth = 24
         small_gear_teeth = 8
-        if ev3dev.current_platform() == 'brickpi':
+        if ev3.current_platform() == 'brickpi':
             factor = 2
         else:
             factor = 1

@@ -2,7 +2,7 @@ __author__ = 'anton'
 
 import time
 from collections import deque
-import ev3dev
+import ev3dev.auto as ev3
 import smbus
 import socket
 import fcntl
@@ -10,8 +10,8 @@ import struct
 
 def get_ip_address(ifname=None):
     if not ifname:
-        if ev3dev.current_platform() == 'ev3': ifname = 'bnep0'
-        if ev3dev.current_platform() == 'brickpi': ifname = 'wlan0'
+        if ev3.current_platform() == 'ev3': ifname = 'bnep0'
+        if ev3.current_platform() == 'brickpi': ifname = 'wlan0'
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         return socket.inet_ntoa(fcntl.ioctl(
@@ -246,7 +246,7 @@ class PIDControl(object):
 
 class PIDMotor(ev3dev.Motor):
     def __init__(self, port=None, name='*', Kp=7, Ki=0.1, Kd=0.07, max_spd=800, brake=0, verbose=False, speed_reg=False, **kwargs):
-        ev3dev.Motor.__init__(self, port, name)
+        ev3.Motor.__init__(self, port, name)
         self.positionPID = PIDControl(Kp=Kp, Ti=Ki, Td=Kd, max_out=max_spd)
         self.speedPID = PIDControl(Kp=0.07, Ti=0.2, Td=0.02)
         self.brake = brake

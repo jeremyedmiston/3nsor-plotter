@@ -228,9 +228,14 @@ class PIDControl(object):
         else:
             Kp = self.Kp
 
-        self.output = int(clamp(Kp * ( error + self.integral * self.Ti + self.Td * self.derivative )+10,(-self.max_out,self.max_out)))
 
-        return self.output
+        output = Kp * ( error + self.integral * self.Ti + self.Td * self.derivative )+10
+        if output < -1:
+            output -= 15
+        elif output > 1:
+            output += 15
+
+        return int(clamp(output,(-self.max_out,self.max_out)))
 
 
 class PIDMotor(ev3.Motor):
@@ -261,10 +266,7 @@ class PIDMotor(ev3.Motor):
             self.duty_cycle_sp = power
             #if self.verbose: print(self.position, self.speed, -self.positionPID.derivative, pospower, self.speedPID.output, power, self.position_sp)
         else:
-            if pospower < -1:
-                pospower -= 15
-            elif pospower > 1:
-                pospower += 15
+
             self.duty_cycle_sp = pospower
         self.run_direct()
 

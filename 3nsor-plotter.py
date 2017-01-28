@@ -100,7 +100,7 @@ class WSHandler(tornado.websocket.WebSocketHandler):
         global websockets
         if self not in websockets:
             websockets.append(self)
-        print 'connection opened...'
+        print('connection opened...')
 
     def check_origin(self, origin):
         return True
@@ -113,7 +113,7 @@ class WSHandler(tornado.websocket.WebSocketHandler):
         global websockets
         if self in websockets:
             websockets.remove(self)
-        print 'connection closed...'
+        print('connection closed...')
 
 
 def wsSend(message):
@@ -147,7 +147,7 @@ class MotorThread(threading.Thread):
 
     def run(self):
         global c
-        print "Starting motor thread"
+        print("Starting motor thread")
         while running:
             if type(c) == dict:
                 # We got settings
@@ -255,7 +255,7 @@ if __name__ == "__main__":
 
     #set up web server
     application.listen(9093)  # starts the web sockets connection
-    print "Starting web server at {0}:9093".format(get_ip_address())
+    print("Starting web server at {0}:9093".format(get_ip_address()))
     try:
         tornado.ioloop.IOLoop.instance().start()
     except KeyboardInterrupt:  # Triggered by pressing Ctrl+C. Time to clean up.
@@ -264,7 +264,7 @@ if __name__ == "__main__":
         #Close all sockets
         for ws in websockets:
             ws.close()
-        print "Motor thread stopped"
+        print("Motor thread stopped")
     except:
-        print "Unexpected error:", sys.exc_info()[0]
+        print("Unexpected error:", sys.exc_info()[0])
         raise

@@ -544,7 +544,7 @@ class RopePlotter(object):
     def stop_all_motors(self):
         for motor in self.all_motors:
             motor.stop()
-        print "Motors stopped"
+        print("Motors stopped")
 
 
 

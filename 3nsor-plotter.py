@@ -108,7 +108,7 @@ class WSHandler(tornado.websocket.WebSocketHandler):
     def on_message(self, message):  # receives the data from the webpage and is stored in the variable message
         global c
         c = json.loads(message)
-        print(c)
+        #print(c)
 
     def on_close(self):
         global websockets

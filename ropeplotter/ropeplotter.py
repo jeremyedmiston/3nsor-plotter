@@ -119,7 +119,7 @@ class RopePlotter(object):
             factor = 2
         else:
             factor = 1
-        self.cm_to_deg = -factor * 180 / 3.1415 * 2 / self.pulley_diam * large_gear_teeth / small_gear_teeth
+        self.cm_to_deg = -104 #-factor * 180 / 3.1415 * 2 / self.pulley_diam * large_gear_teeth / small_gear_teeth
 
         # Calculate the height of triangle made up by the two ropes
         self.v_margin = self.triangle_area(self.__l_rope_0, self.__r_rope_0, self.__att_dist) / self.__att_dist * 2
@@ -251,6 +251,97 @@ class RopePlotter(object):
         self.pen_up()
         self.move_to_norm_coord(0, 0)
         yield 100
+
+    def plot_circle_waves(self, num_circles=20):
+
+        im = Image.open("uploads/picture.jpg").convert("L")
+        w, h = im.size
+        pixels = im.load()
+
+        r_min = (self.h_margin ** 2 + self.v_margin ** 2) ** 0.5
+        r_max = ((self.h_margin + self.canvas_size) ** 2 + (self.v_margin + self.canvas_size) ** 2) ** 0.5
+        r_step = (r_max - r_min) / num_circles
+        anchor_motor, drive_motor = self.drive_motors
+
+
+        # First draw circles with left anchor point as center.
+        for i in range(1, num_circles, 2):
+            # Move to the starting point at x,y
+            # Calculate where a circle with radius r_min+r_step*i crosses the left margin.
+            x = self.h_margin
+            y = ((r_min + r_step * i) ** 2 - self.h_margin ** 2) ** 0.5  # This is the same left and right
+            if y > self.v_margin + self.canvas_size:
+                # We reached the bottom, now we check where circles cross the bottom margin
+                x = ((r_min + r_step * i) ** 2 - (self.v_margin + self.canvas_size) ** 2) ** 0.5
+                y = self.v_margin + self.canvas_size  # This is the same left and right
+            self.move_to_coord(x, y)
+            anchor_line = anchor_motor.position
+            direction = 1
+
+            # Now calculate coordinates continuously until we reach the top, or right side of the canvas
+            drive_motor.duty_cycle_sp = 40
+            while 1:
+                # Look at the pixel we're at and move pen up or down accordingly
+                x_norm, y_norm = self.coords_from_motor_pos(self.drive_motors[0].position,
+                                                            self.drive_motors[1].position)
+                pixel_location = (clamp(x_norm * w, (0, w - 1)), clamp(y_norm * w, (0, h - 1)))
+
+                if anchor_motor.position > anchor_line + 30:
+                    direction = -1
+                elif anchor_motor.position < anchor_line -30:
+                    direction = 1
+
+                #anchor_motor.duty_cycle_sp = int((pixels[pixel_location]-255)/3) * direction #Move fast if the pixel is dark.
+
+
+
+                if y_norm <= 0:
+                    break  # reached the top
+                if x_norm >= 1:
+                    break  # reached the right side
+
+
+            drive_motor.stop()
+
+            # Yield to allow pause/stop and show percentage completion
+            yield (i * 50.0) / num_circles * 0.66
+
+            # Good, now move to the next point and roll down.
+            x = ((r_min + r_step * (i + 1)) ** 2 - self.v_margin ** 2) ** 0.5
+            y = self.v_margin
+
+            if x > (self.h_margin + self.canvas_size):  # Reached right side
+                x = self.h_margin + self.canvas_size
+                y = ((r_min + r_step * (i + 1)) ** 2 - (self.h_margin + self.canvas_size) ** 2) ** 0.5
+
+            self.move_to_coord(x, y)
+
+            drive_motor.duty_cycle_sp = -20
+            # Calculate coordinates continuously until we reach the top, or right side of the canvas
+            while 1:
+                # Look at the pixel we're at and move pen up or down accordingly
+                x_norm, y_norm = self.coords_from_motor_pos(self.drive_motors[0].position,
+                                                            self.drive_motors[1].position)
+                pixel_location = (int(clamp(x_norm * w, (0, w - 1))), int(clamp(y_norm * w, (0, h - 1))))
+
+                if anchor_motor.position > anchor_line + 30:
+                    direction = -1
+                elif anchor_motor.position < anchor_line - 30:
+                    direction = 1
+
+                #anchor_motor.duty_cycle_sp = int(
+                #    (pixels[pixel_location] - 255) / 3) * direction  # Move fast if the pixel is dark.
+
+                if y_norm >= 1:
+                    break  # reached the bottom
+                if x_norm <= 0:
+                    break  # reached the left side
+                time.sleep(0.02)
+
+            drive_motor.stop()
+
+            # Yield to allow pause/stop and show percentage
+            yield ((i + 1) * 50.0) / num_circles * 0.66
 
     def plot_circles(self, num_circles=20):
 

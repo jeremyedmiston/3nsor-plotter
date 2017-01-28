@@ -238,13 +238,13 @@ class PIDControl(object):
         else:
             Kp = self.Kp
 
-        self.output = clamp(Kp * ( error + self.integral * self.Ti + self.Td * self.derivative ),(-self.max_out,self.max_out))
+        self.output = clamp(Kp * ( error + self.integral * self.Ti + self.Td * self.derivative )+10,(-self.max_out,self.max_out))
 
         return self.output
 
 
 class PIDMotor(ev3dev.Motor):
-    def __init__(self, port=None, name='*', Kp=7, Ki=0.1, Kd=0.07, max_spd=800, brake=0, verbose=False, speed_reg=True, **kwargs):
+    def __init__(self, port=None, name='*', Kp=7, Ki=0.1, Kd=0.07, max_spd=800, brake=0, verbose=False, speed_reg=False, **kwargs):
         ev3dev.Motor.__init__(self, port, name)
         self.positionPID = PIDControl(Kp=Kp, Ti=Ki, Td=Kd, max_out=max_spd)
         self.speedPID = PIDControl(Kp=0.07, Ti=0.2, Td=0.02)

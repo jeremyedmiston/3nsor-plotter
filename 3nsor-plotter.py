@@ -233,7 +233,7 @@ class MotorThread(threading.Thread):
             elif c == 'plotcircles':
                 wsSend("Plotting circles")
                 # c stays 'plot' until another command is sent trough the socket
-                plot_action = self.plotter.plot_circles()
+                plot_action = self.plotter.plot_circle_waves()
                 c = 'plotting'
 
 

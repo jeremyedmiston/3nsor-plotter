@@ -76,9 +76,10 @@ class MainHandler(tornado.web.RequestHandler):
 class UploadHandler(tornado.web.RequestHandler):
     def post(self):
         if self.request.files:
-            uploaded_file = self.request.files.values()[0][0]    #Get one file only.
-            original_fname = uploaded_file['filename']
-            extension = os.path.splitext(original_fname)[1]
+            fileinfo = self.request.files['filearg'][0]
+            fname = fileinfo['filename']
+            extension = os.path.splitext(fname)[1]
+
             if extension == '.jpg':
                 final_filename = "picture.jpg"
             elif extension == '.csv':
@@ -87,9 +88,10 @@ class UploadHandler(tornado.web.RequestHandler):
                 return
 
             output_file = open("uploads/" + final_filename, 'w')
-            output_file.write(uploaded_file['body'])
-            wsSend("file " + final_filename + " is uploaded")
-            self.finish("file" + final_filename + " is uploaded")
+            output_file.write(fileinfo['body'])
+
+            wsSend("file " + fname + " is uploaded")
+            self.finish("Done uploading")
         else:
             return
 

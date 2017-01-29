@@ -258,7 +258,7 @@ class PIDMotor(ev3.Motor):
 
     def stop(self):
         self.power = 0
-        ev3.Motor(self).stop()
+        super().stop()
 
     def run(self):
         self.positionPID.current = self.position

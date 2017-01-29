@@ -76,7 +76,7 @@ class MainHandler(tornado.web.RequestHandler):
 class UploadHandler(tornado.web.RequestHandler):
     def post(self):
         if self.request.files:
-            fileinfo = self.request.files['filearg'][0]
+            fileinfo = self.request.files[0]
             fname = fileinfo['filename']
             extension = os.path.splitext(fname)[1]
 

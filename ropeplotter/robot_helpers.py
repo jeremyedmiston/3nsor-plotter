@@ -246,6 +246,7 @@ class PIDMotor(ev3.Motor):
         self.brake = brake
         self.verbose = verbose
         self.speed_reg = speed_reg
+        self.power = 0
 
     @property
     def position_sp(self):
@@ -254,6 +255,10 @@ class PIDMotor(ev3.Motor):
     @position_sp.setter
     def position_sp(self,tgt):
         self.positionPID.set_point = tgt
+
+    def stop(self):
+        self.power = 0
+        ev3.Motor(self).stop()
 
     def run(self):
         self.positionPID.current = self.position
@@ -265,8 +270,8 @@ class PIDMotor(ev3.Motor):
             self.run_direct()
 
     def run_at_speed_sp(self, spd):
-        power = clamp((self.duty_cycle_sp + (spd-self.speed)*0.01), (-100, 100))
-        self.duty_cycle_sp = power
+        self.power += (spd-self.speed)*0.05
+        self.duty_cycle_sp = int(clamp((self.power), (-100, 100)))
         self.run_direct()
 
     def run_for_time(self, time_in_s, speed):

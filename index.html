@@ -468,7 +468,7 @@
       var fd = new FormData();
 
       // for multiple files is this
-      var file_data = $('#jpgform > input[type="file"]')[0].files;
+      var file_data = $('#jpgform input[type="file"]')[0].files;
       for(var i = 0;i<file_data.length;i++){
           fd.append("file_"+i, file_data[i]);
       }
@@ -505,7 +505,7 @@
       var fd = new FormData();
 
       // for multiple files is this
-      var file_data = $('#csvform > input[type="file"]')[0].files;
+      var file_data = $('#csvform input[type="file"]')[0].files;
       for(var i = 0;i<file_data.length;i++){
           fd.append("file_"+i, file_data[i]);
       }

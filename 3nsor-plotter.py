@@ -1,7 +1,6 @@
-#!/usr/bin/env python3
-
 __author__ = 'anton'
 
+#!/usr/bin/env python
 # ##############################################################################################################
 # Program Name: plotter
 # ================================
@@ -76,24 +75,26 @@ class MainHandler(tornado.web.RequestHandler):
 
 class UploadHandler(tornado.web.RequestHandler):
     def post(self):
-        if self.request.files:
-            print(self.request.files)
-            if 'imgfile' in self.request.files:
-                fileinfo = self.request.files['imgfile'][0]
+        print(self.request.files)
+        if 'file_0' in self.request.files:
+            fileinfo = self.request.files['file_0'][0]
+            fname = fileinfo['filename']
+            extension = os.path.splitext(fname)[1]
+
+            if extension == '.jpg':
                 final_filename = "picture.jpg"
-                print("Got imgfile")
-            elif 'coordsfile' in self.request.files:
-                fileinfo = self.request.files['coordsfile'][0]
+            elif extension == '.csv':
                 final_filename = "coords.csv"
             else:
                 return
 
             output_file = open("uploads/" + final_filename, 'wb')
             output_file.write(fileinfo['body'])
-            print("Got "+final_filename)
-            wsSend(final_filename + " saved.")
 
-        self.finish("Done uploading. Bye!")
+            wsSend("file " + fname + " is uploaded")
+            self.finish("Done uploading")
+        else:
+            return
 
 
 #Code for handling the data sent from the webpage

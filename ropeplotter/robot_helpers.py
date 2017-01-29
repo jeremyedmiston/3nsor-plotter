@@ -264,10 +264,7 @@ class PIDMotor(ev3.Motor):
         self.positionPID.current = self.position
         pospower = self.positionPID.calc_power()
         if self.speed_reg:
-            self.speedPID.set_point = pospower
-            self.speedPID.current = self.speed
-            power = int(clamp((self.duty_cycle + self.speedPID.calc_power()), (-100, 100)))
-            self.duty_cycle_sp = power
+            self.run_at_speed_sp(pospower)
             #if self.verbose: print(self.position, self.speed, -self.positionPID.derivative, pospower, self.speedPID.output, power, self.position_sp)
         else:
 

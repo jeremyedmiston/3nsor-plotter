@@ -65,10 +65,11 @@
 
             <p>
 
-            <form enctype="multipart/form-data" class="upload" id="csvform" action="upload csv" method="post">
+            <form enctype="multipart/form-data" class="upload" id="csvform" action="upload" method="post">
               <div class="input-group">
                 <span class="input-group-addon"> Select coords.csv </span>
                 <input class="form-control" type="file" name="coordsfile"/>
+                <input type="hidden" name="action" value="upload csv">
                   <span class="input-group-btn">
                     <button type="submit" value="Upload jpg" class="btn btn-default"><span class="glyphicon glyphicon-upload"></span>
                       Upload
@@ -89,10 +90,11 @@
             </p>
             <p>
 
-            <form enctype="multipart/form-data" class="upload" id="jpgform" action="upload jpg" method="post">
+            <form enctype="multipart/form-data" class="upload" id="jpgform" action="upload" method="post">
               <div class="input-group">
                 <span class="input-group-addon"> Select image </span>
                 <input class="form-control" type="file" name="imgfile"/>
+                <input type="hidden" name="action" value="upload jpg">
                   <span class="input-group-btn">
                     <button type="submit" value="Upload csv" class="btn btn-default"><span
                             class="glyphicon glyphicon-upload"></span> Upload

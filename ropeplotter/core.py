@@ -7,8 +7,8 @@ from PIL import Image
 from ropeplotter.robot_helpers import PIDMotor, clamp, BrickPiPowerSupply
 import ev3dev.auto as ev3
 
-UP = 0      # pen up
-DOWN = -40
+UP = -35
+DOWN = 0
 SLOW = 110
 FAST = 220
 
@@ -32,7 +32,7 @@ class RopePlotter(object):
         self.calc_constants()
 
         # Start the engines
-        self.pen_motor = PIDMotor(ev3.OUTPUT_A, Kp=3, Ki=1, Kd=0.05, brake=0.3, max_spd=100, verbose=True, speed_reg=False)
+        self.pen_motor = PIDMotor(ev3.OUTPUT_A, Kp=2.5, Ki=1.1, Kd=0.0, brake=0.3, max_spd=100, verbose=True, speed_reg=False)
         self.pen_motor.positionPID.precision = 4
         self.left_motor = PIDMotor(ev3.OUTPUT_B, Kp=Kp, Ki=Ki, Kd=Kd, max_spd=max_spd)
         self.right_motor = PIDMotor(ev3.OUTPUT_C, Kp=Kp, Ki=Ki, Kd=Kd, max_spd=max_spd)
@@ -173,39 +173,44 @@ class RopePlotter(object):
             motor.position = 0
             #motor.positionPID.zero = motor.position
 
-    def move_to_coord(self,x,y):
+    def move_to_coord(self,x,y, brake=False):
         motor_b_target, motor_c_target  = self.motor_targets_from_coords(x, y)
-        self.move_to_targets((motor_b_target, motor_c_target))
+        self.move_to_targets((motor_b_target, motor_c_target), brake)
 
     def move_to_norm_coord(self, x_norm, y_norm):
         motor_b_target, motor_c_target = self.motor_targets_from_norm_coords(x_norm, y_norm)
         #print "Moving to ", x_norm, ",", y_norm, "(At", motor_b_target, motor_c_target, ")"
         self.move_to_targets((motor_b_target, motor_c_target))
 
-    def move_to_targets(self, targets):
+    def move_to_targets(self, targets, brake=False):
         # Set targets
         for motor, tgt in zip(self.drive_motors, targets):
             motor.position_sp = tgt
         # Now wait for the motors to reach their targets
-        # Alas ev3dev's run_to_abs_pos is not usable. Have to use my own PID controller.
+        # Alas ev3dev's run_to_abs_pos is not usable on BrickPi. So I emulate a PID controller.
 
         while 1:
             for motor in self.drive_motors:
                 motor.run()
 
             if all([motor.positionPID.target_reached for motor in self.drive_motors]):
+                if brake: #Run a little while long to stay in position.
+                    t=time.time()+0.7
+                    while t > time.time():
+                        for motor in self.drive_motors:
+                            motor.run()
                 self.left_motor.stop()
                 self.right_motor.stop()
                 break
 
             #We're done calculating and setting all motor speeds!
-            time.sleep(0.02)
+            time.sleep(0.016)
 
     ### Advanced plotting functions by chaining movement functions ###
     def test_drive(self):
         # A little disturbance in the force
         self.move_to_norm_coord(0.0,0.5)
-        self.move_to_norm_coord(0.5,0.5)
+        self.move_to_norm_coord(0.3,0.3)
         self.move_to_norm_coord(0.0,0.0)
 
     def plot_from_file(self, filename):
@@ -248,7 +253,7 @@ class RopePlotter(object):
 
     def plot_circle_waves(self, num_circles=20):
 
-        im = Image.open("uploads/picture.jpg").convert("L")
+        im = Image.open("uploads/picture.jpg").convert("L") #Load grayscale image
         w, h = im.size
         pixels = im.load()
 
@@ -257,25 +262,30 @@ class RopePlotter(object):
         r_step = (r_max - r_min) / num_circles
         anchor_motor, drive_motor = self.drive_motors
 
-        self.pen_up()
-        # First draw circles with left anchor point as center.
+        # Draw circles with left anchor point as center.
         for i in range(1, num_circles, 2):
-            # Move to the starting point at x,y
-            # Calculate where a circle with radius r_min+r_step*i crosses the left margin.
+            # Find the starting point x,y
+            # where a circle with radius r_min+r_step*i crosses the left margin.
             x = self.h_margin
-            y = ((r_min + r_step * i) ** 2 - self.h_margin ** 2) ** 0.5  # This is the same left and right
+            y = ((r_min + r_step * i) ** 2 - self.h_margin ** 2) ** 0.5
+
+            # Check whether we reached the bottom
             if y > self.v_margin + self.canvas_size:
-                # We reached the bottom, now we check where circles cross the bottom margin
+                # Now we check where circles cross the bottom margin
                 x = ((r_min + r_step * i) ** 2 - (self.v_margin + self.canvas_size) ** 2) ** 0.5
-                y = self.v_margin + self.canvas_size  # This is the same left and right
-            self.move_to_coord(x, y)
+                y = self.v_margin + self.canvas_size
+
+            self.pen_up()
+            self.move_to_coord(x, y, brake=True)
+            self.pen_down()
+
             anchor_line = anchor_motor.position
             direction = 1
-            self.pen_down()
-            # Now calculate coordinates continuously until we reach the top, or right side of the canvas
+
+            # Start driving (up)
             drive_motor.run_forever(speed_sp=150)
             while 1:
-                # Look at the pixel we're at and move pen up or down accordingly
+                # Look at the pixel we're at and move pen up & down according to it's darkness
                 x_norm, y_norm = self.coords_from_motor_pos(self.drive_motors[0].position,
                                                             self.drive_motors[1].position)
                 pixel_location = (clamp(x_norm * w, (0, w - 1)), clamp(y_norm * w, (0, h - 1)))
@@ -284,11 +294,10 @@ class RopePlotter(object):
                     direction = -1
                 elif anchor_motor.position < anchor_line -30:
                     direction = 1
-
-                anchor_motor.speed_sp = int((pixels[pixel_location]-255)/3) * direction #Move fast if the pixel is dark.
+                oscillation_speed = int((pixels[pixel_location]-255)/2.0) * direction
+                print(oscillation_speed)
+                anchor_motor.speed_sp = oscillation_speed #Oscillate fast if the pixel is dark.
                 anchor_motor.run_forever()
-
-
 
                 if y_norm <= 0:
                     break  # reached the top
@@ -297,7 +306,7 @@ class RopePlotter(object):
 
             anchor_motor.stop()
             drive_motor.stop()
-            self.pen_up()
+
             # Yield to allow pause/stop and show percentage completion
             yield (i * 50.0) / num_circles * 0.66
 
@@ -309,10 +318,11 @@ class RopePlotter(object):
                 x = self.h_margin + self.canvas_size
                 y = ((r_min + r_step * (i + 1)) ** 2 - (self.h_margin + self.canvas_size) ** 2) ** 0.5
 
-            self.move_to_coord(x, y)
+            self.pen_up()
+            self.move_to_coord(x, y, brake=True)
             self.pen_down()
+
             drive_motor.run_forever(speed_sp=-150)
-            # Calculate coordinates continuously until we reach the top, or right side of the canvas
             while 1:
                 # Look at the pixel we're at and move pen up or down accordingly
                 x_norm, y_norm = self.coords_from_motor_pos(self.drive_motors[0].position,
@@ -325,7 +335,7 @@ class RopePlotter(object):
                     direction = 1
 
                 anchor_motor.speed_sp = int(
-                    (pixels[pixel_location] - 255) / 3) * direction  # Move fast if the pixel is dark.
+                    (pixels[pixel_location] - 255) / 2.0) * direction  # Move fast if the pixel is dark.
                 anchor_motor.run_forever()
 
                 if y_norm >= 1:

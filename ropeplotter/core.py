@@ -273,7 +273,7 @@ class RopePlotter(object):
             direction = 1
 
             # Now calculate coordinates continuously until we reach the top, or right side of the canvas
-            drive_motor.run_at_speed_sp(40)
+            drive_motor.run_forever(speed_sp=150)
             while 1:
                 # Look at the pixel we're at and move pen up or down accordingly
                 x_norm, y_norm = self.coords_from_motor_pos(self.drive_motors[0].position,
@@ -310,7 +310,7 @@ class RopePlotter(object):
 
             self.move_to_coord(x, y)
 
-            drive_motor.duty_cycle_sp = -20
+            drive_motor.run_forever(speed_sp=-150)
             # Calculate coordinates continuously until we reach the top, or right side of the canvas
             while 1:
                 # Look at the pixel we're at and move pen up or down accordingly

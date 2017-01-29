@@ -240,14 +240,9 @@ class PIDControl(object):
 
 
 class PIDMotor(ev3.Motor):
-    def __init__(self, port=None, name='*', Kp=7, Ki=0.1, Kd=0.07, max_spd=800, brake=0, verbose=False, speed_reg=False, **kwargs):
+    def __init__(self, port=None, name='*', Kp=3.0, Ki=0.0, Kd=0.0, brake=0, verbose=False, speed_reg=False, **kwargs):
         ev3.Motor.__init__(self, port, name)
-        if speed_reg:
-            self.positionPID = PIDControl(Kp=Kp, Ti=0, Td=0, max_out=max_spd)
-        else:
-            self.positionPID = PIDControl(Kp=Kp, Ti=Ki, Td=Kd, max_out=100)
-
-        self.speedPID = PIDControl(Kp=0.07, Ti=0.2, Td=0.02, max_out=100)
+        self.positionPID = PIDControl(Kp=Kp, Ti=Ki, Td=Kd, max_out=100)
         self.brake = brake
         self.verbose = verbose
         self.speed_reg = speed_reg
@@ -265,16 +260,12 @@ class PIDMotor(ev3.Motor):
         pospower = self.positionPID.calc_power()
         if self.speed_reg:
             self.run_at_speed_sp(pospower)
-            #if self.verbose: print(self.position, self.speed, -self.positionPID.derivative, pospower, self.speedPID.output, power, self.position_sp)
         else:
-
             self.duty_cycle_sp = pospower
-        self.run_direct()
+            self.run_direct()
 
     def run_at_speed_sp(self, spd):
-        self.speedPID.set_point = spd
-        self.speedPID.current = self.speed
-        power = clamp((self.duty_cycle_sp + self.speedPID.calc_power()), (-100, 100))
+        power = clamp((self.duty_cycle_sp + (spd-self.speed)*0.01), (-100, 100))
         self.duty_cycle_sp = power
         self.run_direct()
 

@@ -462,7 +462,44 @@
         return false;
     });
 
-    $('form.upload').submit(function(evt) {
+    $('form#jpgform').submit(function(evt) {
+        evt.preventDefault();
+
+      var fd = new FormData();
+
+      // for multiple files is this
+      var file_data = $('input[type="file"]')[0].files;
+      for(var i = 0;i<file_data.length;i++){
+          fd.append("file_"+i, file_data[i]);
+      }
+
+      // we aren't submitting any other data at the moment, but just to be sure:
+      var other_data = $('form').serializeArray();
+      $.each(other_data,function(key,input){
+          fd.append(input.name,input.value);
+      });
+
+      $.ajax({
+          url: $(this).attr('action'),
+          data: fd,
+          contentType: false,
+          processData: false,
+          type: $(this).attr('method'),
+          success: function(data){
+              console.log(data);
+          },
+          done: function(data){
+              console.log(data);
+          },
+          always: function(data){
+              console.log(data);
+              fd.append(data);
+          }
+      });
+
+    });
+
+    $('form#csvform').submit(function(evt) {
         evt.preventDefault();
 
       var fd = new FormData();

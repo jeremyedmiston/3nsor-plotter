@@ -92,7 +92,8 @@ class UploadHandler(tornado.web.RequestHandler):
             output_file.write(fileinfo['body'])
             print("Got "+final_filename)
             wsSend(final_filename + " saved.")
-            self.finish("Done uploading. Bye!")
+
+        self.finish("Done uploading. Bye!")
 
 
 #Code for handling the data sent from the webpage

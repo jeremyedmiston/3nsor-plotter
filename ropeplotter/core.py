@@ -257,7 +257,7 @@ class RopePlotter(object):
         r_step = (r_max - r_min) / num_circles
         anchor_motor, drive_motor = self.drive_motors
 
-
+        self.pen_up()
         # First draw circles with left anchor point as center.
         for i in range(1, num_circles, 2):
             # Move to the starting point at x,y
@@ -271,7 +271,7 @@ class RopePlotter(object):
             self.move_to_coord(x, y)
             anchor_line = anchor_motor.position
             direction = 1
-
+            self.pen_down()
             # Now calculate coordinates continuously until we reach the top, or right side of the canvas
             drive_motor.run_forever(speed_sp=150)
             while 1:
@@ -285,7 +285,8 @@ class RopePlotter(object):
                 elif anchor_motor.position < anchor_line -30:
                     direction = 1
 
-                #anchor_motor.duty_cycle_sp = int((pixels[pixel_location]-255)/3) * direction #Move fast if the pixel is dark.
+                anchor_motor.speed_sp = int((pixels[pixel_location]-255)/3) * direction #Move fast if the pixel is dark.
+                anchor_motor.run_forever()
 
 
 
@@ -294,9 +295,9 @@ class RopePlotter(object):
                 if x_norm >= 1:
                     break  # reached the right side
 
-
+            anchor_motor.stop()
             drive_motor.stop()
-
+            self.pen_up()
             # Yield to allow pause/stop and show percentage completion
             yield (i * 50.0) / num_circles * 0.66
 
@@ -309,7 +310,7 @@ class RopePlotter(object):
                 y = ((r_min + r_step * (i + 1)) ** 2 - (self.h_margin + self.canvas_size) ** 2) ** 0.5
 
             self.move_to_coord(x, y)
-
+            self.pen_down()
             drive_motor.run_forever(speed_sp=-150)
             # Calculate coordinates continuously until we reach the top, or right side of the canvas
             while 1:
@@ -323,8 +324,9 @@ class RopePlotter(object):
                 elif anchor_motor.position < anchor_line - 30:
                     direction = 1
 
-                #anchor_motor.duty_cycle_sp = int(
-                #    (pixels[pixel_location] - 255) / 3) * direction  # Move fast if the pixel is dark.
+                anchor_motor.speed_sp = int(
+                    (pixels[pixel_location] - 255) / 3) * direction  # Move fast if the pixel is dark.
+                anchor_motor.run_forever()
 
                 if y_norm >= 1:
                     break  # reached the bottom
@@ -332,7 +334,9 @@ class RopePlotter(object):
                     break  # reached the left side
                 time.sleep(0.02)
 
+            anchor_motor.stop()
             drive_motor.stop()
+            self.pen_up()
 
             # Yield to allow pause/stop and show percentage
             yield ((i + 1) * 50.0) / num_circles * 0.66

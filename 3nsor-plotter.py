@@ -77,10 +77,11 @@ class MainHandler(tornado.web.RequestHandler):
 class UploadHandler(tornado.web.RequestHandler):
     def post(self):
         if self.request.files:
-            # print(self.request.files)
+            print(self.request.files)
             if 'imgfile' in self.request.files:
                 fileinfo = self.request.files['imgfile'][0]
                 final_filename = "picture.jpg"
+                print("Got imgfile")
             elif 'coordsfile' in self.request.files:
                 fileinfo = self.request.files['coordsfile'][0]
                 final_filename = "coords.csv"

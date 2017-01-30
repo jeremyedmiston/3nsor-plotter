@@ -290,11 +290,12 @@ class RopePlotter(object):
                                                             self.drive_motors[1].position)
                 pixel_location = (clamp(x_norm * w, (0, w - 1)), clamp(y_norm * w, (0, h - 1)))
 
-                if anchor_motor.position > anchor_line + 30:
-                    direction = -1
-                elif anchor_motor.position < anchor_line -30:
+                if anchor_motor.position > anchor_line + 50:
                     direction = 1
-                oscillation_speed = int((pixels[pixel_location]-255)/2.0) * direction
+                elif anchor_motor.position < anchor_line -50:
+                    direction = -1
+
+                oscillation_speed = int((pixels[pixel_location]-255)*1.5) * direction
                 print(oscillation_speed)
                 anchor_motor.speed_sp = oscillation_speed #Oscillate fast if the pixel is dark.
                 anchor_motor.run_forever()
@@ -329,13 +330,13 @@ class RopePlotter(object):
                                                             self.drive_motors[1].position)
                 pixel_location = (int(clamp(x_norm * w, (0, w - 1))), int(clamp(y_norm * w, (0, h - 1))))
 
-                if anchor_motor.position > anchor_line + 30:
-                    direction = -1
-                elif anchor_motor.position < anchor_line - 30:
+                if anchor_motor.position > anchor_line + 50:
                     direction = 1
+                elif anchor_motor.position < anchor_line - 50:
+                    direction = -1
 
                 anchor_motor.speed_sp = int(
-                    (pixels[pixel_location] - 255) / 2.0) * direction  # Move fast if the pixel is dark.
+                    (pixels[pixel_location] - 255)*1.5) * direction  # Move fast if the pixel is dark.
                 anchor_motor.run_forever()
 
                 if y_norm >= 1:

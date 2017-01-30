@@ -172,6 +172,7 @@ class RopePlotter(object):
         for motor in self.all_motors:
             motor.position = 0
             #motor.positionPID.zero = motor.position
+        self.pen_motor.position = UP
 
     def move_to_coord(self,x,y, brake=False):
         motor_b_target, motor_c_target  = self.motor_targets_from_coords(x, y)
@@ -290,12 +291,12 @@ class RopePlotter(object):
                                                             self.drive_motors[1].position)
                 pixel_location = (clamp(x_norm * w, (0, w - 1)), clamp(y_norm * w, (0, h - 1)))
 
-                if anchor_motor.position > anchor_line + 50:
+                if anchor_motor.position > anchor_line + r_step/2:
                     direction = 1
-                elif anchor_motor.position < anchor_line -50:
+                elif anchor_motor.position < anchor_line - r_step/2:
                     direction = -1
 
-                oscillation_speed = int((pixels[pixel_location]-255)*2) * direction
+                oscillation_speed = int((pixels[pixel_location]-255)*2.5) * direction
                 #print(oscillation_speed)
                 anchor_motor.speed_sp = oscillation_speed #Oscillate fast if the pixel is dark.
                 anchor_motor.run_forever()
@@ -323,6 +324,8 @@ class RopePlotter(object):
             self.move_to_coord(x, y, brake=True)
             self.pen_down()
 
+            anchor_line = anchor_motor.position
+            direction = 1
             drive_motor.run_forever(speed_sp=-150)
             while 1:
                 # Look at the pixel we're at and move pen up or down accordingly
@@ -330,13 +333,13 @@ class RopePlotter(object):
                                                             self.drive_motors[1].position)
                 pixel_location = (int(clamp(x_norm * w, (0, w - 1))), int(clamp(y_norm * w, (0, h - 1))))
 
-                if anchor_motor.position > anchor_line + 50:
+                if anchor_motor.position > anchor_line + r_step/2:
                     direction = 1
-                elif anchor_motor.position < anchor_line - 50:
+                elif anchor_motor.position < anchor_line - r_step/2:
                     direction = -1
 
                 anchor_motor.speed_sp = int(
-                    (pixels[pixel_location] - 255)*2) * direction  # Move fast if the pixel is dark.
+                    (pixels[pixel_location] - 255)*2.5) * direction  # Move fast if the pixel is dark.
                 anchor_motor.run_forever()
 
                 if y_norm >= 1:

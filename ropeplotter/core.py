@@ -291,9 +291,9 @@ class RopePlotter(object):
                                                             self.drive_motors[1].position)
                 pixel_location = (clamp(x_norm * w, (0, w - 1)), clamp(y_norm * w, (0, h - 1)))
 
-                if anchor_motor.position > anchor_line + r_step/2:
+                if anchor_motor.position > anchor_line + r_step:
                     direction = 1
-                elif anchor_motor.position < anchor_line - r_step/2:
+                elif anchor_motor.position < anchor_line - r_step:
                     direction = -1
 
                 oscillation_speed = int((pixels[pixel_location]-255)*2.5) * direction
@@ -333,9 +333,9 @@ class RopePlotter(object):
                                                             self.drive_motors[1].position)
                 pixel_location = (int(clamp(x_norm * w, (0, w - 1))), int(clamp(y_norm * w, (0, h - 1))))
 
-                if anchor_motor.position > anchor_line + r_step/2:
+                if anchor_motor.position > anchor_line + r_step:
                     direction = 1
-                elif anchor_motor.position < anchor_line - r_step/2:
+                elif anchor_motor.position < anchor_line - r_step:
                     direction = -1
 
                 anchor_motor.speed_sp = int(

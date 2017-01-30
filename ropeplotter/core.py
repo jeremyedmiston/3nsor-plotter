@@ -252,7 +252,8 @@ class RopePlotter(object):
         self.move_to_norm_coord(0, 0)
         yield 100
 
-    def plot_circle_waves(self, num_circles=40):
+    def plot_circle_waves(self, num_circles=60):
+        step_factor = 2
 
         im = Image.open("uploads/picture.jpg").convert("L") #Load grayscale image
         w, h = im.size
@@ -291,9 +292,9 @@ class RopePlotter(object):
                                                             self.drive_motors[1].position)
                 pixel_location = (clamp(x_norm * w, (0, w - 1)), clamp(y_norm * w, (0, h - 1)))
 
-                if anchor_motor.position > anchor_line + r_step:
+                if anchor_motor.position > anchor_line + r_step*step_factor:
                     direction = 1
-                elif anchor_motor.position < anchor_line - r_step:
+                elif anchor_motor.position < anchor_line - r_step*step_factor:
                     direction = -1
 
                 oscillation_speed = int((pixels[pixel_location]-255)*2.5) * direction
@@ -333,9 +334,9 @@ class RopePlotter(object):
                                                             self.drive_motors[1].position)
                 pixel_location = (int(clamp(x_norm * w, (0, w - 1))), int(clamp(y_norm * w, (0, h - 1))))
 
-                if anchor_motor.position > anchor_line + r_step:
+                if anchor_motor.position > anchor_line + r_step*step_factor:
                     direction = 1
-                elif anchor_motor.position < anchor_line - r_step:
+                elif anchor_motor.position < anchor_line - r_step*step_factor:
                     direction = -1
 
                 anchor_motor.speed_sp = int(

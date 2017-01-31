@@ -262,7 +262,7 @@ class RopePlotter(object):
         r_min = (self.h_margin ** 2 + self.v_margin ** 2) ** 0.5
         r_max = ((self.h_margin + self.canvas_size) ** 2 + (self.v_margin + self.canvas_size) ** 2) ** 0.5
         r_step = (r_max - r_min) / num_circles
-        amplitude = r_step * self.cm_to_deg / 2 * 0.9
+        amplitude = r_step * self.cm_to_deg / 2 * 0.8
 
         anchor_motor, drive_motor = self.drive_motors
 
@@ -294,8 +294,9 @@ class RopePlotter(object):
                                                             self.drive_motors[1].position)
                 pixel_location = (clamp(x_norm * w, (0, w - 1)), clamp(y_norm * w, (0, h - 1)))
 
-                weighted_amplitude = amplitude * (pixels[pixel_location] - 255) / 255.0  # this turns 0 when white (255)
-                anchor_motor.position_sp = anchor_line + math.sin(drive_motor.position / 20.0) * weighted_amplitude
+                darkness = (pixels[pixel_location] - 255) / -255.0
+                weighted_amplitude = amplitude * darkness # this turns 0 when white (255)
+                anchor_motor.position_sp = anchor_line + math.sin(drive_motor.position / (10.0 + 30 * darkness)) * weighted_amplitude
                 anchor_motor.run()
 
                 if y_norm <= 0:
@@ -331,8 +332,9 @@ class RopePlotter(object):
                                                             self.drive_motors[1].position)
                 pixel_location = (int(clamp(x_norm * w, (0, w - 1))), int(clamp(y_norm * w, (0, h - 1))))
 
-                weighted_amplitude = amplitude * (pixels[pixel_location]-255)/255.0 #this turns 0 when white (255)
-                anchor_motor.position_sp = anchor_line + math.sin(drive_motor.position/20.0) * weighted_amplitude
+                darkness = (pixels[pixel_location] - 255) / -255.0
+                weighted_amplitude = amplitude * darkness  # this turns 0 when white (255)
+                anchor_motor.position_sp = anchor_line + math.sin(drive_motor.position / (10.0 + 30 * darkness)) * weighted_amplitude
                 anchor_motor.run()
 
                 if y_norm >= 1:

@@ -252,7 +252,7 @@ class RopePlotter(object):
         self.move_to_norm_coord(0, 0)
         yield 100
 
-    def plot_circle_waves(self, num_circles=60):
+    def plot_circle_waves(self, num_circles=40):
 
 
         im = Image.open("uploads/picture.jpg").convert("L") #Load grayscale image

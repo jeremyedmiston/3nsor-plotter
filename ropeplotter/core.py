@@ -287,7 +287,7 @@ class RopePlotter(object):
             direction = 1
 
             # Start driving (up)
-            drive_motor.run_forever(speed_sp=150)
+
             while 1:
                 # Look at the pixel we're at and move pen up & down according to it's darkness
                 x_norm, y_norm = self.coords_from_motor_pos(self.drive_motors[0].position,
@@ -296,7 +296,8 @@ class RopePlotter(object):
 
                 darkness = (pixels[pixel_location] - 255) / -255.0
                 weighted_amplitude = amplitude * darkness # this turns 0 when white (255)
-                anchor_motor.position_sp = anchor_line + math.sin(drive_motor.position / (10.0 + 30 * darkness)) * weighted_amplitude
+                drive_motor.run_forever(speed_sp=(200-100*darkness))
+                anchor_motor.position_sp = anchor_line + math.sin(drive_motor.position / (40.0 - 30 * darkness)) * weighted_amplitude
                 anchor_motor.run()
 
                 if y_norm <= 0:
@@ -325,7 +326,7 @@ class RopePlotter(object):
 
             anchor_line = anchor_motor.position
             direction = 1
-            drive_motor.run_forever(speed_sp=-150)
+            #drive_motor.run_forever(speed_sp=-150)
             while 1:
                 # Look at the pixel we're at and move pen up or down accordingly
                 x_norm, y_norm = self.coords_from_motor_pos(self.drive_motors[0].position,
@@ -334,7 +335,8 @@ class RopePlotter(object):
 
                 darkness = (pixels[pixel_location] - 255) / -255.0
                 weighted_amplitude = amplitude * darkness  # this turns 0 when white (255)
-                anchor_motor.position_sp = anchor_line + math.sin(drive_motor.position / (10.0 + 30 * darkness)) * weighted_amplitude
+                drive_motor.run_forever(speed_sp=(200 - 100 * darkness)*-1)
+                anchor_motor.position_sp = anchor_line + math.sin(drive_motor.position / (40.0 - 30 * darkness)) * weighted_amplitude
                 anchor_motor.run()
 
                 if y_norm >= 1:

@@ -287,17 +287,21 @@ class RopePlotter(object):
             direction = 1
 
             # Start driving (up)
-
+            next_sample_position = drive_motor.position
+            drive_motor.run_forever(speed_sp=100)
             while 1:
-                # Look at the pixel we're at and move pen up & down according to it's darkness
                 x_norm, y_norm = self.coords_from_motor_pos(self.drive_motors[0].position,
                                                             self.drive_motors[1].position)
-                pixel_location = (clamp(x_norm * w, (0, w - 1)), clamp(y_norm * w, (0, h - 1)))
+                if drive_motor.position >= next_sample_position:
+                    # Look at the pixel we're at and move pen up & down according to it's darkness
+                    pixel_location = (clamp(x_norm * w, (0, w - 1)), clamp(y_norm * w, (0, h - 1)))
+                    darkness = (pixels[pixel_location] - 255) / -255.0
+                    weighted_amplitude = amplitude * darkness # this turns 0 when white (255)
+                    weighted_wavelength = (270.0 - 210 * darkness)
+                    next_sample_position = drive_motor+weighted_wavelength
 
-                darkness = (pixels[pixel_location] - 255) / -255.0
-                weighted_amplitude = amplitude * darkness # this turns 0 when white (255)
-                drive_motor.run_forever(speed_sp=(200-100*darkness))
-                anchor_motor.position_sp = anchor_line + math.sin(drive_motor.position / (40.0 - 30 * darkness)) * weighted_amplitude
+                drive_motor.run_forever(speed_sp=(400-300*darkness))
+                anchor_motor.position_sp = anchor_line + math.sin(drive_motor.position / (weighted_wavelength / 2 * 3.14)) * weighted_amplitude
                 anchor_motor.run()
 
                 if y_norm <= 0:
@@ -327,16 +331,22 @@ class RopePlotter(object):
             anchor_line = anchor_motor.position
             direction = 1
             #drive_motor.run_forever(speed_sp=-150)
+            next_sample_position = drive_motor.position
+            drive_motor.run_forever(speed_sp=-100)
             while 1:
                 # Look at the pixel we're at and move pen up or down accordingly
                 x_norm, y_norm = self.coords_from_motor_pos(self.drive_motors[0].position,
                                                             self.drive_motors[1].position)
-                pixel_location = (int(clamp(x_norm * w, (0, w - 1))), int(clamp(y_norm * w, (0, h - 1))))
+                if drive_motor.position <= next_sample_position:
+                    # Look at the pixel we're at and move pen up & down according to it's darkness
+                    pixel_location = (clamp(x_norm * w, (0, w - 1)), clamp(y_norm * w, (0, h - 1)))
+                    darkness = (pixels[pixel_location] - 255) / -255.0
+                    weighted_amplitude = amplitude * darkness  # this turns 0 when white (255)
+                    weighted_wavelength = (270.0 - 210 * darkness)
+                    next_sample_position = drive_motor + weighted_wavelength
 
-                darkness = (pixels[pixel_location] - 255) / -255.0
-                weighted_amplitude = amplitude * darkness  # this turns 0 when white (255)
-                drive_motor.run_forever(speed_sp=(200 - 100 * darkness)*-1)
-                anchor_motor.position_sp = anchor_line + math.sin(drive_motor.position / (40.0 - 30 * darkness)) * weighted_amplitude
+                drive_motor.run_forever(speed_sp=(400 - 300 * darkness)*-1)
+                anchor_motor.position_sp = anchor_line + math.sin(drive_motor.position / (weighted_wavelength / 2 * 3.14)) * weighted_amplitude
                 anchor_motor.run()
 
                 if y_norm >= 1:
@@ -458,7 +468,7 @@ class RopePlotter(object):
                     time.sleep(0.02)
 
                 drive_motor.stop()
-                self.pen_motor.run_to_abs_pos(position_sp=UP)
+                self.pen_up()
 
                 # Yield to allow pause/stop and show percentage
                 yield ((i+1)*50.0+right_side_mode*50.0)/num_circles * 0.66

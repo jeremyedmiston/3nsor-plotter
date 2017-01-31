@@ -293,8 +293,8 @@ class RopePlotter(object):
                 pixel_location = (clamp(x_norm * w, (0, w - 1)), clamp(y_norm * w, (0, h - 1)))
 
 
-                anchor_motor.position_sp = anchor_line + math.sin(drive_motor.position/10.0)*r_step/2
-                print(drive_motor.position/10.0*r_step/2)
+                anchor_motor.position_sp = anchor_line + math.sin(drive_motor.position/20.0)*r_step/2
+                print(math.sin(drive_motor.position/20.0)*r_step/2)
                 anchor_motor.run()
 
 

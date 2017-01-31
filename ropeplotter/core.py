@@ -3,7 +3,7 @@ __author__ = 'anton'
 import time
 
 from PIL import Image
-
+import math
 from ropeplotter.robot_helpers import PIDMotor, clamp, BrickPiPowerSupply
 import ev3dev.auto as ev3
 
@@ -292,15 +292,9 @@ class RopePlotter(object):
                                                             self.drive_motors[1].position)
                 pixel_location = (clamp(x_norm * w, (0, w - 1)), clamp(y_norm * w, (0, h - 1)))
 
-                if anchor_motor.position > anchor_line + r_step*step_factor:
-                    direction = 1
-                elif anchor_motor.position < anchor_line - r_step*step_factor:
-                    direction = -1
 
-                oscillation_speed = int((pixels[pixel_location]-255)*2.5) * direction
-                #print(oscillation_speed)
-                anchor_motor.speed_sp = oscillation_speed #Oscillate fast if the pixel is dark.
-                anchor_motor.run_forever()
+                anchor_motor.position_sp = anchor_line + math.sin(drive_motor.position/10.0)*r_step/2*pixels[pixel_location]/255.0
+                anchor_motor.run()
 
                 if y_norm <= 0:
                     break  # reached the top
@@ -334,14 +328,8 @@ class RopePlotter(object):
                                                             self.drive_motors[1].position)
                 pixel_location = (int(clamp(x_norm * w, (0, w - 1))), int(clamp(y_norm * w, (0, h - 1))))
 
-                if anchor_motor.position > anchor_line + r_step*step_factor:
-                    direction = 1
-                elif anchor_motor.position < anchor_line - r_step*step_factor:
-                    direction = -1
-
-                anchor_motor.speed_sp = int(
-                    (pixels[pixel_location] - 255)*2.5) * direction  # Move fast if the pixel is dark.
-                anchor_motor.run_forever()
+                anchor_motor.position_sp = anchor_line + math.sin(drive_motor.position/10.0)*r_step/2*pixels[pixel_location]/255.0
+                anchor_motor.run()
 
                 if y_norm >= 1:
                     break  # reached the bottom

@@ -279,19 +279,25 @@ class RopePlotter(object):
 
             # Start driving (up)
             anchor_line = anchor_motor.position
+            drive_motor_start = drive_motor.position
+            next_wave_position = drive_motor.position
+            drive_motor.run_forever(speed_sp=100)
             while 1:
-                x_norm, y_norm = self.coords_from_motor_pos(self.drive_motors[0].position,
-                                                            self.drive_motors[1].position)
-                if anchor_line-3 < anchor_motor.position < anchor_line+3:
+                drive_motor_pos = drive_motor.position
+                anchor_motor_pos = anchor_motor.position
+                x_norm, y_norm = self.coords_from_motor_pos(anchor_motor_pos, drive_motor_pos)
+
+                if drive_motor_pos >= next_wave_position:
                     # Look at the pixel we're at and move pen up & down according to it's darkness
                     pixel_location = (clamp(x_norm * w, (0, w - 1)), clamp(y_norm * w, (0, h - 1)))
                     darkness = (pixels[pixel_location] - 255) / -255.0
                     weighted_amplitude = amplitude * darkness # this turns 0 when white (255), 1 when black.
-                    weighted_wavelength = (270.0 - 210 * darkness) #it's actually half wavelength...
+                    weighted_wavelength = (230.0 - 170 * darkness) #it's actually half wavelength...
+                    next_wave_position = drive_motor_pos + weighted_wavelength
                     print(weighted_amplitude,weighted_wavelength)
 
                 drive_motor.run_forever(speed_sp=(500-400*darkness))
-                anchor_motor.position_sp = anchor_line + math.sin(drive_motor.position * math.pi / weighted_wavelength) * weighted_amplitude
+                anchor_motor.position_sp = anchor_line + math.sin((drive_motor_pos-drive_motor_start) * math.pi / weighted_wavelength) * weighted_amplitude
                 anchor_motor.run()
 
                 if y_norm <= 0:
@@ -320,19 +326,24 @@ class RopePlotter(object):
 
             # Start driving down
             anchor_line = anchor_motor.position
+            drive_motor_start = drive_motor.position
+            next_wave_position = drive_motor.position
+            drive_motor.run_forever(speed_sp=-100)
             while 1:
-                # Look at the pixel we're at and move pen up or down accordingly
-                x_norm, y_norm = self.coords_from_motor_pos(self.drive_motors[0].position,
-                                                            self.drive_motors[1].position)
-                if anchor_line-3 < anchor_motor.position < anchor_line+3:
+                drive_motor_pos = drive_motor.position
+                anchor_motor_pos = anchor_motor.position
+                x_norm, y_norm = self.coords_from_motor_pos(anchor_motor_pos, drive_motor_pos)
+
+                if drive_motor_pos <= next_wave_position:
                     # Look at the pixel we're at and move pen up & down according to it's darkness
                     pixel_location = (clamp(x_norm * w, (0, w - 1)), clamp(y_norm * w, (0, h - 1)))
                     darkness = (pixels[pixel_location] - 255) / -255.0
-                    weighted_amplitude = amplitude * darkness  # this turns 0 when white (255)
-                    weighted_wavelength = (270.0 - 210 * darkness)
+                    weighted_amplitude = amplitude * darkness # this turns 0 when white (255), 1 when black.
+                    weighted_wavelength = (230.0 - 170 * darkness) #it's actually half wavelength...
+                    next_wave_position = drive_motor_pos + weighted_wavelength
 
                 drive_motor.run_forever(speed_sp=(500 - 400 * darkness)*-1)
-                anchor_motor.position_sp = anchor_line + math.sin(drive_motor.position * math.pi / weighted_wavelength ) * weighted_amplitude
+                anchor_motor.position_sp = anchor_line + math.sin((drive_motor_pos-drive_motor_start) * math.pi / weighted_wavelength ) * weighted_amplitude
                 anchor_motor.run()
 
                 if y_norm >= 1:

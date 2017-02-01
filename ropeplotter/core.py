@@ -290,9 +290,9 @@ class RopePlotter(object):
                 if drive_motor_pos >= next_wave_position:
                     # Look at the pixel we're at and move pen up & down according to it's darkness
                     pixel_location = (clamp(x_norm * w, (0, w - 1)), clamp(y_norm * w, (0, h - 1)))
-                    darkness = (pixels[pixel_location] - 255) / -255.0
+                    darkness = (pixels[pixel_location] - 255.0) / -255.0
                     weighted_amplitude = amplitude * darkness # this turns 0 when white (255), 1 when black.
-                    weighted_wavelength = 60 #(230.0 - 170 * darkness) #it's actually half wavelength...
+                    weighted_wavelength = 20 #(230.0 - 170 * darkness) #it's actually half wavelength...
                     next_wave_position = drive_motor_pos + weighted_wavelength
                     print(weighted_amplitude,weighted_wavelength)
 
@@ -337,9 +337,9 @@ class RopePlotter(object):
                 if drive_motor_pos <= next_wave_position:
                     # Look at the pixel we're at and move pen up & down according to it's darkness
                     pixel_location = (clamp(x_norm * w, (0, w - 1)), clamp(y_norm * w, (0, h - 1)))
-                    darkness = (pixels[pixel_location] - 255) / -255.0
+                    darkness = (pixels[pixel_location] - 255.0) / -255.0
                     weighted_amplitude = amplitude * darkness # this turns 0 when white (255), 1 when black.
-                    weighted_wavelength = 60 #(230.0 - 170 * darkness) #it's actually half wavelength...
+                    weighted_wavelength = 20 #(230.0 - 170 * darkness) #it's actually half wavelength...
                     next_wave_position = drive_motor_pos - weighted_wavelength
 
                 drive_motor.run_forever(speed_sp=(500 - 400 * darkness)*-1)

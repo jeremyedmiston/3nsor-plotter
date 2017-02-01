@@ -29,7 +29,7 @@ class RopePlotter(object):
         self.calc_constants()
 
         # Start the engines
-        self.pen_motor = PIDMotor(ev3.OUTPUT_A, Kp=2.5, Ki=1.1, Kd=0.0, brake=0.3, max_spd=100, verbose=True, speed_reg=False)
+        self.pen_motor = PIDMotor(ev3.OUTPUT_A, Kp=2.5, Ki=1.1, Kd=0.0, brake=0.3, max_spd=50, verbose=True, speed_reg=False)
         self.pen_motor.positionPID.precision = 4
         self.left_motor = PIDMotor(ev3.OUTPUT_B, Kp=Kp, Ki=Ki, Kd=Kd, max_spd=max_spd)
         self.right_motor = PIDMotor(ev3.OUTPUT_C, Kp=Kp, Ki=Ki, Kd=Kd, max_spd=max_spd)
@@ -295,15 +295,16 @@ class RopePlotter(object):
                 weighted_wavelength = 30 #(230.0 - 170 * darkness) #it's actually half wavelength...
                 #next_wave_position = drive_motor_pos + weighted_wavelength
                 #print(weighted_amplitude,weighted_wavelength)
-                if darkness < 0.05:
-                    self.pen_motor.position_sp = UP
-                else:
-                    self.pen_motor.position_sp = DOWN
+                # if darkness < 0.05:
+                #     self.pen_motor.position_sp = UP
+                # else:
+                #     self.pen_motor.position_sp = DOWN
+                # self.pen_motor.run()
 
                 drive_motor.run_forever(speed_sp=(500-485*darkness))
-                anchor_motor.position_sp = anchor_line + math.sin((drive_motor_pos-drive_motor_start) * math.pi / weighted_wavelength) * amplitude
+                anchor_motor.position_sp = anchor_line + math.sin((drive_motor_pos-drive_motor_start) * math.pi / weighted_wavelength) * weighted_amplitude
                 anchor_motor.run()
-                self.pen_motor.run()
+
 
                 if y_norm <= 0:
                     break  # reached the top
@@ -350,11 +351,12 @@ class RopePlotter(object):
                     self.pen_motor.position_sp = UP
                 else:
                     self.pen_motor.position_sp = DOWN
+                # self.pen_motor.run()
 
                 drive_motor.run_forever(speed_sp=(500 - 485 * darkness)*-1)
-                anchor_motor.position_sp = anchor_line + math.sin((drive_motor_pos-drive_motor_start) * math.pi / weighted_wavelength ) * amplitude
+                anchor_motor.position_sp = anchor_line + math.sin((drive_motor_pos-drive_motor_start) * math.pi / weighted_wavelength ) * weighted_amplitude
                 anchor_motor.run()
-                self.pen_motor.run()
+
 
                 if y_norm >= 1:
                     break  # reached the bottom

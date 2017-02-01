@@ -295,7 +295,7 @@ class RopePlotter(object):
                 weighted_wavelength = 30 #(230.0 - 170 * darkness) #it's actually half wavelength...
                 #next_wave_position = drive_motor_pos + weighted_wavelength
                 #print(weighted_amplitude,weighted_wavelength)
-                if darkness < 3:
+                if darkness < 0.05:
                     self.pen_motor.position_sp = UP
                 else:
                     self.pen_motor.position_sp = DOWN
@@ -346,7 +346,7 @@ class RopePlotter(object):
                 weighted_amplitude = amplitude * darkness # this turns 0 when white (255), 1 when black.
                 weighted_wavelength = 30 #(230.0 - 170 * darkness) #it's actually half wavelength...
                 next_wave_position = drive_motor_pos - weighted_wavelength
-                if darkness < 3:
+                if darkness < 0.05:
                     self.pen_motor.position_sp = UP
                 else:
                     self.pen_motor.position_sp = DOWN

@@ -292,11 +292,11 @@ class RopePlotter(object):
                     pixel_location = (clamp(x_norm * w, (0, w - 1)), clamp(y_norm * w, (0, h - 1)))
                     darkness = (pixels[pixel_location] - 255.0) / -255.0
                     weighted_amplitude = amplitude * darkness # this turns 0 when white (255), 1 when black.
-                    weighted_wavelength = 20 #(230.0 - 170 * darkness) #it's actually half wavelength...
+                    weighted_wavelength = 30 #(230.0 - 170 * darkness) #it's actually half wavelength...
                     next_wave_position = drive_motor_pos + weighted_wavelength
                     print(weighted_amplitude,weighted_wavelength)
 
-                drive_motor.run_forever(speed_sp=(500-400*darkness))
+                drive_motor.run_forever(speed_sp=(500-430*darkness))
                 anchor_motor.position_sp = anchor_line + math.sin((drive_motor_pos-drive_motor_start) * math.pi / weighted_wavelength) * weighted_amplitude
                 anchor_motor.run()
 
@@ -339,10 +339,10 @@ class RopePlotter(object):
                     pixel_location = (clamp(x_norm * w, (0, w - 1)), clamp(y_norm * w, (0, h - 1)))
                     darkness = (pixels[pixel_location] - 255.0) / -255.0
                     weighted_amplitude = amplitude * darkness # this turns 0 when white (255), 1 when black.
-                    weighted_wavelength = 20 #(230.0 - 170 * darkness) #it's actually half wavelength...
+                    weighted_wavelength = 30 #(230.0 - 170 * darkness) #it's actually half wavelength...
                     next_wave_position = drive_motor_pos - weighted_wavelength
 
-                drive_motor.run_forever(speed_sp=(500 - 400 * darkness)*-1)
+                drive_motor.run_forever(speed_sp=(500 - 430 * darkness)*-1)
                 anchor_motor.position_sp = anchor_line + math.sin((drive_motor_pos-drive_motor_start) * math.pi / weighted_wavelength ) * weighted_amplitude
                 anchor_motor.run()
 

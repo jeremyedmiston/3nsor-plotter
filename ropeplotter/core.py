@@ -14,7 +14,7 @@ FAST = 220
 
 
 class RopePlotter(object):
-    def __init__(self, l_rope_0, r_rope_0, attachment_distance, cm_to_deg=-170, Kp=2.2, Ki=0.2, Kd=0.02, max_spd=800):
+    def __init__(self, l_rope_0, r_rope_0, attachment_distance, cm_to_deg=-160, Kp=2.2, Ki=0.2, Kd=0.02, max_spd=800):
         if ev3.current_platform == 'brickpi':
             self.battery = BrickPiPowerSupply()
             factor = 2
@@ -256,7 +256,7 @@ class RopePlotter(object):
         r_min = (self.h_margin ** 2 + self.v_margin ** 2) ** 0.5
         r_max = ((self.h_margin + self.canvas_size) ** 2 + (self.v_margin + self.canvas_size) ** 2) ** 0.5
         r_step = (r_max - r_min) / num_circles
-        amplitude = r_step * self.cm_to_deg / 2 * 1
+        amplitude = r_step * self.cm_to_deg / 2
 
         anchor_motor, drive_motor = self.drive_motors
 
@@ -287,17 +287,21 @@ class RopePlotter(object):
                 anchor_motor_pos = anchor_motor.position
                 x_norm, y_norm = self.coords_from_motor_pos(anchor_motor_pos, drive_motor_pos)
 
-                if drive_motor_pos >= next_wave_position:
+                #if drive_motor_pos >= next_wave_position:
                     # Look at the pixel we're at and move pen up & down according to it's darkness
-                    pixel_location = (clamp(x_norm * w, (0, w - 1)), clamp(y_norm * w, (0, h - 1)))
-                    darkness = (pixels[pixel_location] - 255.0) / -255.0
-                    weighted_amplitude = amplitude * darkness # this turns 0 when white (255), 1 when black.
-                    weighted_wavelength = 30 #(230.0 - 170 * darkness) #it's actually half wavelength...
-                    next_wave_position = drive_motor_pos + weighted_wavelength
-                    print(weighted_amplitude,weighted_wavelength)
+                pixel_location = (clamp(x_norm * w, (0, w - 1)), clamp(y_norm * w, (0, h - 1)))
+                darkness = (pixels[pixel_location] - 255.0) / -255.0
+                weighted_amplitude = amplitude * darkness # this turns 0 when white (255), 1 when black.
+                weighted_wavelength = 30 #(230.0 - 170 * darkness) #it's actually half wavelength...
+                #next_wave_position = drive_motor_pos + weighted_wavelength
+                #print(weighted_amplitude,weighted_wavelength)
+                if darkness < 3:
+                    self.pen_up()
+                else:
+                    self.pen_down()
 
-                drive_motor.run_forever(speed_sp=(500-480*darkness))
-                anchor_motor.position_sp = anchor_line + math.sin((drive_motor_pos-drive_motor_start) * math.pi / weighted_wavelength) * weighted_amplitude
+                drive_motor.run_forever(speed_sp=(500-485*darkness))
+                anchor_motor.position_sp = anchor_line + math.sin((drive_motor_pos-drive_motor_start) * math.pi / weighted_wavelength) * amplitude
                 anchor_motor.run()
 
                 if y_norm <= 0:
@@ -334,16 +338,20 @@ class RopePlotter(object):
                 anchor_motor_pos = anchor_motor.position
                 x_norm, y_norm = self.coords_from_motor_pos(anchor_motor_pos, drive_motor_pos)
 
-                if drive_motor_pos <= next_wave_position:
-                    # Look at the pixel we're at and move pen up & down according to it's darkness
-                    pixel_location = (clamp(x_norm * w, (0, w - 1)), clamp(y_norm * w, (0, h - 1)))
-                    darkness = (pixels[pixel_location] - 255.0) / -255.0
-                    weighted_amplitude = amplitude * darkness # this turns 0 when white (255), 1 when black.
-                    weighted_wavelength = 30 #(230.0 - 170 * darkness) #it's actually half wavelength...
-                    next_wave_position = drive_motor_pos - weighted_wavelength
+                #if drive_motor_pos <= next_wave_position:
+                # Look at the pixel we're at and move pen up & down according to it's darkness
+                pixel_location = (clamp(x_norm * w, (0, w - 1)), clamp(y_norm * w, (0, h - 1)))
+                darkness = (pixels[pixel_location] - 255.0) / -255.0
+                weighted_amplitude = amplitude * darkness # this turns 0 when white (255), 1 when black.
+                weighted_wavelength = 30 #(230.0 - 170 * darkness) #it's actually half wavelength...
+                next_wave_position = drive_motor_pos - weighted_wavelength
+                if darkness < 3:
+                    self.pen_up()
+                else:
+                    self.pen_down()
 
-                drive_motor.run_forever(speed_sp=(500 - 480 * darkness)*-1)
-                anchor_motor.position_sp = anchor_line + math.sin((drive_motor_pos-drive_motor_start) * math.pi / weighted_wavelength ) * weighted_amplitude
+                drive_motor.run_forever(speed_sp=(500 - 485 * darkness)*-1)
+                anchor_motor.position_sp = anchor_line + math.sin((drive_motor_pos-drive_motor_start) * math.pi / weighted_wavelength ) * amplitude
                 anchor_motor.run()
 
                 if y_norm >= 1:

@@ -256,7 +256,7 @@ class RopePlotter(object):
         r_min = (self.h_margin ** 2 + self.v_margin ** 2) ** 0.5
         r_max = ((self.h_margin + self.canvas_size) ** 2 + (self.v_margin + self.canvas_size) ** 2) ** 0.5
         r_step = (r_max - r_min) / num_circles
-        amplitude = r_step * self.cm_to_deg / 2 * 0.9
+        amplitude = r_step * self.cm_to_deg / 2 * 1
 
         anchor_motor, drive_motor = self.drive_motors
 
@@ -292,7 +292,7 @@ class RopePlotter(object):
                     pixel_location = (clamp(x_norm * w, (0, w - 1)), clamp(y_norm * w, (0, h - 1)))
                     darkness = (pixels[pixel_location] - 255) / -255.0
                     weighted_amplitude = amplitude * darkness # this turns 0 when white (255), 1 when black.
-                    weighted_wavelength = (230.0 - 170 * darkness) #it's actually half wavelength...
+                    weighted_wavelength = 60 #(230.0 - 170 * darkness) #it's actually half wavelength...
                     next_wave_position = drive_motor_pos + weighted_wavelength
                     print(weighted_amplitude,weighted_wavelength)
 
@@ -339,8 +339,8 @@ class RopePlotter(object):
                     pixel_location = (clamp(x_norm * w, (0, w - 1)), clamp(y_norm * w, (0, h - 1)))
                     darkness = (pixels[pixel_location] - 255) / -255.0
                     weighted_amplitude = amplitude * darkness # this turns 0 when white (255), 1 when black.
-                    weighted_wavelength = (230.0 - 170 * darkness) #it's actually half wavelength...
-                    next_wave_position = drive_motor_pos + weighted_wavelength
+                    weighted_wavelength = 60 #(230.0 - 170 * darkness) #it's actually half wavelength...
+                    next_wave_position = drive_motor_pos - weighted_wavelength
 
                 drive_motor.run_forever(speed_sp=(500 - 400 * darkness)*-1)
                 anchor_motor.position_sp = anchor_line + math.sin((drive_motor_pos-drive_motor_start) * math.pi / weighted_wavelength ) * weighted_amplitude

@@ -1,19 +1,20 @@
 __author__ = 'anton'
 
 import time
-
 from PIL import Image
 import math
 from ropeplotter.robot_helpers import PIDMotor, clamp, BrickPiPowerSupply
 import ev3dev.auto as ev3
 
-UP = -30
+
+UP = -28
 DOWN = 0
 SLOW = 110
 FAST = 220
 
+
 class RopePlotter(object):
-    def __init__(self, l_rope_0, r_rope_0, attachment_distance, cm_to_deg=-180, Kp=2.2, Ki=0.2, Kd=0.02, Kp_neg_factor=.5, max_spd=800):
+    def __init__(self, l_rope_0, r_rope_0, attachment_distance, cm_to_deg=-170, Kp=2.2, Ki=0.2, Kd=0.02, Kp_neg_factor=.5, max_spd=800):
         if ev3.current_platform == 'brickpi':
             self.battery = BrickPiPowerSupply()
             factor = 2

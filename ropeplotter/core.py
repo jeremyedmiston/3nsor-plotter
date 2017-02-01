@@ -14,22 +14,18 @@ FAST = 220
 
 
 class RopePlotter(object):
-    def __init__(self, l_rope_0, r_rope_0, attachment_distance, cm_to_deg=-170, Kp=2.2, Ki=0.2, Kd=0.02, Kp_neg_factor=.5, max_spd=800):
+    def __init__(self, l_rope_0, r_rope_0, attachment_distance, cm_to_deg=-170, Kp=2.2, Ki=0.2, Kd=0.02, max_spd=800):
         if ev3.current_platform == 'brickpi':
             self.battery = BrickPiPowerSupply()
             factor = 2
         else:
             self.battery = ev3.PowerSupply()
             factor = 1
-
+        self.cm_to_deg = cm_to_deg * factor
         self.__l_rope_0 = float(l_rope_0)
         self.__r_rope_0 = float(r_rope_0)
         self.__att_dist = float(attachment_distance)
         self.direction = 1 # -1 is for reversing motors
-
-
-        self.cm_to_deg = cm_to_deg * factor
-
         self.calc_constants()
 
         # Start the engines
@@ -44,8 +40,6 @@ class RopePlotter(object):
 
         # Set starting point
         self.set_control_zeroes()
-
-
 
 
     # Getters & setters for plotter properties. Python style, Baby!
@@ -170,7 +164,7 @@ class RopePlotter(object):
 
     ### Movement functions ###
     def set_control_zeroes(self):
-        for motor in self.all_motors:
+        for motor in self.drive_motors:
             motor.position = 0
             #motor.positionPID.zero = motor.position
         self.pen_motor.position = UP

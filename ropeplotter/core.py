@@ -288,7 +288,7 @@ class RopePlotter(object):
 
             # Start driving (up)
             next_sample_position = drive_motor.position
-            #drive_motor.run_forever(speed_sp=100)
+            drive_motor.run_forever(speed_sp=100)
             while 1:
                 x_norm, y_norm = self.coords_from_motor_pos(self.drive_motors[0].position,
                                                             self.drive_motors[1].position)
@@ -298,12 +298,12 @@ class RopePlotter(object):
                     darkness = (pixels[pixel_location] - 255) / -255.0
                     weighted_amplitude = amplitude * darkness # this turns 0 when white (255)
                     weighted_wavelength = (270.0 - 210 * darkness)
-                    next_sample_position = drive_motor+weighted_wavelength
+                    next_sample_position = drive_motor.position+weighted_wavelength
 
                 drive_motor.run_forever(speed_sp=(400-300*darkness))
                 anchor_motor.position_sp = anchor_line + math.sin(drive_motor.position / (weighted_wavelength / (2 * 3.1415))) * weighted_amplitude
                 anchor_motor.run()
-                print(y_norm)
+
                 if y_norm <= 0:
                     break  # reached the top
                 if x_norm >= 1:
@@ -343,7 +343,7 @@ class RopePlotter(object):
                     darkness = (pixels[pixel_location] - 255) / -255.0
                     weighted_amplitude = amplitude * darkness  # this turns 0 when white (255)
                     weighted_wavelength = (270.0 - 210 * darkness)
-                    next_sample_position = drive_motor + weighted_wavelength
+                    next_sample_position = drive_motor.position + weighted_wavelength
 
                 drive_motor.run_forever(speed_sp=(400 - 300 * darkness)*-1)
                 anchor_motor.position_sp = anchor_line + math.sin(drive_motor.position / (weighted_wavelength / (2 * 3.1415))) * weighted_amplitude

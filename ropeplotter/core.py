@@ -302,7 +302,7 @@ class RopePlotter(object):
                 # self.pen_motor.run()
 
                 drive_motor.run_forever(speed_sp=(500-485*darkness))
-                anchor_motor.position_sp = anchor_line + math.sin(time.time() * math.pi / 2) * weighted_amplitude
+                anchor_motor.position_sp = anchor_line + math.sin(time.time() * math.pi * 4) * weighted_amplitude
                 anchor_motor.run()
 
 
@@ -354,7 +354,7 @@ class RopePlotter(object):
                 # self.pen_motor.run()
 
                 drive_motor.run_forever(speed_sp=(500 - 485 * darkness)*-1)
-                anchor_motor.position_sp = anchor_line + math.sin(time.time() * math.pi / 2 ) * weighted_amplitude
+                anchor_motor.position_sp = anchor_line + math.sin(time.time() * math.pi * 4 ) * weighted_amplitude
                 anchor_motor.run()
 
 

@@ -231,9 +231,9 @@ class PIDControl(object):
 
         output = Kp * ( error + self.integral * self.Ti + self.Td * self.derivative )+10
         if output < -2:
-            output -= 12
+            output -= 8
         elif output > 2:
-            output += 12
+            output += 8
 
         self.output = output
         return int(clamp(output,(-self.max_out,self.max_out)))

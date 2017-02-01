@@ -296,13 +296,14 @@ class RopePlotter(object):
                 #next_wave_position = drive_motor_pos + weighted_wavelength
                 #print(weighted_amplitude,weighted_wavelength)
                 if darkness < 3:
-                    self.pen_up()
+                    self.pen_motor.position_sp = UP
                 else:
-                    self.pen_down()
+                    self.pen_motor.position_sp = DOWN
 
                 drive_motor.run_forever(speed_sp=(500-485*darkness))
                 anchor_motor.position_sp = anchor_line + math.sin((drive_motor_pos-drive_motor_start) * math.pi / weighted_wavelength) * amplitude
                 anchor_motor.run()
+                self.pen_motor.run()
 
                 if y_norm <= 0:
                     break  # reached the top
@@ -346,13 +347,14 @@ class RopePlotter(object):
                 weighted_wavelength = 30 #(230.0 - 170 * darkness) #it's actually half wavelength...
                 next_wave_position = drive_motor_pos - weighted_wavelength
                 if darkness < 3:
-                    self.pen_up()
+                    self.pen_motor.position_sp = UP
                 else:
-                    self.pen_down()
+                    self.pen_motor.position_sp = DOWN
 
                 drive_motor.run_forever(speed_sp=(500 - 485 * darkness)*-1)
                 anchor_motor.position_sp = anchor_line + math.sin((drive_motor_pos-drive_motor_start) * math.pi / weighted_wavelength ) * amplitude
                 anchor_motor.run()
+                self.pen_motor.run()
 
                 if y_norm >= 1:
                     break  # reached the bottom

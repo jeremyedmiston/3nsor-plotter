@@ -81,7 +81,7 @@ class UploadHandler(tornado.web.RequestHandler):
             fname = fileinfo['filename']
             extension = os.path.splitext(fname)[1]
 
-            if extension == '.jpg':
+            if extension == '.jpg' or extension == '.jpeg':
                 final_filename = "picture.jpg"
             elif extension == '.csv':
                 final_filename = "coords.csv"

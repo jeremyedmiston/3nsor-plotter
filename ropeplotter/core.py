@@ -14,7 +14,7 @@ FAST = 220
 
 
 class RopePlotter(object):
-    def __init__(self, l_rope_0, r_rope_0, attachment_distance, cm_to_deg=-160, Kp=2.2, Ki=0.2, Kd=0.02, max_spd=800):
+    def __init__(self, l_rope_0, r_rope_0, attachment_distance, cm_to_deg=-190, Kp=2.2, Ki=0.2, Kd=0.02, max_spd=800):
         if ev3.current_platform == 'brickpi':
             self.battery = BrickPiPowerSupply()
             factor = 2
@@ -256,7 +256,7 @@ class RopePlotter(object):
         r_min = (self.h_margin ** 2 + self.v_margin ** 2) ** 0.5
         r_max = ((self.h_margin + self.canvas_size) ** 2 + (self.v_margin + self.canvas_size) ** 2) ** 0.5
         r_step = (r_max - r_min) / num_circles
-        amplitude = r_step * self.cm_to_deg / 2
+        amplitude = r_step * self.cm_to_deg / 2 * 1.15
 
         anchor_motor, drive_motor = self.drive_motors
 
@@ -301,7 +301,7 @@ class RopePlotter(object):
                 #     self.pen_motor.position_sp = DOWN
                 # self.pen_motor.run()
 
-                drive_motor.run_forever(speed_sp=(500-485*darkness))
+                drive_motor.run_forever(speed_sp=(700-690*darkness))
                 anchor_motor.position_sp = anchor_line + math.sin(time.time() * math.pi * 4) * weighted_amplitude
                 anchor_motor.run()
 
@@ -353,7 +353,7 @@ class RopePlotter(object):
                 #     self.pen_motor.position_sp = DOWN
                 # self.pen_motor.run()
 
-                drive_motor.run_forever(speed_sp=(500 - 485 * darkness)*-1)
+                drive_motor.run_forever(speed_sp=(700 - 690 * darkness)*-1)
                 anchor_motor.position_sp = anchor_line + math.sin(time.time() * math.pi * 4 ) * weighted_amplitude
                 anchor_motor.run()
 

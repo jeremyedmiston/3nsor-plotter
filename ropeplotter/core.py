@@ -14,7 +14,7 @@ FAST = 220
 
 
 class RopePlotter(object):
-    def __init__(self, l_rope_0, r_rope_0, attachment_distance, cm_to_deg=-190, Kp=2.2, Ki=0.2, Kd=0.02, max_spd=800):
+    def __init__(self, l_rope_0, r_rope_0, attachment_distance, cm_to_deg=-165, Kp=2.2, Ki=0.2, Kd=0.02, max_spd=800):
         if ev3.current_platform == 'brickpi':
             self.battery = BrickPiPowerSupply()
             factor = 2
@@ -169,25 +169,33 @@ class RopePlotter(object):
             #motor.positionPID.zero = motor.position
         self.pen_motor.position = UP
 
-    def move_to_coord(self,x,y, brake=False):
+    def move_to_coord(self,x,y, brake=False, pen=-1):
         motor_b_target, motor_c_target  = self.motor_targets_from_coords(x, y)
-        self.move_to_targets((motor_b_target, motor_c_target), brake)
+        self.move_to_targets((motor_b_target, motor_c_target), brake, pen)
 
     def move_to_norm_coord(self, x_norm, y_norm):
         motor_b_target, motor_c_target = self.motor_targets_from_norm_coords(x_norm, y_norm)
         #print "Moving to ", x_norm, ",", y_norm, "(At", motor_b_target, motor_c_target, ")"
         self.move_to_targets((motor_b_target, motor_c_target))
 
-    def move_to_targets(self, targets, brake=False):
+    def move_to_targets(self, targets, brake=False, pen=-1):
         # Set targets
         for motor, tgt in zip(self.drive_motors, targets):
             motor.position_sp = tgt
-        # Now wait for the motors to reach their targets
+
+        if pen == 1:     #Put the pen down
+            self.pen_motor.position_sp = DOWN
+        elif pen == 0:  #Put the pen down
+            self.pen_motor.position_sp = UP
+
+        # Now run the motors and wait for the motors to reach their targets
         # Alas ev3dev's run_to_abs_pos is not usable on BrickPi. So I emulate a PID controller.
 
         while 1:
             for motor in self.drive_motors:
                 motor.run()
+            if pen > -1:
+                self.pen_motor.run()
 
             if all([motor.positionPID.target_reached for motor in self.drive_motors]):
                 if brake: #Run a little while long to stay in position.
@@ -248,15 +256,26 @@ class RopePlotter(object):
         yield 100
 
     def plot_circle_waves(self, num_circles=40):
+        """
+        Draws a grayscale image of the uploaded photo by tracing the canvas with circles and
+        oscilating more in darker areas.
 
-        im = Image.open("uploads/picture.jpg").convert("L") #Load grayscale image
+        This is a generator method that yields progress and can be paused after each progress report.
+
+        :param num_circles: The amount of circles to put on the complete canvas.
+        :yield: progress.
+        """
+        # Load grayscale image
+        im = Image.open("uploads/picture.jpg").convert("L")
         w, h = im.size
         pixels = im.load()
 
+        # Calculate circles, smallest, largest and offset.
         r_min = (self.h_margin ** 2 + self.v_margin ** 2) ** 0.5
         r_max = ((self.h_margin + self.canvas_size) ** 2 + (self.v_margin + self.canvas_size) ** 2) ** 0.5
         r_step = (r_max - r_min) / num_circles
-        amplitude = r_step * self.cm_to_deg / 2 * 1.15
+        amplitude = r_step * self.cm_to_deg / 2 * 1.15  # Sine amplitude in motor degrees
+        half_wavelength = 0.5                           # Time in seconds it takes to draw half a sine wave.
 
         anchor_motor, drive_motor = self.drive_motors
 
@@ -273,44 +292,41 @@ class RopePlotter(object):
                 x = ((r_min + r_step * i) ** 2 - (self.v_margin + self.canvas_size) ** 2) ** 0.5
                 y = self.v_margin + self.canvas_size
 
-            self.pen_up()
-            self.move_to_coord(x, y, brake=True)
+            self.move_to_coord(x, y, brake=True, pen=0)
             self.pen_down()
 
-            # Start driving (up)
+            #Intialise
             anchor_line = anchor_motor.position
-            drive_motor_start = drive_motor.position
-            next_wave_position = drive_motor.position
+            next_sample_time = time.time()
+            darkness = 0
+            weighted_amplitude = 0
+
+            # Start driving (up)
             drive_motor.run_forever(speed_sp=100)
             while 1:
+                # In each loop read motor positions.
                 drive_motor_pos = drive_motor.position
                 anchor_motor_pos = anchor_motor.position
+
+                now = time.time()
+
                 x_norm, y_norm = self.coords_from_motor_pos(anchor_motor_pos, drive_motor_pos)
 
-                #if drive_motor_pos >= next_wave_position:
+                if now >= next_sample_time:
                     # Look at the pixel we're at and move pen up & down according to it's darkness
-                pixel_location = (clamp(x_norm * w, (0, w - 1)), clamp(y_norm * w, (0, h - 1)))
-                darkness = (pixels[pixel_location] - 255.0) / -255.0
-                weighted_amplitude = amplitude * darkness # this turns 0 when white (255), 1 when black.
-                weighted_wavelength = 30 #(230.0 - 170 * darkness) #it's actually half wavelength...
-                #next_wave_position = drive_motor_pos + weighted_wavelength
-                #print(weighted_amplitude,weighted_wavelength)
-                # if darkness < 0.05:
-                #     self.pen_motor.position_sp = UP
-                # else:
-                #     self.pen_motor.position_sp = DOWN
-                # self.pen_motor.run()
+                    pixel_location = (clamp(x_norm * w, (0, w - 1)), clamp(y_norm * w, (0, h - 1)))
+                    darkness = (pixels[pixel_location] - 255.0) / -255.0
+                    weighted_amplitude = amplitude * darkness # this turns 0 when white (255), 1 when black.
+                    next_sample_time = now + half_wavelength
 
-                drive_motor.run_forever(speed_sp=(600-590*darkness))
-                anchor_motor.position_sp = anchor_line + math.sin(time.time() * math.pi * 2) * weighted_amplitude
+                drive_motor.run_forever(speed_sp=(600-590*darkness**0.5)) # Exponential darkness for more contrast.
+                anchor_motor.position_sp = anchor_line + math.sin(now * math.pi / half_wavelength) * weighted_amplitude
                 anchor_motor.run()
-
 
                 if y_norm <= 0:
                     break  # reached the top
                 if x_norm >= 1:
                     break  # reached the right side
-                #time.sleep(0.03)
 
             anchor_motor.stop()
             drive_motor.stop()
@@ -326,35 +342,30 @@ class RopePlotter(object):
                 x = self.h_margin + self.canvas_size
                 y = ((r_min + r_step * (i + 1)) ** 2 - (self.h_margin + self.canvas_size) ** 2) ** 0.5
 
-            self.pen_up()
-            self.move_to_coord(x, y, brake=True)
+            self.move_to_coord(x, y, brake=True, pen=0)
             self.pen_down()
 
             # Start driving down
             anchor_line = anchor_motor.position
-            drive_motor_start = drive_motor.position
-            next_wave_position = drive_motor.position
             drive_motor.run_forever(speed_sp=-100)
             while 1:
                 drive_motor_pos = drive_motor.position
                 anchor_motor_pos = anchor_motor.position
+
+                now = time.time()
+
+                #Get our current location in normalised coordinates.
                 x_norm, y_norm = self.coords_from_motor_pos(anchor_motor_pos, drive_motor_pos)
 
-                #if drive_motor_pos <= next_wave_position:
+                if now >= next_sample_time:
                 # Look at the pixel we're at and move pen up & down according to it's darkness
-                pixel_location = (clamp(x_norm * w, (0, w - 1)), clamp(y_norm * w, (0, h - 1)))
-                darkness = (pixels[pixel_location] - 255.0) / -255.0
-                weighted_amplitude = amplitude * darkness # this turns 0 when white (255), 1 when black.
-                weighted_wavelength = 30 #(230.0 - 170 * darkness) #it's actually half wavelength...
-                next_wave_position = drive_motor_pos - weighted_wavelength
-                # if darkness < 0.05:
-                #     self.pen_motor.position_sp = UP
-                # else:
-                #     self.pen_motor.position_sp = DOWN
-                # self.pen_motor.run()
+                    pixel_location = (clamp(x_norm * w, (0, w - 1)), clamp(y_norm * w, (0, h - 1)))
+                    darkness = (pixels[pixel_location] - 255.0) / -255.0 # this turns 0 when white (255), 1 when black.
+                    weighted_amplitude = amplitude * darkness
+                    next_sample_time = now + half_wavelength
 
-                drive_motor.run_forever(speed_sp=(600 - 590 * darkness)*-1)
-                anchor_motor.position_sp = anchor_line + math.sin(time.time() * math.pi * 2) * weighted_amplitude
+                drive_motor.run_forever(speed_sp=(600 - 590 * darkness**0.5)*-1)
+                anchor_motor.position_sp = anchor_line + math.sin(now * math.pi / half_wavelength) * weighted_amplitude
                 anchor_motor.run()
 
 
@@ -362,14 +373,15 @@ class RopePlotter(object):
                     break  # reached the bottom
                 if x_norm <= 0:
                     break  # reached the left side
-                #time.sleep(0.03)
 
             anchor_motor.stop()
             drive_motor.stop()
-            self.pen_up()
 
             # Yield to allow pause/stop and show percentage
             yield ((i + 1) * 50.0) / num_circles * 0.66
+
+        self.pen_up()
+        self.move_to_norm_coord(0,0)
 
     def plot_circles(self, num_circles=20):
 

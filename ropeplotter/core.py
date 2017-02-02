@@ -319,7 +319,7 @@ class RopePlotter(object):
                     weighted_amplitude = amplitude * darkness # this turns 0 when white (255), 1 when black.
                     next_sample_time = now + half_wavelength
 
-                drive_motor.run_forever(speed_sp=(600-590*darkness**0.5)) # Exponential darkness for more contrast.
+                drive_motor.run_forever(speed_sp=(600-595*darkness**0.5)) # Exponential darkness for more contrast.
                 anchor_motor.position_sp = anchor_line + math.sin(now * math.pi / half_wavelength) * weighted_amplitude
                 anchor_motor.run()
 
@@ -364,7 +364,7 @@ class RopePlotter(object):
                     weighted_amplitude = amplitude * darkness
                     next_sample_time = now + half_wavelength
 
-                drive_motor.run_forever(speed_sp=(600 - 590 * darkness**0.5)*-1)
+                drive_motor.run_forever(speed_sp=(600 - 595 * darkness**0.5)*-1)
                 anchor_motor.position_sp = anchor_line + math.sin(now * math.pi / half_wavelength) * weighted_amplitude
                 anchor_motor.run()
 

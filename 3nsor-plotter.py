@@ -133,6 +133,7 @@ application = tornado.web.Application([
     (r"/static/(.*)", tornado.web.StaticFileHandler, {"path": "./static"}),
     (r"/css/(.*)", tornado.web.StaticFileHandler, {"path": "./css"}),
     (r"/fonts/(.*)", tornado.web.StaticFileHandler, {"path": "./fonts"}),
+    (r"/uploads/(.*)", tornado.web.StaticFileHandler, {"path": "./uploads"}),
     (r"/logs/(.*)", tornado.web.StaticFileHandler, {"path": "./logs"}),
     (r"/upload", UploadHandler)
 ])

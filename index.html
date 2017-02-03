@@ -105,13 +105,13 @@
             </form>
             </p>
             <p>
-              <span class="controls">
+              <div class="controls form-group">
                 <button class="btn btn-primary controls" data-down="" data-up="plotcircles">
                   <span class="glyphicon glyphicon-pencil"></span> Plot circle scanline drawing
                 </button>
                 <button class="btn btn-default" data-down="" data-up="stop">Pause</button>
                 <button class="btn btn-default" data-down="" data-up="plotting">Resume</button>
-              </span>
+              </div>
             </p>
           </div>
         </div>
@@ -238,6 +238,10 @@
               <div class="form-group">
                 <label> Width between rope attachments </label>
                 <input type="text" name="aw" size="10" value="{{ aw }}"/>
+              </div>
+              <div class="form-group">
+                <label> Number of scan lines </label>
+                <input type="text" name="sl" size="10" value="{{ sl }}"/>
               </div>
               </p>
               <p>

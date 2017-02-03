@@ -70,7 +70,7 @@ class MainHandler(tornado.web.RequestHandler):
     def get(self):
         #loader = tornado.template.Loader(".")
         #self.write(loader.load("index.html").generate())
-        self.render("index.html", kp=KP, ti=TI, td=TD, ll=L_ROPE_0, lr=R_ROPE_0, aw=ROPE_ATTACHMENT_WIDTH, max_speed=MAX_SPEED)
+        self.render("index.html", kp=KP, ti=TI, td=TD, ll=L_ROPE_0, lr=R_ROPE_0, sl=SCAN_LINES, aw=ROPE_ATTACHMENT_WIDTH, max_speed=MAX_SPEED)
 
 
 class UploadHandler(tornado.web.RequestHandler):
@@ -168,6 +168,7 @@ class MotorThread(threading.Thread):
                     self.plotter.l_rope_0 = c['ll']
                     self.plotter.r_rope_0 = c['lr']
                     self.plotter.att_dist = c['aw']
+                    self.plotter.scanlines = c['sl']
                     wsSend("Plotter settings set")
                 c=''
 

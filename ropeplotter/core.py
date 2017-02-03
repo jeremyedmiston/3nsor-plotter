@@ -23,6 +23,7 @@ class RopePlotter(object):
         self.__att_dist = float(attachment_distance)
         self.direction = 1 # -1 is for reversing motors
         self.calc_constants()
+        self.scanlines = 40
 
         # Start the engines
         self.pen_motor = PIDMotor(ev3.OUTPUT_A, Kp=1.9, Ki=0, Kd=0, brake=0.1, max_spd=80, speed_reg=False)
@@ -251,7 +252,7 @@ class RopePlotter(object):
         self.move_to_norm_coord(0, 0)
         yield 100
 
-    def plot_circle_waves(self, num_circles=40):
+    def plot_circle_waves(self):
         """
         Draws a grayscale image of the uploaded photo by tracing the canvas with circles and
         oscilating more in darker areas.
@@ -261,6 +262,7 @@ class RopePlotter(object):
         :param num_circles: The amount of circles to put on the complete canvas.
         :yield: progress.
         """
+
         # Load grayscale image
         im = Image.open("uploads/picture.jpg").convert("L")
         w, h = im.size
@@ -269,14 +271,14 @@ class RopePlotter(object):
         # Calculate circles, smallest, largest and offset.
         r_min = (self.h_margin ** 2 + self.v_margin ** 2) ** 0.5
         r_max = ((self.h_margin + self.canvas_size) ** 2 + (self.v_margin + self.canvas_size) ** 2) ** 0.5
-        r_step = (r_max - r_min) / num_circles
+        r_step = (r_max - r_min) / self.scanlines
         amplitude = r_step * self.cm_to_deg / 2 * 1.15  # Sine amplitude in motor degrees
         half_wavelength = 0.5                           # Time in seconds it takes to draw half a sine wave.
 
         anchor_motor, drive_motor = self.drive_motors
 
         # Draw circles with left anchor point as center.
-        for i in range(1, num_circles, 2):
+        for i in range(1, self.scanlines, 2):
             # Find the starting point x,y
             # where a circle with radius r_min+r_step*i crosses the left margin.
             x = self.h_margin
@@ -328,7 +330,7 @@ class RopePlotter(object):
             drive_motor.stop()
 
             # Yield to allow pause/stop and show percentage completion
-            yield (i * 50.0) / num_circles * 0.66
+            yield (i * 50.0) / self.scanlines * 0.66
 
             # Good, now move to the next point and roll down.
             x = ((r_min + r_step * (i + 1)) ** 2 - self.v_margin ** 2) ** 0.5
@@ -374,7 +376,7 @@ class RopePlotter(object):
             drive_motor.stop()
 
             # Yield to allow pause/stop and show percentage
-            yield ((i + 1) * 50.0) / num_circles * 0.66
+            yield ((i + 1) * 50.0) / self.scanlines * 0.66
 
         self.pen_up()
         self.move_to_norm_coord(0,0)

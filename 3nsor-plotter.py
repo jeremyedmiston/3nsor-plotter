@@ -169,7 +169,7 @@ class MotorThread(threading.Thread):
                     self.plotter.l_rope_0 = c['ll']
                     self.plotter.r_rope_0 = c['lr']
                     self.plotter.att_dist = c['aw']
-                    self.plotter.scanlines = c['sl']
+                    self.plotter.scanlines = int(c['sl'])
                     wsSend("Plotter settings set")
                 c=''
 

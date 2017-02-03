@@ -89,7 +89,7 @@
               </span>
             </p>
             <p>
-
+            <img src="uploads/picture.jpg" id="jpgpreview" width="80px" height="80px" align="left" style="margin: 0px 20px 0 0">
             <form enctype="multipart/form-data" class="upload" id="jpgform" action="upload" method="post">
               <div class="input-group">
                 <span class="input-group-addon"> Select image </span>
@@ -486,14 +486,8 @@
           processData: false,
           type: $(this).attr('method'),
           success: function(data){
-              console.log(data);
-          },
-          done: function(data){
-              console.log(data);
-          },
-          always: function(data){
-              console.log(data);
-              fd.append(data);
+              d = new Date();
+              $("#jpgpreview").attr("src", "upload/picture.jpg?"+d.getTime());
           }
       });
 
@@ -524,13 +518,6 @@
           type: $(this).attr('method'),
           success: function(data){
               console.log(data);
-          },
-          done: function(data){
-              console.log(data);
-          },
-          always: function(data){
-              console.log(data);
-              fd.append(data);
           }
       });
 

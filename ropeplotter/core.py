@@ -8,7 +8,7 @@ import ev3dev.auto as ev3
 
 
 UP = 0
-DOWN = 30
+DOWN = -30
 SLOW = 110
 FAST = 220
 
@@ -29,7 +29,7 @@ class RopePlotter(object):
         self.calc_constants()
 
         # Start the engines
-        self.pen_motor = PIDMotor(ev3.OUTPUT_A, Kp=1.5, Ki=0, Kd=0.0, brake=0.1, max_spd=50, speed_reg=False)
+        self.pen_motor = PIDMotor(ev3.OUTPUT_A, Kp=1.9, Ki=0, Kd=0, brake=0.1, max_spd=80, speed_reg=False)
         self.pen_motor.positionPID.precision = 3
         self.left_motor = PIDMotor(ev3.OUTPUT_B, Kp=Kp, Ki=Ki, Kd=Kd, max_spd=max_spd)
         self.right_motor = PIDMotor(ev3.OUTPUT_C, Kp=Kp, Ki=Ki, Kd=Kd, max_spd=max_spd)

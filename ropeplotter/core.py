@@ -420,7 +420,7 @@ class RopePlotter(object):
                     # Look at the pixel we're at and move pen up or down accordingly
                     x_norm, y_norm = self.coords_from_motor_pos(self.drive_motors[0].position, self.drive_motors[1].position)
                     pixel_location = (clamp(x_norm * w, (0,w-1)), clamp(y_norm * w, (0,h-1)))
-                    if pixels[pixel_location] < 60 + 60 * right_side_mode:
+                    if pixels[pixel_location] < 120 + 60 * right_side_mode:
                         self.pen_motor.position_sp = PEN_DOWN_POS
                         if not self.pen_motor.positionPID.target_reached: drive_motor.stop()
                         #if not DOWN-3 < self.pen_motor.position < DOWN + 3: drive_motor.stop()
@@ -462,7 +462,7 @@ class RopePlotter(object):
                     x = self.h_margin
                     y = ((r_min+r_step*(i+1)) ** 2 - (self.h_margin+self.canvas_size) ** 2) ** 0.5
 
-                self.move_to_coord(x, y)
+                self.move_to_coord(x, y, pen=0)
 
                 # Calculate coordinates continuously until we reach the top, or right side of the canvas
                 while 1:
@@ -470,7 +470,7 @@ class RopePlotter(object):
                     x_norm, y_norm = self.coords_from_motor_pos(self.drive_motors[0].position, self.drive_motors[1].position)
                     pixel_location = (int(clamp(x_norm * w, (0,w-1))), int(clamp(y_norm * w, (0,h-1))))
 
-                    if pixels[pixel_location] < 60 + 60 * right_side_mode: # About 33% gray
+                    if pixels[pixel_location] < 120 + 60 * right_side_mode: # About 33% gray
                         self.pen_motor.position_sp = PEN_DOWN_POS
                         if not self.pen_motor.positionPID.target_reached: drive_motor.stop()
                         self.pen_motor.run_to_abs_pos()
@@ -502,7 +502,7 @@ class RopePlotter(object):
                     # Look at the pixel we're at and move pen up or down accordingly
                     x_norm, y_norm = self.coords_from_motor_pos(self.drive_motors[0].position, self.drive_motors[1].position)
                     pixel_location = (clamp(x_norm * w, (0,w-1)), clamp(y_norm * w, (0,h-1)))
-                    if pixels[pixel_location] < 160:
+                    if pixels[pixel_location] < 60:
                         self.pen_motor.position_sp = PEN_DOWN_POS
                         if not self.pen_motor.positionPID.target_reached:
                             self.right_motor.stop()

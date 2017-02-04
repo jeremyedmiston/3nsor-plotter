@@ -51,6 +51,7 @@ import tornado.websocket
 import tornado.template
 import json,os
 import sys
+from PIL import Image, ImageDraw
 
 # My own stuff
 from ropeplotter import RopePlotter, Logger, Throttler, get_ip_address
@@ -82,14 +83,26 @@ class UploadHandler(tornado.web.RequestHandler):
             extension = os.path.splitext(fname)[1]
 
             if extension == '.jpg' or extension == '.jpeg':
-                final_filename = "picture.jpg"
+                output_file = open("uploads/picture.jpg", 'wb')
+                output_file.write(fileinfo['body'])
+                output_file.close()
             elif extension == '.csv':
-                final_filename = "coords.csv"
+                output_file = open("uploads/coords.csv", 'wb')
+                output_file.write(fileinfo['body'])
+                output_file.close()
+                pointlist = []
+                for s_coord in fileinfo['body'].split('\n'):
+                    if ',' in s_coord:
+                        coord = [float(c) * PREVIEW_SIZE for c in s_coord.split(",")]
+                        pointlist += [tuple(coord)]
+
+                im_result = Image.new("L", (PREVIEW_SIZE, PREVIEW_SIZE), color=200)
+                draw = ImageDraw.Draw(im_result)
+                draw.line(pointlist, fill=60, width=1)
+                del draw
+                im_result.save('uploads/preview.jpg')
             else:
                 return
-
-            output_file = open("uploads/" + final_filename, 'wb')
-            output_file.write(fileinfo['body'])
 
             wsSend("file " + fname + " is uploaded")
             self.finish("Done uploading")

@@ -64,7 +64,7 @@
             <p> Uploading large files might take a while. There's no progress bar, so sit back & relax.</p>
 
             <p>
-
+            <img src="uploads/preview.jpg" id="coordspreview" width="80px" height="80px" align="left" style="margin: 0px 20px 0 0">
             <form enctype="multipart/form-data" class="upload" id="csvform" action="upload" method="post">
               <div class="input-group">
                 <span class="input-group-addon"> Select coords.csv </span>
@@ -524,7 +524,7 @@
           processData: false,
           type: $(this).attr('method'),
           success: function(data){
-              console.log(data);
+              $("#coordspreview").attr("src", "uploads/picture.jpg?"+d.getTime());
           }
       });
 

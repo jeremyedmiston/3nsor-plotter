@@ -319,7 +319,7 @@ class RopePlotter(object):
                 darkness = (pixels[pixel_location] - 255.0) / -255.0
                 drive_speed = 600 - 580 * darkness ** 0.5 # Exponential darkness for more contrast.
 
-                if darkness < 0.25:
+                if darkness > 0.25:
                     self.pen_motor.position_sp = PEN_DOWN_POS
                     if not self.pen_motor.positionPID.target_reached:
                         drive_motor.stop()
@@ -374,7 +374,7 @@ class RopePlotter(object):
                 darkness = (pixels[pixel_location] - 255.0) / -255.0  # this turns 0 when white (255), 1 when black.
                 drive_speed = (600 - 580 * darkness ** 0.5) * -1  # Exponential darkness for more contrast.
 
-                if darkness < 0.25:
+                if darkness > 0.25:
                     self.pen_motor.position_sp = PEN_DOWN_POS
                     if not self.pen_motor.positionPID.target_reached:
                         drive_motor.stop()

@@ -32,7 +32,9 @@ class RopePlotter(object):
         self.pen_motor = PIDMotor(ev3.OUTPUT_A, Kp=1.9, Ki=0, Kd=0, brake=0.1, max_spd=80, speed_reg=False)
         self.pen_motor.positionPID.precision = 3
         self.left_motor = PIDMotor(ev3.OUTPUT_B, Kp=Kp, Ki=Ki, Kd=Kd, max_spd=max_spd)
+        self.left_motor.stop_action = 'brake'
         self.right_motor = PIDMotor(ev3.OUTPUT_C, Kp=Kp, Ki=Ki, Kd=Kd, max_spd=max_spd)
+        self.right_motor.stop_action = 'brake'
 
         # Build lists for iterating over all motors
         self.drive_motors = [self.left_motor, self.right_motor]
@@ -173,10 +175,10 @@ class RopePlotter(object):
         motor_b_target, motor_c_target  = self.motor_targets_from_coords(x, y)
         self.move_to_targets((motor_b_target, motor_c_target), brake, pen)
 
-    def move_to_norm_coord(self, x_norm, y_norm):
+    def move_to_norm_coord(self, x_norm, y_norm, pen=UNCHANGED):
         motor_b_target, motor_c_target = self.motor_targets_from_norm_coords(x_norm, y_norm)
         #print "Moving to ", x_norm, ",", y_norm, "(At", motor_b_target, motor_c_target, ")"
-        self.move_to_targets((motor_b_target, motor_c_target))
+        self.move_to_targets((motor_b_target, motor_c_target),pen=pen)
 
     def move_to_targets(self, targets, brake=False, pen=-1):
         # Set targets
@@ -428,7 +430,7 @@ class RopePlotter(object):
                     if pixels[pixel_location] < 120 + 60 * right_side_mode:
                         self.pen_motor.position_sp = PEN_DOWN_POS
                         if not self.pen_motor.positionPID.target_reached:
-                            drive_motor.stop(stop_action='brake')
+                            drive_motor.stop()
                         else:
                             drive_motor.run_forever(speed_sp=SLOW)
                     else:
@@ -475,7 +477,7 @@ class RopePlotter(object):
                     if pixels[pixel_location] < 120 + 60 * right_side_mode:
                         self.pen_motor.position_sp = PEN_DOWN_POS
                         if not self.pen_motor.positionPID.target_reached:
-                            drive_motor.stop(stop_action='brake')
+                            drive_motor.stop()
                         else:
                             drive_motor.run_forever(speed_sp=-SLOW)
                     else:
@@ -509,8 +511,8 @@ class RopePlotter(object):
                     if pixels[pixel_location] < 60:
                         self.pen_motor.position_sp = PEN_DOWN_POS
                         if not self.pen_motor.positionPID.target_reached:
-                            self.right_motor.stop(stop_action='brake')
-                            self.left_motor.stop(stop_action='brake')
+                            self.right_motor.stop()
+                            self.left_motor.stop()
                         else:
                             self.right_motor.run_forever(speed_sp=SLOW)
                             self.left_motor.run_forever(speed_sp=-SLOW)
@@ -528,7 +530,7 @@ class RopePlotter(object):
 
             x = self.h_margin + self.canvas_size
             y = self.v_margin + (i+1) * self.canvas_size * 1.0 / num_circles
-            self.move_to_coord(x,y,pen=UP)
+            self.move_to_coord(x, y, pen=UP)
             yield 66 + (i+1) * 33.33 / num_circles
 
             while 1:
@@ -539,8 +541,8 @@ class RopePlotter(object):
                     if pixels[pixel_location] < 60:
                         self.pen_motor.position_sp = PEN_DOWN_POS
                         if not self.pen_motor.positionPID.target_reached:
-                            self.right_motor.stop(stop_action='brake')
-                            self.left_motor.stop(stop_action='brake')
+                            self.right_motor.stop()
+                            self.left_motor.stop()
                         else:
                             self.right_motor.run_forever(speed_sp=-SLOW)
                             self.left_motor.run_forever(speed_sp=SLOW)

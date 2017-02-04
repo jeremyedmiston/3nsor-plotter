@@ -29,7 +29,7 @@ class RopePlotter(object):
         self.scanlines = 40
 
         # Start the engines
-        self.pen_motor = PIDMotor(ev3.OUTPUT_A, Kp=2, Ki=0.1, Kd=0, brake=0.1, max_spd=80, speed_reg=True)
+        self.pen_motor = PIDMotor(ev3.OUTPUT_A, Kp=2, Ki=0.1, Kd=0 ,brake=0.1, max_spd=80, speed_reg=True)
         self.pen_motor.positionPID.precision = 3
         self.left_motor = PIDMotor(ev3.OUTPUT_B, Kp=Kp, Ki=Ki, Kd=Kd, max_spd=max_spd)
         self.left_motor.stop_action = 'brake'
@@ -387,8 +387,8 @@ class RopePlotter(object):
         self.move_to_norm_coord(0,0)
 
     def plot_circles(self):
-        SLOW = 150
-        FAST = 300
+        SLOW = 220
+        FAST = 500
         num_circles = self.scanlines
 
         im = Image.open("uploads/picture.jpg").convert("L")
@@ -429,6 +429,7 @@ class RopePlotter(object):
                     pixel_location = (clamp(x_norm * w, (0,w-1)), clamp(y_norm * w, (0,h-1)))
                     if pixels[pixel_location] < 120 + 60 * right_side_mode:
                         self.pen_motor.position_sp = PEN_DOWN_POS
+                        print(abs(self.pen_motor.positionPID.error), self.pen_motor.positionPID.precision, self.pen_motor.positionPID.target_reached)
                         # if not self.pen_motor.positionPID.target_reached:
                         #     drive_motor.stop()
                         # else:

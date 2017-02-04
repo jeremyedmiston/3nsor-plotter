@@ -314,17 +314,28 @@ class RopePlotter(object):
                 now = time.time()
 
                 x_norm, y_norm = self.coords_from_motor_pos(anchor_motor_pos, drive_motor_pos)
+                # Look at the pixel we're at and move pen up & down according to it's darkness
+                pixel_location = (clamp(x_norm * w, (0, w - 1)), clamp(y_norm * w, (0, h - 1)))
+                darkness = (pixels[pixel_location] - 255.0) / -255.0
+                drive_speed = 600 - 580 * darkness ** 0.5 # Exponential darkness for more contrast.
+
+                if darkness < 0.25:
+                    self.pen_motor.position_sp = PEN_DOWN_POS
+                    if not self.pen_motor.positionPID.target_reached:
+                        drive_motor.stop()
+                    else:
+                        drive_motor.run_forever(speed_sp=drive_speed)
+                else:
+                    self.pen_motor.position_sp = PEN_UP_POS
 
                 if now >= next_sample_time:
-                    # Look at the pixel we're at and move pen up & down according to it's darkness
-                    pixel_location = (clamp(x_norm * w, (0, w - 1)), clamp(y_norm * w, (0, h - 1)))
-                    darkness = (pixels[pixel_location] - 255.0) / -255.0
                     weighted_amplitude = amplitude * darkness # this turns 0 when white (255), 1 when black.
                     next_sample_time = now + half_wavelength
 
-                drive_motor.run_forever(speed_sp=(600-595*darkness**0.5)) # Exponential darkness for more contrast.
+                drive_motor.run_forever(speed_sp=drive_speed) # Exponential darkness for more contrast.
                 anchor_motor.position_sp = anchor_line + math.sin(now * math.pi / half_wavelength) * weighted_amplitude
                 anchor_motor.run()
+                self.pen_motor.run()
 
                 if y_norm <= 0:
                     break  # reached the top
@@ -359,18 +370,27 @@ class RopePlotter(object):
 
                 #Get our current location in normalised coordinates.
                 x_norm, y_norm = self.coords_from_motor_pos(anchor_motor_pos, drive_motor_pos)
+                pixel_location = (clamp(x_norm * w, (0, w - 1)), clamp(y_norm * w, (0, h - 1)))
+                darkness = (pixels[pixel_location] - 255.0) / -255.0  # this turns 0 when white (255), 1 when black.
+                drive_speed = (600 - 580 * darkness ** 0.5) * -1  # Exponential darkness for more contrast.
+
+                if darkness < 0.25:
+                    self.pen_motor.position_sp = PEN_DOWN_POS
+                    if not self.pen_motor.positionPID.target_reached:
+                        drive_motor.stop()
+                    else:
+                        drive_motor.run_forever(speed_sp=drive_speed)
+                else:
+                    self.pen_motor.position_sp = PEN_UP_POS
 
                 if now >= next_sample_time:
-                # Look at the pixel we're at and move pen up & down according to it's darkness
-                    pixel_location = (clamp(x_norm * w, (0, w - 1)), clamp(y_norm * w, (0, h - 1)))
-                    darkness = (pixels[pixel_location] - 255.0) / -255.0 # this turns 0 when white (255), 1 when black.
                     weighted_amplitude = amplitude * darkness
                     next_sample_time = now + half_wavelength
 
-                drive_motor.run_forever(speed_sp=(600 - 595 * darkness**0.5)*-1)
+                drive_motor.run_forever(speed_sp=drive_speed)
                 anchor_motor.position_sp = anchor_line + math.sin(now * math.pi / half_wavelength) * weighted_amplitude
                 anchor_motor.run()
-
+                self.pen_motor.run()
 
                 if y_norm >= 1:
                     break  # reached the bottom

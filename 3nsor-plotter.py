@@ -90,11 +90,14 @@ class UploadHandler(tornado.web.RequestHandler):
                 output_file = open("uploads/coords.csv", 'wb')
                 output_file.write(fileinfo['body'])
                 output_file.close()
+                coordsfile = open('uploads/coords.csv', 'r')
+                file_body = coordsfile.readlines()
                 pointlist = []
-                for s_coord in fileinfo['body'].split('\n'):
+                for s_coord in file_body:
                     if ',' in s_coord:
                         coord = [float(c) * PREVIEW_SIZE for c in s_coord.split(",")]
                         pointlist += [tuple(coord)]
+                coordsfile.close()
 
                 im_result = Image.new("L", (PREVIEW_SIZE, PREVIEW_SIZE), color=200)
                 draw = ImageDraw.Draw(im_result)

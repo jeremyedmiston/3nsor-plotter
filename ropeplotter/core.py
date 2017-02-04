@@ -384,9 +384,10 @@ class RopePlotter(object):
         self.pen_up()
         self.move_to_norm_coord(0,0)
 
-    def plot_circles(self, num_circles=20):
+    def plot_circles(self):
         SLOW = 150
         FAST = 300
+        num_circles = self.scanlines
 
         im = Image.open("uploads/picture.jpg").convert("L")
         w, h = im.size
@@ -441,6 +442,7 @@ class RopePlotter(object):
                         break # reached the right side
                     if right_side_mode and x_norm <= 0:
                         break
+                    print(y_norm,pixels[pixel_location])
 
                 drive_motor.stop()
 
@@ -448,7 +450,6 @@ class RopePlotter(object):
                 #Good, now move to the next point and roll down.
                 if right_side_mode:
                     x = self.h_margin*2 + self.canvas_size - ((r_min + r_step*(i+1)) ** 2 - self.v_margin ** 2) ** 0.5
-
                 else:
                     x = ((r_min + r_step*(i+1)) ** 2 - self.v_margin ** 2) ** 0.5
                 y = self.v_margin

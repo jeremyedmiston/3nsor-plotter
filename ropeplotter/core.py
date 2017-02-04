@@ -296,7 +296,6 @@ class RopePlotter(object):
                 y = self.v_margin + self.canvas_size
 
             self.move_to_coord(x, y, brake=True, pen=0)
-            self.pen_down()
 
             #Intialise
             anchor_line = anchor_motor.position
@@ -357,7 +356,6 @@ class RopePlotter(object):
                 y = ((r_min + r_step * (i + 1)) ** 2 - (self.h_margin + self.canvas_size) ** 2) ** 0.5
 
             self.move_to_coord(x, y, brake=True, pen=0)
-            self.pen_down()
 
             # Start driving down
             anchor_line = anchor_motor.position

@@ -175,9 +175,9 @@ class RopePlotter(object):
         motor_b_target, motor_c_target  = self.motor_targets_from_coords(x, y)
         self.move_to_targets((motor_b_target, motor_c_target), brake, pen)
 
-    def move_to_norm_coord(self, x_norm, y_norm, pen=UNCHANGED):
+    def move_to_norm_coord(self, x_norm, y_norm, pen=UNCHANGED, brake=False):
         motor_b_target, motor_c_target = self.motor_targets_from_norm_coords(x_norm, y_norm)
-        self.move_to_targets((motor_b_target, motor_c_target),pen=pen)
+        self.move_to_targets((motor_b_target, motor_c_target),pen=pen, brake=brake)
 
     def move_to_targets(self, targets, brake=False, pen=-1):
         # Set targets
@@ -418,9 +418,10 @@ class RopePlotter(object):
                     else:
                         x = ((r_min + r_step*i) ** 2 - (self.v_margin + self.canvas_size) ** 2) ** 0.5
                     y = self.v_margin+self.canvas_size  # This is the same left and right
-                self.move_to_coord(x,y,pen=UP)
+                self.move_to_coord(x, y, pen=UP, brake=True)
                 # Yield to allow pause/stop and show percentage
                 yield (i * 50.0 + right_side_mode * 50.0) / num_circles * 0.66
+
                 # Now calculate coordinates continuously until we reach the top, or right side of the canvas
                 # Motor B is off, so let's get it's encoder only once
                 while 1:
@@ -463,7 +464,7 @@ class RopePlotter(object):
                     x = self.h_margin
                     y = ((r_min+r_step*(i+1)) ** 2 - (self.h_margin+self.canvas_size) ** 2) ** 0.5
 
-                self.move_to_coord(x, y, pen=UP)
+                self.move_to_coord(x, y, pen=UP, brake=True)
                 # Yield to allow pause/stop and show percentage
                 yield ((i+1)*50.0+right_side_mode*50.0)/num_circles * 0.66
 
@@ -499,7 +500,7 @@ class RopePlotter(object):
         for i in range(0,num_circles, 2):
             x = self.h_margin
             y = self.v_margin + i * self.canvas_size * 1.0 / num_circles
-            self.move_to_coord(x,y,pen=UP)
+            self.move_to_coord(x, y, pen=UP, brake=True)
             yield 66 + i * 33.33 / num_circles
 
             while 1:
@@ -529,7 +530,7 @@ class RopePlotter(object):
 
             x = self.h_margin + self.canvas_size
             y = self.v_margin + (i+1) * self.canvas_size * 1.0 / num_circles
-            self.move_to_coord(x, y, pen=UP)
+            self.move_to_coord(x, y, pen=UP, brake=True)
             yield 66 + (i+1) * 33.33 / num_circles
 
             while 1:
@@ -557,7 +558,7 @@ class RopePlotter(object):
             self.right_motor.stop()
             self.left_motor.stop()
 
-        self.move_to_norm_coord(0,0,pen=UP)
+        self.move_to_norm_coord(0,0,pen=UP, brake=True)
 
 
     ### Calibration & manual movement functions ###

@@ -256,9 +256,9 @@ class PIDMotor(ev3.Motor):
     def position_sp(self,tgt):
         self.positionPID.set_point = tgt
 
-    def stop(self):
+    def stop(self, **kwargs):
         self.power = 0
-        super().stop()
+        super().stop(kwargs)
 
     def run(self):
         self.positionPID.current = self.position

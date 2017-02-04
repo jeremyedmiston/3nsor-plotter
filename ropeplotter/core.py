@@ -8,6 +8,9 @@ from ropeplotter.robot_helpers import PIDMotor, clamp, BrickPiPowerSupply
 
 PEN_UP_POS = 0
 PEN_DOWN_POS = -30
+UP = 0
+DOWN = 1
+UNCHANGED = -1
 
 class RopePlotter(object):
     def __init__(self, l_rope_0, r_rope_0, attachment_distance, cm_to_deg=-165, Kp=2.2, Ki=0.2, Kd=0.02, max_spd=800):
@@ -382,8 +385,8 @@ class RopePlotter(object):
         self.move_to_norm_coord(0,0)
 
     def plot_circles(self, num_circles=20):
-        SLOW = 110
-        FAST = 220
+        SLOW = 150
+        FAST = 300
 
         im = Image.open("uploads/picture.jpg").convert("L")
         w, h = im.size
@@ -412,8 +415,9 @@ class RopePlotter(object):
                     else:
                         x = ((r_min + r_step*i) ** 2 - (self.v_margin + self.canvas_size) ** 2) ** 0.5
                     y = self.v_margin+self.canvas_size  # This is the same left and right
-                self.move_to_coord(x,y)
-
+                self.move_to_coord(x,y,pen=UP)
+                # Yield to allow pause/stop and show percentage
+                yield (i * 50.0 + right_side_mode * 50.0) / num_circles * 0.66
                 # Now calculate coordinates continuously until we reach the top, or right side of the canvas
                 # Motor B is off, so let's get it's encoder only once
                 while 1:
@@ -422,15 +426,14 @@ class RopePlotter(object):
                     pixel_location = (clamp(x_norm * w, (0,w-1)), clamp(y_norm * w, (0,h-1)))
                     if pixels[pixel_location] < 120 + 60 * right_side_mode:
                         self.pen_motor.position_sp = PEN_DOWN_POS
-                        if not self.pen_motor.positionPID.target_reached: drive_motor.stop()
-                        #if not DOWN-3 < self.pen_motor.position < DOWN + 3: drive_motor.stop()
-                        self.pen_motor.run_to_abs_pos()
-                        #turn on motors in different direction to draw horizontalish lines
-                        drive_motor.run_at_speed_sp(SLOW)
+                        if not self.pen_motor.positionPID.target_reached:
+                            drive_motor.stop(stop_action='brake')
+                        else:
+                            drive_motor.run_forever(speed_sp=SLOW)
                     else:
-                        self.pen_motor.run_to_abs_pos(position_sp=PEN_UP_POS)
-                        #turn on motors in different direction to draw horizontalish lines
-                        drive_motor.run_at_speed_sp(FAST)
+                        self.pen_motor.position_sp = PEN_UP_POS
+                        drive_motor.run_forever(speed_sp=FAST)
+                    self.pen_motor.run()
 
                     if y_norm <= 0:
                         break # reached the top
@@ -440,11 +443,7 @@ class RopePlotter(object):
                         break
 
                 drive_motor.stop()
-                # Pen up
-                self.pen_motor.run_to_abs_pos(position_sp=PEN_UP_POS)
 
-                # Yield to allow pause/stop and show percentage
-                yield (i*50.0+right_side_mode*50.0)/num_circles * 0.66
 
                 #Good, now move to the next point and roll down.
                 if right_side_mode:
@@ -462,7 +461,9 @@ class RopePlotter(object):
                     x = self.h_margin
                     y = ((r_min+r_step*(i+1)) ** 2 - (self.h_margin+self.canvas_size) ** 2) ** 0.5
 
-                self.move_to_coord(x, y, pen=0)
+                self.move_to_coord(x, y, pen=UP)
+                # Yield to allow pause/stop and show percentage
+                yield ((i+1)*50.0+right_side_mode*50.0)/num_circles * 0.66
 
                 # Calculate coordinates continuously until we reach the top, or right side of the canvas
                 while 1:
@@ -470,14 +471,16 @@ class RopePlotter(object):
                     x_norm, y_norm = self.coords_from_motor_pos(self.drive_motors[0].position, self.drive_motors[1].position)
                     pixel_location = (int(clamp(x_norm * w, (0,w-1))), int(clamp(y_norm * w, (0,h-1))))
 
-                    if pixels[pixel_location] < 120 + 60 * right_side_mode: # About 33% gray
+                    if pixels[pixel_location] < 120 + 60 * right_side_mode:
                         self.pen_motor.position_sp = PEN_DOWN_POS
-                        if not self.pen_motor.positionPID.target_reached: drive_motor.stop()
-                        self.pen_motor.run_to_abs_pos()
-                        drive_motor.run_at_speed_sp(-SLOW)
+                        if not self.pen_motor.positionPID.target_reached:
+                            drive_motor.stop(stop_action='brake')
+                        else:
+                            drive_motor.run_forever(speed_sp=-SLOW)
                     else:
-                        self.pen_motor.run_to_abs_pos(position_sp=PEN_UP_POS)
-                        drive_motor.run_at_speed_sp(-FAST)
+                        self.pen_motor.position_sp = PEN_UP_POS
+                        drive_motor.run_forever(speed_sp=-FAST)
+                    self.pen_motor.run()
 
                     if y_norm >= 1:
                         break # reached the bottom
@@ -488,71 +491,71 @@ class RopePlotter(object):
                     time.sleep(0.02)
 
                 drive_motor.stop()
-                self.pen_up()
 
-                # Yield to allow pause/stop and show percentage
-                yield ((i+1)*50.0+right_side_mode*50.0)/num_circles * 0.66
-
-        # Now draw horizontal lines.
+        # Now draw horizontalish lines.
+        self.pen_up()
         for i in range(0,num_circles, 2):
             x = self.h_margin
             y = self.v_margin + i * self.canvas_size * 1.0 / num_circles
-            self.move_to_coord(x,y)
+            self.move_to_coord(x,y,pen=UP)
+            yield 66 + i * 33.33 / num_circles
+
             while 1:
+                    # Look at the pixel we're at and move pen up or down accordingly
+                    x_norm, y_norm = self.coords_from_motor_pos(self.drive_motors[0].position, self.drive_motors[1].position)
+                    pixel_location = (clamp(x_norm * w, (0,w-1)), clamp(y_norm * w, (0,h-1)))
+
+                    if pixels[pixel_location] < 60:
+                        self.pen_motor.position_sp = PEN_DOWN_POS
+                        if not self.pen_motor.positionPID.target_reached:
+                            self.right_motor.stop(stop_action='brake')
+                            self.left_motor.stop(stop_action='brake')
+                        else:
+                            self.right_motor.run_forever(speed_sp=SLOW)
+                            self.left_motor.run_forever(speed_sp=-SLOW)
+                    else:
+                        self.pen_motor.position_sp = PEN_UP_POS
+                        self.right_motor.run_forever(speed_sp=FAST)
+                        self.left_motor.run_forever(speed_sp=-FAST)
+                    self.pen_motor.run()
+
+                    if x_norm >= 1:
+                        break
+
+            self.right_motor.stop()
+            self.left_motor.stop()
+
+            x = self.h_margin + self.canvas_size
+            y = self.v_margin + (i+1) * self.canvas_size * 1.0 / num_circles
+            self.move_to_coord(x,y,pen=UP)
+            yield 66 + (i+1) * 33.33 / num_circles
+
+            while 1:
+
                     # Look at the pixel we're at and move pen up or down accordingly
                     x_norm, y_norm = self.coords_from_motor_pos(self.drive_motors[0].position, self.drive_motors[1].position)
                     pixel_location = (clamp(x_norm * w, (0,w-1)), clamp(y_norm * w, (0,h-1)))
                     if pixels[pixel_location] < 60:
                         self.pen_motor.position_sp = PEN_DOWN_POS
                         if not self.pen_motor.positionPID.target_reached:
-                            self.right_motor.stop()
-                            self.left_motor.stop()
-                        self.pen_motor.position_sp()
-                        #turn on motors in different direction to draw horizontalish lines
-                        self.right_motor.run_at_speed_sp(SLOW)
-                        self.left_motor.run_at_speed_sp(-SLOW)
+                            self.right_motor.stop(stop_action='brake')
+                            self.left_motor.stop(stop_action='brake')
+                        else:
+                            self.right_motor.run_forever(speed_sp=-SLOW)
+                            self.left_motor.run_forever(speed_sp=SLOW)
                     else:
-                        self.pen_motor.position_sp(position_sp=PEN_UP_POS)
-                        #turn on motors in different direction to draw horizontalish lines
-                        self.right_motor.run_at_speed_sp(FAST)
-                        self.left_motor.run_at_speed_sp(-FAST)
-                    if x_norm >= 1:
-                        break
-
-            self.right_motor.stop()
-            self.left_motor.stop()
-            # Pen up
-            self.pen_motor.run_to_abs_pos(position_sp=PEN_UP_POS)
-            yield 66 + i * 33.33 / num_circles
-
-            x = self.h_margin + self.canvas_size
-            y = self.v_margin + (i+1) * self.canvas_size * 1.0 / num_circles
-            self.move_to_coord(x,y)
-            while 1:
-
-                    # Look at the pixel we're at and move pen up or down accordingly
-                    x_norm, y_norm = self.coords_from_motor_pos(self.drive_motors[0].position, self.drive_motors[1].position)
-                    pixel_location = (clamp(x_norm * w, (0,w-1)), clamp(y_norm * w, (0,h-1)))
-                    if pixels[pixel_location] < 160:
-                        self.pen_motor.run_to_abs_pos(position_sp=PEN_DOWN_POS)
-                        #turn on motors in different direction to draw horizontalish lines
-                        self.right_motor.run_at_speed_sp(-SLOW)
-                        self.left_motor.run_at_speed_sp(SLOW)
-                    else:
-                        self.pen_motor.run_to_abs_pos(position_sp=PEN_UP_POS)
-                        self.right_motor.run_at_speed_sp(-FAST)
-                        self.left_motor.run_at_speed_sp(FAST)
+                        self.pen_motor.position_sp = PEN_UP_POS
+                        self.right_motor.run_forever(speed_sp=-FAST)
+                        self.left_motor.run_forever(speed_sp=FAST)
+                    self.pen_motor.run()
 
                     if x_norm <= 0:
                         break
 
             self.right_motor.stop()
             self.left_motor.stop()
-            # Pen up
-            self.pen_motor.run_to_abs_pos(position_sp=PEN_UP_POS)
-            yield 66 + (i+1) * 33.33 / num_circles
 
-        self.move_to_norm_coord(0,0)
+        self.move_to_norm_coord(0,0,pen=UP)
 
 
     ### Calibration & manual movement functions ###

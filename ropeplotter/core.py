@@ -207,6 +207,7 @@ class RopePlotter(object):
                             motor.run()
                 self.left_motor.stop()
                 self.right_motor.stop()
+                self.pen_motor.stop()
                 break
 
             #We're done calculating and setting all motor speeds!

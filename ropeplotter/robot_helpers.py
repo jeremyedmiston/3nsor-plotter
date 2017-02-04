@@ -264,7 +264,7 @@ class PIDMotor(ev3.Motor):
         self.positionPID.current = self.position
         pospower = self.positionPID.calc_power()
         if self.speed_reg:
-            self.run_at_speed_sp(pospower)
+            self.run_forever(speed_sp = pospower)
         else:
             self.duty_cycle_sp = pospower
             self.run_direct()

@@ -29,7 +29,7 @@ class RopePlotter(object):
         self.scanlines = 40
 
         # Start the engines
-        self.pen_motor = PIDMotor(ev3.OUTPUT_A, Kp=1.9, Ki=0, Kd=0, brake=0.1, max_spd=80, speed_reg=False)
+        self.pen_motor = PIDMotor(ev3.OUTPUT_A, Kp=1.5, Ki=0.1, Kd=0, brake=0.1, max_spd=80, speed_reg=False)
         self.pen_motor.positionPID.precision = 3
         self.left_motor = PIDMotor(ev3.OUTPUT_B, Kp=Kp, Ki=Ki, Kd=Kd, max_spd=max_spd)
         self.left_motor.stop_action = 'brake'
@@ -429,10 +429,10 @@ class RopePlotter(object):
                     pixel_location = (clamp(x_norm * w, (0,w-1)), clamp(y_norm * w, (0,h-1)))
                     if pixels[pixel_location] < 120 + 60 * right_side_mode:
                         self.pen_motor.position_sp = PEN_DOWN_POS
-                        if not self.pen_motor.positionPID.target_reached:
-                            drive_motor.stop()
-                        else:
-                            drive_motor.run_forever(speed_sp=SLOW)
+                        # if not self.pen_motor.positionPID.target_reached:
+                        #     drive_motor.stop()
+                        # else:
+                        drive_motor.run_forever(speed_sp=SLOW)
                     else:
                         self.pen_motor.position_sp = PEN_UP_POS
                         drive_motor.run_forever(speed_sp=FAST)
@@ -476,10 +476,10 @@ class RopePlotter(object):
 
                     if pixels[pixel_location] < 120 + 60 * right_side_mode:
                         self.pen_motor.position_sp = PEN_DOWN_POS
-                        if not self.pen_motor.positionPID.target_reached:
-                            drive_motor.stop()
-                        else:
-                            drive_motor.run_forever(speed_sp=-SLOW)
+                        # if not self.pen_motor.positionPID.target_reached:
+                        #     drive_motor.stop()
+                        # else:
+                        drive_motor.run_forever(speed_sp=-SLOW)
                     else:
                         self.pen_motor.position_sp = PEN_UP_POS
                         drive_motor.run_forever(speed_sp=-FAST)
@@ -510,12 +510,12 @@ class RopePlotter(object):
 
                     if pixels[pixel_location] < 60:
                         self.pen_motor.position_sp = PEN_DOWN_POS
-                        if not self.pen_motor.positionPID.target_reached:
-                            self.right_motor.stop()
-                            self.left_motor.stop()
-                        else:
-                            self.right_motor.run_forever(speed_sp=SLOW)
-                            self.left_motor.run_forever(speed_sp=-SLOW)
+                        # if not self.pen_motor.positionPID.target_reached:
+                        #     self.right_motor.stop()
+                        #     self.left_motor.stop()
+                        # else:
+                        self.right_motor.run_forever(speed_sp=SLOW)
+                        self.left_motor.run_forever(speed_sp=-SLOW)
                     else:
                         self.pen_motor.position_sp = PEN_UP_POS
                         self.right_motor.run_forever(speed_sp=FAST)
@@ -540,12 +540,12 @@ class RopePlotter(object):
                     pixel_location = (clamp(x_norm * w, (0,w-1)), clamp(y_norm * w, (0,h-1)))
                     if pixels[pixel_location] < 60:
                         self.pen_motor.position_sp = PEN_DOWN_POS
-                        if not self.pen_motor.positionPID.target_reached:
-                            self.right_motor.stop()
-                            self.left_motor.stop()
-                        else:
-                            self.right_motor.run_forever(speed_sp=-SLOW)
-                            self.left_motor.run_forever(speed_sp=SLOW)
+                        # if not self.pen_motor.positionPID.target_reached:
+                        #     self.right_motor.stop()
+                        #     self.left_motor.stop()
+                        # else:
+                        self.right_motor.run_forever(speed_sp=-SLOW)
+                        self.left_motor.run_forever(speed_sp=SLOW)
                     else:
                         self.pen_motor.position_sp = PEN_UP_POS
                         self.right_motor.run_forever(speed_sp=-FAST)

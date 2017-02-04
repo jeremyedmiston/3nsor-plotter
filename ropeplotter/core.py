@@ -30,7 +30,7 @@ class RopePlotter(object):
 
         # Start the engines
         self.pen_motor = PIDMotor(ev3.OUTPUT_A, Kp=2, Ki=0.1, Kd=0 ,brake=0.1, max_spd=80, speed_reg=True)
-        self.pen_motor.positionPID.precision = 3
+        self.pen_motor.positionPID.precision = 10
         self.left_motor = PIDMotor(ev3.OUTPUT_B, Kp=Kp, Ki=Ki, Kd=Kd, max_spd=max_spd)
         self.left_motor.stop_action = 'brake'
         self.right_motor = PIDMotor(ev3.OUTPUT_C, Kp=Kp, Ki=Ki, Kd=Kd, max_spd=max_spd)
@@ -177,7 +177,6 @@ class RopePlotter(object):
 
     def move_to_norm_coord(self, x_norm, y_norm, pen=UNCHANGED):
         motor_b_target, motor_c_target = self.motor_targets_from_norm_coords(x_norm, y_norm)
-        #print "Moving to ", x_norm, ",", y_norm, "(At", motor_b_target, motor_c_target, ")"
         self.move_to_targets((motor_b_target, motor_c_target),pen=pen)
 
     def move_to_targets(self, targets, brake=False, pen=-1):
@@ -430,11 +429,10 @@ class RopePlotter(object):
                     pixel_location = (clamp(x_norm * w, (0,w-1)), clamp(y_norm * w, (0,h-1)))
                     if pixels[pixel_location] < 120 + 60 * right_side_mode:
                         self.pen_motor.position_sp = PEN_DOWN_POS
-                        print(abs(self.pen_motor.positionPID.error), self.pen_motor.positionPID.precision, self.pen_motor.positionPID.target_reached)
-                        # if not self.pen_motor.positionPID.target_reached:
-                        #     drive_motor.stop()
-                        # else:
-                        drive_motor.run_forever(speed_sp=SLOW)
+                        if not self.pen_motor.positionPID.target_reached:
+                             drive_motor.stop()
+                        else:
+                            drive_motor.run_forever(speed_sp=SLOW)
                     else:
                         self.pen_motor.position_sp = PEN_UP_POS
                         drive_motor.run_forever(speed_sp=FAST)
@@ -446,7 +444,6 @@ class RopePlotter(object):
                         break # reached the right side
                     if right_side_mode and x_norm <= 0:
                         break
-                    #print(y_norm,pixels[pixel_location])
 
                 drive_motor.stop()
 
@@ -478,10 +475,10 @@ class RopePlotter(object):
 
                     if pixels[pixel_location] < 120 + 60 * right_side_mode:
                         self.pen_motor.position_sp = PEN_DOWN_POS
-                        # if not self.pen_motor.positionPID.target_reached:
-                        #     drive_motor.stop()
-                        # else:
-                        drive_motor.run_forever(speed_sp=-SLOW)
+                        if not self.pen_motor.positionPID.target_reached:
+                            drive_motor.stop()
+                        else:
+                            drive_motor.run_forever(speed_sp=-SLOW)
                     else:
                         self.pen_motor.position_sp = PEN_UP_POS
                         drive_motor.run_forever(speed_sp=-FAST)
@@ -512,12 +509,12 @@ class RopePlotter(object):
 
                     if pixels[pixel_location] < 60:
                         self.pen_motor.position_sp = PEN_DOWN_POS
-                        # if not self.pen_motor.positionPID.target_reached:
-                        #     self.right_motor.stop()
-                        #     self.left_motor.stop()
-                        # else:
-                        self.right_motor.run_forever(speed_sp=SLOW)
-                        self.left_motor.run_forever(speed_sp=-SLOW)
+                        if not self.pen_motor.positionPID.target_reached:
+                            self.right_motor.stop()
+                            self.left_motor.stop()
+                        else:
+                            self.right_motor.run_forever(speed_sp=SLOW)
+                            self.left_motor.run_forever(speed_sp=-SLOW)
                     else:
                         self.pen_motor.position_sp = PEN_UP_POS
                         self.right_motor.run_forever(speed_sp=FAST)
@@ -542,12 +539,12 @@ class RopePlotter(object):
                     pixel_location = (clamp(x_norm * w, (0,w-1)), clamp(y_norm * w, (0,h-1)))
                     if pixels[pixel_location] < 60:
                         self.pen_motor.position_sp = PEN_DOWN_POS
-                        # if not self.pen_motor.positionPID.target_reached:
-                        #     self.right_motor.stop()
-                        #     self.left_motor.stop()
-                        # else:
-                        self.right_motor.run_forever(speed_sp=-SLOW)
-                        self.left_motor.run_forever(speed_sp=SLOW)
+                        if not self.pen_motor.positionPID.target_reached:
+                            self.right_motor.stop()
+                            self.left_motor.stop()
+                        else:
+                            self.right_motor.run_forever(speed_sp=-SLOW)
+                            self.left_motor.run_forever(speed_sp=SLOW)
                     else:
                         self.pen_motor.position_sp = PEN_UP_POS
                         self.right_motor.run_forever(speed_sp=-FAST)

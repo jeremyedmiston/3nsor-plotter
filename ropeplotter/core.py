@@ -442,7 +442,7 @@ class RopePlotter(object):
                         break # reached the right side
                     if right_side_mode and x_norm <= 0:
                         break
-                    print(y_norm,pixels[pixel_location])
+                    #print(y_norm,pixels[pixel_location])
 
                 drive_motor.stop()
 

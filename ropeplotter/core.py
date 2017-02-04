@@ -29,7 +29,7 @@ class RopePlotter(object):
         self.scanlines = 40
 
         # Start the engines
-        self.pen_motor = PIDMotor(ev3.OUTPUT_A, Kp=1.5, Ki=0.1, Kd=0, brake=0.1, max_spd=80, speed_reg=False)
+        self.pen_motor = PIDMotor(ev3.OUTPUT_A, Kp=2, Ki=0.1, Kd=0, brake=0.1, max_spd=80, speed_reg=True)
         self.pen_motor.positionPID.precision = 3
         self.left_motor = PIDMotor(ev3.OUTPUT_B, Kp=Kp, Ki=Ki, Kd=Kd, max_spd=max_spd)
         self.left_motor.stop_action = 'brake'

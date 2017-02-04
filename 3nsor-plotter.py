@@ -147,7 +147,7 @@ class MotorThread(threading.Thread):
     def __init__(self):
         self.motor_log = Logger("Motors")
         threading.Thread.__init__(self)
-        self.plotter = RopePlotter(L_ROPE_0, R_ROPE_0, ROPE_ATTACHMENT_WIDTH, Kp=KP, Ki=TI, Kd=TD, max_spd=MAX_SPEED)
+        self.plotter = RopePlotter(L_ROPE_0, R_ROPE_0, ROPE_ATTACHMENT_WIDTH, Kp=KP, Ki=TI, Kd=TD, max_spd=MAX_SPEED, cm_to_deg=CM_TO_DEG)
         self.throttle = Throttler(MOTOR_CMD_RATE)
 
     def run(self):

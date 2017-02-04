@@ -1,8 +1,8 @@
 MOTOR_CMD_RATE = 20             # Max number of motor commands per second
-L_ROPE_0 = 57.5                 # Length of left rope in cm when pen is at 0,0 (top left)
-R_ROPE_0 = 80.5                # same for right rope
+L_ROPE_0 = 56.0                 # Length of left rope in cm when pen is at 0,0 (top left)
+R_ROPE_0 = 83.0                # same for right rope
 ROPE_ATTACHMENT_WIDTH = 90.0    # space between the two attachment points of the plotter.In my case: door width. In cm.
-CM_TO_DEG = -180
+CM_TO_DEG = -175
 KP=3
 TI=0
 TD=0

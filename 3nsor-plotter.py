@@ -22,6 +22,7 @@ __author__ = 'anton'
 #
 # PREREQUISITES
 #	Tornado Web Server for Python
+#   Python PIL
 #
 # TROUBLESHOOTING:
 #	Don't use Ctrl+Z to stop the program, use Ctrl+c.
@@ -37,6 +38,13 @@ __author__ = 'anton'
 #		"kill -9 pid"
 #	If the error does not go away, try changing the port number '9093' both in the client and server code
 
+# TODO
+# When a plotter instance exists, prefill actual parameters on webpage
+# Make deg_to_cm a parameter on the web interface
+# Remove maxspeed parameter
+# Refactor and clean up the code.
+# Make main file executable
+# Move web UI stuff to a separate folder
 
 ####################### Imports #########################
 
@@ -69,9 +77,7 @@ websockets = []     # list of open sockets.
 # Initialize Tornado to use 'GET' and load index.html
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
-        #loader = tornado.template.Loader(".")
-        #self.write(loader.load("index.html").generate())
-        self.render("index.html", kp=KP, ti=TI, td=TD, ll=L_ROPE_0, lr=R_ROPE_0, sl=SCAN_LINES, aw=ROPE_ATTACHMENT_WIDTH, max_speed=MAX_SPEED)
+        self.render("index.html", kp=KP, ti=TI, td=TD, ll=L_ROPE_0, lr=R_ROPE_0, sl=SCAN_LINES, aw=ROPE_ATTACHMENT_WIDTH, cm_to_deg=CM_TO_DEG)
 
 
 class UploadHandler(tornado.web.RequestHandler):
@@ -163,7 +169,7 @@ class MotorThread(threading.Thread):
     def __init__(self):
         self.motor_log = Logger("Motors")
         threading.Thread.__init__(self)
-        self.plotter = RopePlotter(L_ROPE_0, R_ROPE_0, ROPE_ATTACHMENT_WIDTH, Kp=KP, Ki=TI, Kd=TD, max_spd=MAX_SPEED, cm_to_deg=CM_TO_DEG)
+        self.plotter = RopePlotter(L_ROPE_0, R_ROPE_0, ROPE_ATTACHMENT_WIDTH, Kp=KP, Ki=TI, Kd=TD, cm_to_deg=CM_TO_DEG)
         self.throttle = Throttler(MOTOR_CMD_RATE)
 
     def run(self):
@@ -177,7 +183,7 @@ class MotorThread(threading.Thread):
                     self.plotter.Kp = c['kp']
                     self.plotter.Ti = c['ti']
                     self.plotter.Td = c['td']
-                    self.plotter.max_speed = c['max_speed']
+                    self.plotter.cm_to_deg = int(c['cm_to_deg'])
                     wsSend("PID parameters set")
 
                 if 'll' in c:

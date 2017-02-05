@@ -13,14 +13,9 @@ DOWN = 1
 UNCHANGED = -1
 
 class RopePlotter(object):
-    def __init__(self, l_rope_0, r_rope_0, attachment_distance, cm_to_deg=-175, Kp=2.2, Ki=0.2, Kd=0.02, max_spd=800):
-        if ev3.current_platform == 'brickpi':
-            self.battery = BrickPiPowerSupply()
-            factor = 2
-        else:
-            self.battery = ev3.PowerSupply()
-            factor = 1
-        self.cm_to_deg = cm_to_deg * factor
+    def __init__(self, l_rope_0, r_rope_0, attachment_distance, cm_to_deg=-175, Kp=2.2, Ki=0.2, Kd=0.02):
+
+        self.cm_to_deg = cm_to_deg
         self.__l_rope_0 = float(l_rope_0)
         self.__r_rope_0 = float(r_rope_0)
         self.__att_dist = float(attachment_distance)
@@ -29,11 +24,11 @@ class RopePlotter(object):
         self.scanlines = 40
 
         # Start the engines
-        self.pen_motor = PIDMotor(ev3.OUTPUT_A, Kp=2, Ki=0.1, Kd=0 ,brake=0.1, max_spd=80, speed_reg=True)
+        self.pen_motor = PIDMotor(ev3.OUTPUT_A, Kp=2, Ki=0.1, Kd=0 ,brake=0.1, speed_reg=True)
         self.pen_motor.positionPID.precision = 10
-        self.left_motor = PIDMotor(ev3.OUTPUT_B, Kp=Kp, Ki=Ki, Kd=Kd, max_spd=max_spd)
+        self.left_motor = PIDMotor(ev3.OUTPUT_B, Kp=Kp, Ki=Ki, Kd=Kd)
         self.left_motor.stop_action = 'brake'
-        self.right_motor = PIDMotor(ev3.OUTPUT_C, Kp=Kp, Ki=Ki, Kd=Kd, max_spd=max_spd)
+        self.right_motor = PIDMotor(ev3.OUTPUT_C, Kp=Kp, Ki=Ki, Kd=Kd)
         self.right_motor.stop_action = 'brake'
 
         # Build lists for iterating over all motors
@@ -76,13 +71,18 @@ class RopePlotter(object):
             motor.positionPID.Td = float(Td)
 
     @property
-    def max_speed(self):
-        return self.drive_motors[0].positionPID.max_out
+    def cm_to_deg(self):
+        return self.__cm_to_deg
 
-    @max_speed.setter
-    def max_speed(self, n):
-        for motor in self.drive_motors:
-            motor.positionPID.max_out = int(n)
+    @cm_to_deg.setter
+    def cm_to_deg(self, setting):
+        if ev3.current_platform == 'brickpi':
+            self.battery = BrickPiPowerSupply()
+            factor = 2
+        else:
+            self.battery = ev3.PowerSupply()
+            factor = 1
+        self.__cm_to_deg = factor * int(setting)
 
     @property
     def l_rope_0(self):

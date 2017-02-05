@@ -512,7 +512,7 @@ display:none;
         evt.preventDefault();
 
       var fd = new FormData();
-      $('jpgloader').addClass('loader');
+      $('#jpgloader').addClass('loader');
 
       // for multiple files is this
       var file_data = $('#jpgform input[type="file"]')[0].files;
@@ -535,7 +535,7 @@ display:none;
           success: function(data){
               d = new Date();
               $("#jpgpreview").attr("src", "uploads/picture.jpg?"+d.getTime());
-              $('jpgloader').removeClass('loader');
+              $('#jpgloader').removeClass('loader');
           }
       });
 
@@ -545,7 +545,7 @@ display:none;
         evt.preventDefault();
 
       var fd = new FormData();
-      $('csvloader').addClass('loader');
+      $('#csvloader').addClass('loader');
 
       // for multiple files is this
       var file_data = $('#csvform input[type="file"]')[0].files;
@@ -567,7 +567,7 @@ display:none;
           type: $(this).attr('method'),
           success: function(data){
               $("#coordspreview").attr("src", "uploads/preview.jpg?"+d.getTime());
-              $('csvloader').removeClass('loader');
+              $('#csvloader').removeClass('loader');
           }
       });
 

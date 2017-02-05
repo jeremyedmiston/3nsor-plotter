@@ -35,7 +35,36 @@
     }
     }
 
+    .previewcontainer {
+      position: relative;
+    }
 
+.loader {
+  position: absolute;
+  align: left;
+  border: 8px solid #ddd;
+  border-radius: 50%;
+  border-top: 8px solid #3498db;
+  width: 40px;
+  height: 40px;
+  -webkit-animation: spin 2s linear infinite;
+  animation: spin 2s linear infinite;
+  margin: 20px 20px
+}
+
+@-webkit-keyframes spin {
+  0% { -webkit-transform: rotate(0deg); }
+  100% { -webkit-transform: rotate(360deg); }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.hidden {
+display:none;
+}
   </style>
 </head>
 
@@ -63,8 +92,12 @@
           <div class="panel-body">
             <p> Uploading large files might take a while. There's no progress bar, so sit back & relax.</p>
 
-            <p>
+
+              <div>
             <img src="uploads/preview.jpg" id="coordspreview" width="80px" height="80px" align="left" style="margin: 0px 20px 0 0">
+            <div id="csvloader" class=""></div>
+            </div>
+            <p>
             <form enctype="multipart/form-data" class="upload" id="csvform" action="upload" method="post">
               <div class="input-group">
                 <span class="input-group-addon"> Select coords.csv </span>
@@ -88,8 +121,14 @@
                 <button class="btn btn-default" data-down="" data-up="plotting">Resume</button>
               </span>
             </p>
-            <p>
+            <div>
+
             <img src="uploads/picture.jpg" id="jpgpreview" width="80px" height="80px" align="left" style="margin: 0px 20px 0 0">
+              <div id="jpgloader" class=""></div>
+              </div>
+            <p>
+
+
             <form enctype="multipart/form-data" class="upload" id="jpgform" action="upload" method="post">
               <div class="input-group">
                 <span class="input-group-addon"> Select image </span>
@@ -473,6 +512,7 @@
         evt.preventDefault();
 
       var fd = new FormData();
+      $('jpgloader').addClass('loader');
 
       // for multiple files is this
       var file_data = $('#jpgform input[type="file"]')[0].files;
@@ -495,6 +535,7 @@
           success: function(data){
               d = new Date();
               $("#jpgpreview").attr("src", "uploads/picture.jpg?"+d.getTime());
+              $('jpgloader').removeClass('loader');
           }
       });
 
@@ -504,6 +545,7 @@
         evt.preventDefault();
 
       var fd = new FormData();
+      $('csvloader').addClass('loader');
 
       // for multiple files is this
       var file_data = $('#csvform input[type="file"]')[0].files;
@@ -524,7 +566,8 @@
           processData: false,
           type: $(this).attr('method'),
           success: function(data){
-              $("#coordspreview").attr("src", "uploads/picture.jpg?"+d.getTime());
+              $("#coordspreview").attr("src", "uploads/preview.jpg?"+d.getTime());
+              $('csvloader').removeClass('loader');
           }
       });
 

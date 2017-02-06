@@ -58,6 +58,9 @@ from PIL import Image, ImageDraw
 from ropeplotter import RopePlotter, Logger, Throttler, get_ip_address
 from settings import *
 
+#Ev3dev for drawing and buttons
+import ev3dev.auto as ev
+
 ################## Globals. I know. #################
 
 c = 0               # movement command.
@@ -167,8 +170,11 @@ class MotorThread(threading.Thread):
 
     def run(self):
         global c
-        print("Starting motor thread")
+        print("Starting interaction thread")
+        buttons = ev.Button()
         while running:
+
+
             if type(c) == dict:
                 # We got settings
                 if 'kp' in c:
@@ -188,29 +194,29 @@ class MotorThread(threading.Thread):
                     wsSend("Plotter settings set")
                 c=''
 
-            if c == 'left-fwd':
+            if c == 'left-fwd' or buttons.right:
                 #print "Running left motor fwd"
                 self.plotter.left_fwd()
 
-            elif c == 'left-stop':
+            elif c == 'left-stop' or not (buttons.right and buttons.top):
                 #print "Stopping left motor"
                 self.plotter.left_stop()
                 c = ''
 
-            elif c == 'right-fwd':
+            elif c == 'right-fwd' or buttons.bottom:
                 #print "Running right motor forward"
                 self.plotter.right_fwd()
 
-            elif c == 'right-back':
+            elif c == 'right-back' or buttons.left:
                 #print "Running right motor back"
                 self.plotter.right_back()
 
-            elif c == 'right-stop':
+            elif c == 'right-stop' or not (buttons.left and buttons.bottom):
                 #print "Stopping right motor"
                 self.plotter.right_stop()
                 c = ''
 
-            elif c == 'left-back':
+            elif c == 'left-back' or buttons.top:
                 #print "Running left motor back"
                 self.plotter.left_back()
 
@@ -262,7 +268,8 @@ class MotorThread(threading.Thread):
                 plot_action = self.plotter.plot_circle_waves()
                 c = 'plotting'
 
-
+            if buttons.backspace:
+                sys.exit()
             #BrickPiUpdateValues()  # BrickPi updates the values for the motors
             self.throttle.throttle()  #Don't go too fast.
 

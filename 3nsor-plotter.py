@@ -306,7 +306,9 @@ class MotorThread(threading.Thread):
 
             #Button commands
             if buttons.backspace:
-                raise KeyboardInterrupt
+                tornado.ioloop.IOLoop.instance().stop()
+                break
+
 
             #BrickPiUpdateValues()  # BrickPi updates the values for the motors
             self.throttle.throttle()  #Don't go too fast.
@@ -355,3 +357,5 @@ if __name__ == "__main__":
     except:
         print("Unexpected error:", sys.exc_info()[0])
         raise
+
+    print("Stopped. Bye!")

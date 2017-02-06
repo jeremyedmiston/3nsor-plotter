@@ -200,12 +200,12 @@ class MotorThread(threading.Thread):
                 #print "Running left motor fwd"
                 self.plotter.left_fwd()
 
-            elif c == 'left-stop' or not (buttons.right and buttons.top):
+            elif c == 'left-stop' or not (buttons.right and buttons.up):
                 #print "Stopping left motor"
                 self.plotter.left_stop()
                 c = ''
 
-            elif c == 'right-fwd' or buttons.bottom:
+            elif c == 'right-fwd' or buttons.down:
                 #print "Running right motor forward"
                 self.plotter.right_fwd()
 
@@ -213,12 +213,12 @@ class MotorThread(threading.Thread):
                 #print "Running right motor back"
                 self.plotter.right_back()
 
-            elif c == 'right-stop' or not (buttons.left and buttons.bottom):
+            elif c == 'right-stop' or not (buttons.left and buttons.down):
                 #print "Stopping right motor"
                 self.plotter.right_stop()
                 c = ''
 
-            elif c == 'left-back' or buttons.top:
+            elif c == 'left-back' or buttons.up:
                 #print "Running left motor back"
                 self.plotter.left_back()
 
@@ -271,7 +271,7 @@ class MotorThread(threading.Thread):
                 c = 'plotting'
 
             if buttons.backspace:
-                sys.exit()
+                raise KeyboardInterrupt
             #BrickPiUpdateValues()  # BrickPi updates the values for the motors
             self.throttle.throttle()  #Don't go too fast.
 

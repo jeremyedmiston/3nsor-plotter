@@ -200,54 +200,54 @@ class MotorThread(threading.Thread):
                 #print "Running left motor fwd"
                 self.plotter.left_fwd()
 
-            elif c == 'left-stop' or not (buttons.right and buttons.up):
+            if c == 'left-stop' or not (buttons.right and buttons.up):
                 #print "Stopping left motor"
                 self.plotter.left_stop()
                 c = ''
 
-            elif c == 'right-fwd' or buttons.down:
+            if c == 'right-fwd' or buttons.down:
                 #print "Running right motor forward"
                 self.plotter.right_fwd()
 
-            elif c == 'right-back' or buttons.left:
+            if c == 'right-back' or buttons.left:
                 #print "Running right motor back"
                 self.plotter.right_back()
 
-            elif c == 'right-stop' or not (buttons.left and buttons.down):
+            if c == 'right-stop' or not (buttons.left and buttons.down):
                 #print "Stopping right motor"
                 self.plotter.right_stop()
                 c = ''
 
-            elif c == 'left-back' or buttons.up:
+            if c == 'left-back' or buttons.up:
                 #print "Running left motor back"
                 self.plotter.left_back()
 
-            elif c == 'pu':
+            if c == 'pu':
                 #print "Pulling pen up"
                 self.plotter.pen_up()
                 c = ''
 
-            elif c == 'pd':
+            if c == 'pd':
                 #print "Putting pen down"
                 self.plotter.pen_down()
                 c = ''
 
-            elif c == 'stop':
+            if c == 'stop':
                 self.plotter.left_stop()
                 self.plotter.right_stop()
                 c = ''
                 #print "Stopped"
 
-            elif c == 'testdrive':
+            if c == 'testdrive':
                 self.plotter.test_drive()
                 c = ''
 
-            elif c == 'plot':
+            if c == 'plot':
                 # c stays 'plot' until another command is sent trough the socket
                 plot_action = self.plotter.plot_from_file('uploads/coords.csv')
                 c = 'plotting'
 
-            elif c == 'plotting':
+            if c == 'plotting':
                 try:
                     pct_done = next(plot_action)
                     wsSend("[ {0:.2f}V ] Plot {1:.2f}% done".format(self.plotter.battery.measured_voltage/1000000.0, pct_done))
@@ -255,16 +255,18 @@ class MotorThread(threading.Thread):
                     c = ''
                     wsSend("Done plotting")
 
-            elif c == 'zero':
+            if c == 'zero':
                 wsSend("zero motor positions")
                 self.plotter.set_control_zeroes()
                 c = ''
-            elif c == 'plotcircles':
+
+            if c == 'plotcircles':
                 wsSend("Plotting circles")
                 # c stays 'plot' until another command is sent trough the socket
                 plot_action = self.plotter.plot_circles()
                 c = 'plotting'
-            elif c == 'plotwaves':
+
+            if c == 'plotwaves':
                 wsSend("Plotting waves")
                 # c stays 'plot' until another command is sent trough the socket
                 plot_action = self.plotter.plot_circle_waves()

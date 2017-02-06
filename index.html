@@ -14,6 +14,7 @@
 <head>
   <title>3nsor plotter</title>
   <script src="static/jquery-1.11.3.min.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <link href='https://fonts.googleapis.com/css?family=Montserrat:400,700' rel='stylesheet' type='text/css'>
   <link href="css/bootstrap.min.css" rel="stylesheet">
   <link href="css/bootstrap-theme.min.css" rel="stylesheet">
@@ -65,54 +66,54 @@
 .hidden {
 display:none;
 }
+
   </style>
 </head>
 
 <body>
-<div class="container">
-<div>
-  <img width="100" height="127" src="static/logo.jpg" style="float:left;">
+<div class="container-fluid">
+  <div>
+    <img width="100" height="127" src="static/logo.jpg" style="float:left;">
 
-  <h1>3nsor plotter robot</h1>
+    <h1>3nsor plotter robot</h1>
 
-  <p>Lego Mindstorms plotting robot interface by <a
-          href="https://plus.google.com/+AntonsmindstormsBlogspotNlPage/videos">Anton</a>. Named after the famous
-    Belgian painter <a
-            href="https://www.google.nl/search?q=james+ensor+masks&espv=2&biw=1381&bih=747&source=lnms&tbm=isch&sa=X&ved=0CAcQ_AUoAWoVChMIiubc27mSyAIVhTIaCh3qBwsG">
-      James Ensor </a>, famous for drawing masks.</p>
-</div>
-<div class="row flexbox" id="mainrow" style="clear:both;">
-  <div class="col-md-8">
-    <div class="row">
-      <div class="col-md-12">
-        <div class="panel panel-default">
-          <div class="panel-heading">
-            <h3>Upload and plot</h3>
-          </div>
-          <div class="panel-body">
-            <p> Uploading large files might take a while. There's no progress bar, so sit back & relax.</p>
-
-
-              <div>
-            <img src="uploads/preview.jpg" id="coordspreview" width="80px" height="80px" align="left" style="margin: 0px 20px 0 0">
-            <div id="csvloader" class=""></div>
+    <p>Lego Mindstorms plotting robot interface by <a
+            href="https://plus.google.com/+AntonsmindstormsBlogspotNlPage/videos">Anton</a>. Named after the famous
+      Belgian painter <a
+              href="https://www.google.nl/search?q=james+ensor+masks&espv=2&biw=1381&bih=747&source=lnms&tbm=isch&sa=X&ved=0CAcQ_AUoAWoVChMIiubc27mSyAIVhTIaCh3qBwsG">
+        James Ensor </a>, famous for drawing masks.</p>
+  </div>
+  <div class="row flexbox" id="mainrow" style="clear:both;">
+    <div class="col-md-8">
+      <div class="row">
+        <div class="col-md-12">
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <h3>Upload and plot</h3>
             </div>
-            <p>
-            <form enctype="multipart/form-data" class="upload" id="csvform" action="upload" method="post">
-              <div class="input-group">
-                <span class="input-group-addon"> Select coords.csv </span>
-                <input class="form-control" type="file" name="coordsfile"/>
-                <input type="hidden" name="action" value="upload csv">
+            <div class="panel-body">
+              <div>
+                <img src="uploads/preview.jpg" id="coordspreview" width="80px" height="80px" align="left"
+                     style="margin: 0px 20px 0 0">
+                <div id="csvloader" class=""></div>
+              </div>
+              <p>
+              <form enctype="multipart/form-data" class="upload" id="csvform" action="upload" method="post">
+                <div class="input-group">
+                  <span class="input-group-addon"> csv </span>
+                  <input class="form-control" type="file" name="coordsfile"/>
+                  <input type="hidden" name="action" value="upload csv">
                   <span class="input-group-btn">
-                    <button type="submit" value="Upload jpg" class="btn btn-default"><span class="glyphicon glyphicon-upload"></span>
+                    <button type="submit" value="Upload jpg" class="btn btn-default"><span
+                            class="glyphicon glyphicon-upload"></span>
                       Upload
                     </button>
 
                   </span>
-              </div>
-            </form>
-            </p>
-            <p>
+                </div>
+              </form>
+              </p>
+              <p>
               <span class="controls">
                 <button class="btn btn-primary" data-down="" data-up="plot"><span
                         class="glyphicon glyphicon-pencil"></span> Plot single line drawing
@@ -120,192 +121,192 @@ display:none;
               <button class="btn btn-default" data-down="" data-up="stop">Pause</button>
                 <button class="btn btn-default" data-down="" data-up="plotting">Resume</button>
               </span>
-            </p>
-            <div>
+              </p>
+              <div>
 
-            <img src="uploads/picture.jpg" id="jpgpreview" width="80px" height="80px" align="left" style="margin: 0px 20px 0 0">
-              <div id="jpgloader" class=""></div>
+                <img src="uploads/picture.jpg" id="jpgpreview" width="80px" height="80px" align="left"
+                     style="margin: 0px 20px 0 0">
+                <div id="jpgloader" class=""></div>
               </div>
-            <p>
+              <p>
 
 
-            <form enctype="multipart/form-data" class="upload" id="jpgform" action="upload" method="post">
-              <div class="input-group">
-                <span class="input-group-addon"> Select image </span>
-                <input class="form-control" type="file" name="imgfile"/>
-                <input type="hidden" name="action" value="upload jpg">
+              <form enctype="multipart/form-data" class="upload" id="jpgform" action="upload" method="post">
+                <div class="input-group">
+                  <span class="input-group-addon"> Jpg </span>
+                  <input class="form-control" type="file" name="imgfile"/>
+                  <input type="hidden" name="action" value="upload jpg">
                   <span class="input-group-btn">
                     <button type="submit" value="Upload csv" class="btn btn-default"><span
                             class="glyphicon glyphicon-upload"></span> Upload
                     </button>
 
                   </span>
-              </div>
-            </form>
-            </p>
-            <p>
+                </div>
+              </form>
+              </p>
+              <p>
               <div class="controls form-group">
                 <button class="btn btn-primary controls" data-down="" data-up="plotcircles">
                   <span class="glyphicon glyphicon-pencil"></span> Plot circles
                 </button>
-            <button class="btn btn-primary controls" data-down="" data-up="plotwaves">
+                <button class="btn btn-primary controls" data-down="" data-up="plotwaves">
                   <span class="glyphicon glyphicon-pencil"></span> Plot waves
                 </button>
                 <button class="btn btn-default" data-down="" data-up="stop">Pause</button>
                 <button class="btn btn-default" data-down="" data-up="plotting">Resume</button>
               </div>
-            </p>
+              </p>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-    <div class="row">
-      <div class="col-md-12">
-        <div class="panel panel-default">
-          <div class="panel-heading">
-            <h3>Manual controls</h3>
-          </div>
-          <div class="controls panel-body">
-            <table class="table">
-              <thead>
-              <tr>
-                <th>Left motor</th>
-                <th>Right motor</th>
-                <th>Pen</th>
-              </tr>
-              </thead>
-              <tbody>
-              <tr>
-                <td>
-                  <button class="btn btn-default" data-down="left-fwd" data-up="left-stop"><span
-                          class="glyphicon glyphicon-arrow-up"></span> [q]
-                  </button>
-                </td>
-                <td>
-                  <button class="btn btn-default" data-down="right-fwd" data-up="right-stop"><span
-                          class="glyphicon glyphicon-arrow-up"></span> [w]
-                  </button>
-                </td>
-                <td>
-                  <button class="btn btn-default" data-down="" data-up="pu"><span
-                          class="glyphicon glyphicon-remove-circle"></span> [e]
-                  </button>
-                </td>
-              </tr>
-              <tr>
-                <td>
-                  <button class="btn btn-default" data-down="left-back" data-up="left-stop"><span
-                          class="glyphicon glyphicon-arrow-down"></span> [a]
-                  </button>
-                </td>
-                <td>
-                  <button class="btn btn-default" data-down="right-back" data-up="right-stop"><span
-                          class="glyphicon glyphicon-arrow-down"></span> [s]
-                  </button>
-                </td>
-                <td>
-                  <button class="btn btn-default" data-down="" data-up="pd"><span
-                          class="glyphicon glyphicon-ok-circle"></span> [d]
-                  </button>
-                </td>
-              </tr>
-              </tbody>
-            </table>
-            <button class="btn btn-primary" data-down="" data-up="zero">Set motor zeros</button>
-            <button class="btn btn-default" data-down="" data-up="testdrive">Test drive</button>
-            <button class="btn btn-default" data-down="" data-up="stop">Stop</button>
+      <div class="row">
+        <div class="col-md-12">
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <h3>Manual controls</h3>
+            </div>
+            <div class="controls panel-body">
+              <table class="table">
+                <thead>
+                <tr>
+                  <th>Left motor</th>
+                  <th>Right motor</th>
+                  <th>Pen</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                  <td>
+                    <button class="btn btn-default" data-down="left-fwd" data-up="left-stop"><span
+                            class="glyphicon glyphicon-arrow-up"></span> [q]
+                    </button>
+                  </td>
+                  <td>
+                    <button class="btn btn-default" data-down="right-fwd" data-up="right-stop"><span
+                            class="glyphicon glyphicon-arrow-up"></span> [w]
+                    </button>
+                  </td>
+                  <td>
+                    <button class="btn btn-default" data-down="" data-up="pu"><span
+                            class="glyphicon glyphicon-remove-circle"></span> [e]
+                    </button>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <button class="btn btn-default" data-down="left-back" data-up="left-stop"><span
+                            class="glyphicon glyphicon-arrow-down"></span> [a]
+                    </button>
+                  </td>
+                  <td>
+                    <button class="btn btn-default" data-down="right-back" data-up="right-stop"><span
+                            class="glyphicon glyphicon-arrow-down"></span> [s]
+                    </button>
+                  </td>
+                  <td>
+                    <button class="btn btn-default" data-down="" data-up="pd"><span
+                            class="glyphicon glyphicon-ok-circle"></span> [d]
+                    </button>
+                  </td>
+                </tr>
+                </tbody>
+              </table>
+              <button class="btn btn-primary" data-down="" data-up="zero">Set motor zeros</button>
+              <button class="btn btn-default" data-down="" data-up="testdrive">Test drive</button>
+              <button class="btn btn-default" data-down="" data-up="stop">Stop</button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-    <div class="row">
-      <div class="col-md-6">
-        <div class="panel panel-default">
-          <div class="panel-heading">
-            <h3>PID Settings</h3>
-          </div>
-          <div class="panel-body">
-            <img src="static/pid.png">
+      <div class="row">
+        <div class="col-md-6">
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <h3>PID Settings</h3>
+            </div>
+            <div class="panel-body">
+              <img src="static/pid.png">
 
-            <form class="form-inline" id="pid" action="" method="post">
-
+              <form class="form-inline" id="pid" action="" method="post">
 
 
-              <div class="form-group">
-                <label> Kp </label>
-                <input type="text" name="kp" size="10" value="{{ kp }}"/>
-              </div>
-              <div class="form-group">
-                <label> Ki </label>
-                <input type="text" name="ti" size="10" value="{{ ti }}"/>
-              </div>
-              <div class="form-group">
-                <label> Kd </label>
-                <input type="text" name="td" size="10" value="{{ td }}"/>
-              </div>
-              <div class="form-group">
-                <label> Cm to degrees </label>
-                <input type="text" name="cm_to_deg" size="10" value="{{ cm_to_deg }}"/>
-              </div>
+                <div class="form-group">
+                  <label> Kp </label>
+                  <input type="text" name="kp" size="10" value="{{ kp }}"/>
+                </div>
+                <div class="form-group">
+                  <label> Ki </label>
+                  <input type="text" name="ti" size="10" value="{{ ti }}"/>
+                </div>
+                <div class="form-group">
+                  <label> Kd </label>
+                  <input type="text" name="td" size="10" value="{{ td }}"/>
+                </div>
+                <div class="form-group">
+                  <label> Cm to degrees </label>
+                  <input type="text" name="cm_to_deg" size="10" value="{{ cm_to_deg }}"/>
+                </div>
 
-              <p>
-                <button id="sendPID" type="submit" class="btn btn-primary">Send</button>
+                <p>
+                  <button id="sendPID" type="submit" class="btn btn-primary">Send</button>
                   <span class="controls"><button class="btn btn-default" data-down="" data-up="testdrive">Test drive
                   </button></span>
 
-              </p>
-            </form>
+                </p>
+              </form>
+            </div>
           </div>
         </div>
-      </div>
-      <div class="col-md-6">
-        <div class="panel panel-default">
-          <div class="panel-heading">
-            <h3>Plotter Settings</h3>
-          </div>
-          <div class="panel-body">
-            <img src="static/schematic.png">
+        <div class="col-md-6">
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <h3>Plotter Settings</h3>
+            </div>
+            <div class="panel-body">
+              <img src="static/schematic.png">
 
-            <form class="form-inline" id="plot" action="" method="post">
-              <p>
+              <form class="form-inline" id="plot" action="" method="post">
+                <p>
 
-              <div class="form-group">
-                <label> Left rope length at origin (cm) </label>
-                <input type="text" name="ll" size="10" value="{{ ll }}"/><br>
-              </div>
-              <div class="form-group">
-                <label> Right rope length at origin (cm) </label>
-                <input type="text" name="lr" size="10" value="{{ lr }}"/>
-              </div>
-              <div class="form-group">
-                <label> Width between rope attachments </label>
-                <input type="text" name="aw" size="10" value="{{ aw }}"/>
-              </div>
-              <div class="form-group">
-                <label> Number of scan lines </label>
-                <input type="text" name="sl" size="10" value="{{ sl }}"/>
-              </div>
-              </p>
-              <p>
-                <button id="sendPlot" type="submit" class="btn btn-primary">Send</button>
-              </p>
-            </form>
+                <div class="form-group">
+                  <label> Left rope length at origin (cm) </label>
+                  <input type="text" name="ll" size="10" value="{{ ll }}"/><br>
+                </div>
+                <div class="form-group">
+                  <label> Right rope length at origin (cm) </label>
+                  <input type="text" name="lr" size="10" value="{{ lr }}"/>
+                </div>
+                <div class="form-group">
+                  <label> Width between rope attachments </label>
+                  <input type="text" name="aw" size="10" value="{{ aw }}"/>
+                </div>
+                <div class="form-group">
+                  <label> Number of scan lines </label>
+                  <input type="text" name="sl" size="10" value="{{ sl }}"/>
+                </div>
+                </p>
+                <p>
+                  <button id="sendPlot" type="submit" class="btn btn-primary">Send</button>
+                </p>
+              </form>
+            </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
-  <div class="col-md-4 flexbox" id="msgcol">
-    <div class="panel panel-default" style="flex:1; ">
-      <div class="panel-heading">
-        <h3>Messages from server</h3>
-      </div>
-      <div id="output" class="panel-body">
-        <p>No message from Brick Pi...</p>
+    <div class="col-md-4 flexbox" id="msgcol">
+      <div class="panel panel-default" style="flex:1; ">
+        <div class="panel-heading">
+          <h3>Messages from server</h3>
+        </div>
+        <div id="output" class="panel-body">
+          <p>No message from Brick Pi...</p>
+        </div>
       </div>
     </div>
   </div>
-</div>
 </div>
 
 <script>
@@ -582,6 +583,7 @@ display:none;
 
 
 
+
 </script>
 </body>
 </html>
@@ -594,6 +596,7 @@ jQuery(function($)
     alert("Your browser does not support web sockets");
   }
 });
+
 
 
 

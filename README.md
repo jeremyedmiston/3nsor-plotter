@@ -53,8 +53,10 @@ As long as the server is running, there's no problem.
 - The script has virtually no error catching. It will crash if you throw data at it that it is not expecting.
 
 ## To do ##
-- Increase precision on circle plot drawing
-- Find a way to plot horizontal lines
-- Drive slower when drawing, faster when not
-- Create speed regulation
-- 
+- When a plotter instance exists, prefill actual parameters on webpage
+- Refactor and clean up the code.
+- Make main file executable
+- Move web UI stuff to a separate folder
+- Print the IP address on the Ev3 screen
+- Make a button to stop the program from the brick
+- Make brick buttons usable for moving the robot.

@@ -38,13 +38,6 @@ __author__ = 'anton'
 #		"kill -9 pid"
 #	If the error does not go away, try changing the port number '9093' both in the client and server code
 
-# TODO
-# When a plotter instance exists, prefill actual parameters on webpage
-# Make deg_to_cm a parameter on the web interface
-# Remove maxspeed parameter
-# Refactor and clean up the code.
-# Make main file executable
-# Move web UI stuff to a separate folder
 
 ####################### Imports #########################
 

@@ -286,14 +286,24 @@ if __name__ == "__main__":
     motor_thread.setDaemon(True)
     motor_thread.start()
 
+    # Prepare the screen
+    lcd = ev.Screen()
+    logo = Image.open('static/logo.jpg')
+    img = Image.new("1", (128, 178), color=255)
+    img.paste(logo.resize((100, 127)), (14, 0))
+    draw = ImageDraw.Draw(img)
+    draw.text((2, 127), 'Point your browser to:')
+    draw.text((2, 137), '{0}:9093'.format(get_ip_address()))
+    draw.text((2, 150), 'press back to exit')
+    del draw
+    lcd.image.paste(img.rotate(-90), box=(0, 0))
+    lcd.update()
+
     # Set up web server
     application.listen(9093)  # starts the web sockets connection
     print("Started web server at {0}:9093".format(get_ip_address()))
 
     # Display ip number on screen for easy connection
-    lcd = ev.Screen()
-    lcd.draw.text((10, 10), 'IP: {0}:9093'.format(get_ip_address()), font=ev.fonts.load('luBS14'))
-    lcd.draw.text((10, 50), 'Press back to exit', font=ev.fonts.load('luBS14'))
     lcd.update()
     try:
         tornado.ioloop.IOLoop.instance().start()

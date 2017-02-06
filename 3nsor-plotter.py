@@ -286,9 +286,15 @@ if __name__ == "__main__":
     motor_thread.setDaemon(True)
     motor_thread.start()
 
-    #set up web server
+    # Set up web server
     application.listen(9093)  # starts the web sockets connection
-    print("Starting web server at {0}:9093".format(get_ip_address()))
+    print("Started web server at {0}:9093".format(get_ip_address()))
+
+    # Display ip number on screen for easy connection
+    lcd = ev.Screen()
+    lcd.draw.text((10, 10), 'IP: {0}:9093'.format(get_ip_address()), font=ev.fonts.load('luBS14'))
+    lcd.draw.text((10, 50), 'Press back to exit', font=ev.fonts.load('luBS14'))
+    lcd.update()
     try:
         tornado.ioloop.IOLoop.instance().start()
     except KeyboardInterrupt:  # Triggered by pressing Ctrl+C. Time to clean up.

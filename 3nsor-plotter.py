@@ -307,6 +307,9 @@ class MotorThread(threading.Thread):
             #Button commands
             if buttons.backspace:
                 tornado.ioloop.IOLoop.instance().stop()
+                # Close all sockets
+                for ws in websockets:
+                    ws.close()
                 break
 
 
@@ -315,6 +318,7 @@ class MotorThread(threading.Thread):
 
         #Stopped running. Shutting down all motors.
         self.plotter.stop_all_motors()
+        print("Motor thread stopped")
 
 
 ################## Main #############################
@@ -353,7 +357,7 @@ if __name__ == "__main__":
         #Close all sockets
         for ws in websockets:
             ws.close()
-        print("Motor thread stopped")
+
     except:
         print("Unexpected error:", sys.exc_info()[0])
         raise

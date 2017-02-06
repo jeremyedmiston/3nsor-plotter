@@ -174,6 +174,8 @@ class MotorThread(threading.Thread):
         global c
         print("Starting interaction thread")
         buttons = ev.Button()
+        right_or_up_pressed_earlier = False
+        left_or_down_pressed_earlier = False
         while running:
 
 
@@ -196,58 +198,90 @@ class MotorThread(threading.Thread):
                     wsSend("Plotter settings set")
                 c=''
 
-            if c == 'left-fwd' or buttons.right:
+
+            #Socket commands
+            if c == 'left-fwd':
                 #print "Running left motor fwd"
                 self.plotter.left_fwd()
 
-            if c == 'left-stop' or not (buttons.right and buttons.up):
-                #print "Stopping left motor"
-                self.plotter.left_stop()
-                c = ''
+            elif c == 'left-back':
+                # print "Running left motor back"
+                self.plotter.left_back()
 
-            if c == 'right-fwd' or buttons.down:
+            elif c == 'right-fwd':
                 #print "Running right motor forward"
                 self.plotter.right_fwd()
 
-            if c == 'right-back' or buttons.left:
+            elif c == 'right-back':
                 #print "Running right motor back"
                 self.plotter.right_back()
 
-            if c == 'right-stop' or not (buttons.left and buttons.down):
+            elif buttons.right:
+                #print "Running left motor fwd"
+                self.plotter.left_fwd()
+                right_or_up_pressed_earlier = True
+
+            elif buttons.up:
+                # print "Running left motor back"
+                self.plotter.left_back()
+                right_or_up_pressed_earlier = True
+
+            elif buttons.down:
+                #print "Running right motor forward"
+                self.plotter.right_fwd()
+                left_or_down_pressed_earlier = True
+
+            elif buttons.left:
+                #print "Running right motor back"
+                self.plotter.right_back()
+                left_or_down_pressed_earlier = True
+
+            elif not (buttons.left and buttons.down) and left_or_down_pressed_earlier:
+                #print "Stopping right motor"
+                self.plotter.right_stop()
+                left_or_down_pressed_earlier = False
+
+            elif not (buttons.right and buttons.up) and right_or_up_pressed_earlier:
+                # print "Stopping left motor"
+                self.plotter.left_stop()
+                right_or_up_pressed_earlier = False
+
+            elif c == 'right-stop':
                 #print "Stopping right motor"
                 self.plotter.right_stop()
                 c = ''
 
-            if c == 'left-back' or buttons.up:
-                #print "Running left motor back"
-                self.plotter.left_back()
+            elif c == 'left-stop':
+                # print "Stopping left motor"
+                self.plotter.left_stop()
+                c = ''
 
-            if c == 'pu':
+            elif c == 'pu':
                 #print "Pulling pen up"
                 self.plotter.pen_up()
                 c = ''
 
-            if c == 'pd':
+            elif c == 'pd':
                 #print "Putting pen down"
                 self.plotter.pen_down()
                 c = ''
 
-            if c == 'stop':
+            elif c == 'stop':
                 self.plotter.left_stop()
                 self.plotter.right_stop()
                 c = ''
                 #print "Stopped"
 
-            if c == 'testdrive':
+            elif c == 'testdrive':
                 self.plotter.test_drive()
                 c = ''
 
-            if c == 'plot':
+            elif c == 'plot':
                 # c stays 'plot' until another command is sent trough the socket
                 plot_action = self.plotter.plot_from_file('uploads/coords.csv')
                 c = 'plotting'
 
-            if c == 'plotting':
+            elif c == 'plotting':
                 try:
                     pct_done = next(plot_action)
                     wsSend("[ {0:.2f}V ] Plot {1:.2f}% done".format(self.plotter.battery.measured_voltage/1000000.0, pct_done))
@@ -255,25 +289,25 @@ class MotorThread(threading.Thread):
                     c = ''
                     wsSend("Done plotting")
 
-            if c == 'zero':
+            elif c == 'zero':
                 wsSend("zero motor positions")
                 self.plotter.set_control_zeroes()
                 c = ''
-
-            if c == 'plotcircles':
+            elif c == 'plotcircles':
                 wsSend("Plotting circles")
                 # c stays 'plot' until another command is sent trough the socket
                 plot_action = self.plotter.plot_circles()
                 c = 'plotting'
-
-            if c == 'plotwaves':
+            elif c == 'plotwaves':
                 wsSend("Plotting waves")
                 # c stays 'plot' until another command is sent trough the socket
                 plot_action = self.plotter.plot_circle_waves()
                 c = 'plotting'
 
+            #Button commands
             if buttons.backspace:
                 raise KeyboardInterrupt
+
             #BrickPiUpdateValues()  # BrickPi updates the values for the motors
             self.throttle.throttle()  #Don't go too fast.
 

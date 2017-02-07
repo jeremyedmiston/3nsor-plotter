@@ -80,7 +80,6 @@ class MainHandler(tornado.web.RequestHandler):
 
 class UploadHandler(tornado.web.RequestHandler):
     def post(self):
-        #print(self.request.files)
         if 'file_0' in self.request.files:
             fileinfo = self.request.files['file_0'][0]
             fname = fileinfo['filename']
@@ -123,7 +122,7 @@ class WSHandler(tornado.websocket.WebSocketHandler):
         global websockets
         if self not in websockets:
             websockets.append(self)
-        print('connection opened...')
+        #print('connection opened...')
 
     def check_origin(self, origin):
         return True
@@ -131,19 +130,17 @@ class WSHandler(tornado.websocket.WebSocketHandler):
     def on_message(self, message):  # receives the data from the webpage and is stored in the variable message
         global c
         c = json.loads(message)
-        #print(c)
 
     def on_close(self):
         global websockets
         if self in websockets:
             websockets.remove(self)
-        print('connection closed...')
+        #print('connection closed...')
 
 
 def wsSend(message):
     for ws in websockets:
         # Prepend voltage before each message
-        # TODO make a separate voltage gauge on the web page.
         ws.write_message(message)
 
 
@@ -172,7 +169,6 @@ class MotorThread(threading.Thread):
 
     def run(self):
         global c
-        print("Starting interaction thread")
         buttons = ev.Button()
         right_or_up_pressed_earlier = False
         left_or_down_pressed_earlier = False
@@ -201,68 +197,54 @@ class MotorThread(threading.Thread):
 
             #Socket commands
             if c == 'left-fwd':
-                #print "Running left motor fwd"
                 self.plotter.left_fwd()
 
             elif c == 'left-back':
-                # print "Running left motor back"
                 self.plotter.left_back()
 
             elif c == 'right-fwd':
-                #print "Running right motor forward"
                 self.plotter.right_fwd()
 
             elif c == 'right-back':
-                #print "Running right motor back"
                 self.plotter.right_back()
 
             elif buttons.right:
-                #print "Running left motor fwd"
                 self.plotter.left_fwd()
                 right_or_up_pressed_earlier = True
 
             elif buttons.up:
-                # print "Running left motor back"
                 self.plotter.left_back()
                 right_or_up_pressed_earlier = True
 
             elif buttons.down:
-                #print "Running right motor forward"
                 self.plotter.right_fwd()
                 left_or_down_pressed_earlier = True
 
             elif buttons.left:
-                #print "Running right motor back"
                 self.plotter.right_back()
                 left_or_down_pressed_earlier = True
 
             elif not (buttons.left and buttons.down) and left_or_down_pressed_earlier:
-                #print "Stopping right motor"
                 self.plotter.right_stop()
                 left_or_down_pressed_earlier = False
 
             elif not (buttons.right and buttons.up) and right_or_up_pressed_earlier:
-                # print "Stopping left motor"
                 self.plotter.left_stop()
                 right_or_up_pressed_earlier = False
 
             elif c == 'right-stop':
-                #print "Stopping right motor"
                 self.plotter.right_stop()
                 c = ''
 
             elif c == 'left-stop':
-                # print "Stopping left motor"
                 self.plotter.left_stop()
                 c = ''
 
             elif c == 'pu':
-                #print "Pulling pen up"
                 self.plotter.pen_up()
                 c = ''
 
             elif c == 'pd':
-                #print "Putting pen down"
                 self.plotter.pen_down()
                 c = ''
 
@@ -270,7 +252,6 @@ class MotorThread(threading.Thread):
                 self.plotter.left_stop()
                 self.plotter.right_stop()
                 c = ''
-                #print "Stopped"
 
             elif c == 'testdrive':
                 self.plotter.test_drive()
@@ -312,13 +293,11 @@ class MotorThread(threading.Thread):
                     ws.close()
                 break
 
-
-            #BrickPiUpdateValues()  # BrickPi updates the values for the motors
             self.throttle.throttle()  #Don't go too fast.
 
         #Stopped running. Shutting down all motors.
         self.plotter.stop_all_motors()
-        print("Motor thread stopped")
+        print("Socket thread stopped")
 
 
 ################## Main #############################
@@ -341,7 +320,6 @@ if __name__ == "__main__":
     draw.text((2, 150), 'press back to exit')
     del draw
     lcd.image.paste(img.rotate(-90), box=(0, 0))
-    lcd.update()
 
     # Set up web server
     application.listen(9093)  # starts the web sockets connection
@@ -349,6 +327,7 @@ if __name__ == "__main__":
 
     # Display ip number on screen for easy connection
     lcd.update()
+
     try:
         tornado.ioloop.IOLoop.instance().start()
     except KeyboardInterrupt:  # Triggered by pressing Ctrl+C. Time to clean up.

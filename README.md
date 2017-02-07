@@ -55,8 +55,5 @@ As long as the server is running, there's no problem.
 ## To do ##
 - When a plotter instance exists, prefill actual parameters on webpage
 - Refactor and clean up the code.
-- Make main file executable
 - Move web UI stuff to a separate folder
-- Print the IP address on the Ev3 screen
-- Make a button to stop the program from the brick
-- Make brick buttons usable for moving the robot.
+- Make routine for writing %done and status on ev3 screen

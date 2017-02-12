@@ -87,11 +87,11 @@ class UploadHandler(tornado.web.RequestHandler):
             print(fname)
             extension = os.path.splitext(fname)[1]
 
-            if extension == '.jpg' or extension == '.jpeg':
+            if extension.upper() == '.JPG' or extension.upper() == '.JPEG':
                 output_file = open("uploads/picture.jpg", 'wb')
                 output_file.write(fileinfo['body'])
                 output_file.close()
-            elif extension == '.csv':
+            elif extension.upper() == '.CSV':
                 output_file = open("uploads/coords.csv", 'wb')
                 output_file.write(fileinfo['body'])
                 output_file.close()

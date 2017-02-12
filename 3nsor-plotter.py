@@ -140,7 +140,6 @@ class WSHandler(tornado.websocket.WebSocketHandler):
 
 def wsSend(message):
     for ws in websockets:
-        # Prepend voltage before each message
         ws.write_message(message)
 
 

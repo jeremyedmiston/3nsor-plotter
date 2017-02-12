@@ -84,7 +84,6 @@ class UploadHandler(tornado.web.RequestHandler):
         if 'file_0' in self.request.files:
             fileinfo = self.request.files['file_0'][0]
             fname = fileinfo['filename']
-            print(fname)
             extension = os.path.splitext(fname)[1]
 
             if extension.upper() == '.JPG' or extension.upper() == '.JPEG':

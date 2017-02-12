@@ -90,6 +90,9 @@ class UploadHandler(tornado.web.RequestHandler):
                 output_file = open("uploads/picture.jpg", 'wb')
                 output_file.write(fileinfo['body'])
                 output_file.close()
+                img_scale = Image.open("uploads/picture.jpg")
+                img_scale.thumbnail((600, 600), Image.ANTIALIAS)
+                img_scale.save("uploads/picture.jpg")
             elif extension.upper() == '.CSV':
                 output_file = open("uploads/coords.csv", 'wb')
                 output_file.write(fileinfo['body'])

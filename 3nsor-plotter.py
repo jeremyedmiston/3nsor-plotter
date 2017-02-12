@@ -55,6 +55,7 @@ import tornado.template
 import json,os
 import sys
 from PIL import Image, ImageDraw
+import logging
 
 # My own stuff
 from ropeplotter import RopePlotter, Logger, Throttler, get_ip_address
@@ -308,6 +309,14 @@ if __name__ == "__main__":
     motor_thread = MotorThread()
     motor_thread.setDaemon(True)
     motor_thread.start()
+
+    # Turn down logging levels
+    access_log = logging.getLogger("tornado.access")
+    app_log = logging.getLogger("tornado.application")
+    gen_log = logging.getLogger("tornado.general")
+    access_log.setLevel(logging.CRITICAL)
+    app_log.setLevel(logging.CRITICAL)
+    gen_log.setLevel(logging.CRITICAL)
 
     # Prepare the screen
     lcd = ev.Screen()

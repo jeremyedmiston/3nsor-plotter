@@ -54,7 +54,7 @@ import tornado.websocket
 import tornado.template
 import json,os
 import sys
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageOps
 import logging
 
 # My own stuff
@@ -91,7 +91,7 @@ class UploadHandler(tornado.web.RequestHandler):
                 output_file.write(fileinfo['body'])
                 output_file.close()
                 img_scale = Image.open("uploads/picture.jpg")
-                img_scale.thumbnail((600, 600), Image.ANTIALIAS)
+                img_scale = ImageOps.fit(img_scale,(600, 600), Image.ANTIALIAS)
                 img_scale.save("uploads/picture.jpg")
             elif extension.upper() == '.CSV':
                 output_file = open("uploads/coords.csv", 'wb')

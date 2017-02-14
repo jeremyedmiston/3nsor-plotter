@@ -56,6 +56,7 @@ import json,os
 import sys
 from PIL import Image, ImageDraw, ImageOps
 import logging
+from io import StringIO
 
 # My own stuff
 from ropeplotter import RopePlotter, Logger, Throttler, get_ip_address
@@ -87,12 +88,9 @@ class UploadHandler(tornado.web.RequestHandler):
             extension = os.path.splitext(fname)[1]
 
             if extension.upper() == '.JPG' or extension.upper() == '.JPEG':
-                output_file = open("uploads/picture.jpg", 'wb')
-                output_file.write(fileinfo['body'])
-                output_file.close()
-                img_scale = Image.open("uploads/picture.jpg")
-                img_scale = ImageOps.fit(img_scale,(600, 600), Image.ANTIALIAS)
-                img_scale.save("uploads/picture.jpg")
+                im = Image.open(StringIO(fileinfo['body']))
+                im = ImageOps.fit(im,(600, 600), Image.ANTIALIAS)
+                im.save("uploads/picture.jpg")
             elif extension.upper() == '.CSV':
                 output_file = open("uploads/coords.csv", 'wb')
                 output_file.write(fileinfo['body'])

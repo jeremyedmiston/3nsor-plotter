@@ -85,8 +85,9 @@ class UploadHandler(tornado.web.RequestHandler):
         if 'file_0' in self.request.files:
             fileinfo = self.request.files['file_0'][0]
             fname = fileinfo['filename']
+            print(fname)
             extension = os.path.splitext(fname)[1]
-
+            print(extension)
             if extension.upper() == '.JPG' or extension.upper() == '.JPEG':
                 im = Image.open(StringIO(fileinfo['body']))
                 im = ImageOps.fit(im,(600, 600), Image.ANTIALIAS)

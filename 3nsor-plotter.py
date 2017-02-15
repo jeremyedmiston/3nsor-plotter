@@ -88,6 +88,7 @@ class UploadHandler(tornado.web.RequestHandler):
             extension = os.path.splitext(fname)[1]
             print(extension, extension.upper())
             if extension.upper() == '.JPG' or extension.upper() == '.JPEG':
+                print(fileinfo['body'])
                 im = Image.open(BytesIO(fileinfo['body']))
                 im = ImageOps.fit(im,(600, 600), Image.ANTIALIAS)
                 im.save("uploads/picture.jpg")

@@ -86,11 +86,17 @@ class UploadHandler(tornado.web.RequestHandler):
             fileinfo = self.request.files['file_0'][0]
             fname = fileinfo['filename']
             extension = os.path.splitext(fname)[1]
-            print(extension, extension.upper())
+            #print(extension, extension.upper())
             if extension.upper() == '.JPG' or extension.upper() == '.JPEG':
-                print(fileinfo['body'])
                 im = Image.open(BytesIO(fileinfo['body']))
-                im = ImageOps.fit(im,(600, 600), Image.ANTIALIAS)
+                im = ImageOps.fit(im,(500, 500), Image.ANTIALIAS)
+                im.save("uploads/picture.jpg")
+            if extension.upper() == '.PNG':
+                img_file = open("uploads/tmp.png", 'wb')
+                img_file.write(fileinfo['body'])
+                #img_file.close() #is this needed?
+                im = Image.open(img_file)
+                im = ImageOps.fit(im, (500, 500), Image.ANTIALIAS)
                 im.save("uploads/picture.jpg")
             elif extension.upper() == '.CSV':
                 output_file = open("uploads/coords.csv", 'wb')

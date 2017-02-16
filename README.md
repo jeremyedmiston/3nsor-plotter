@@ -9,7 +9,7 @@ a web interface with tornado. The video is done with the BrickPi branch of this 
 ## Hardware requirements ##
 - Raspberry Pi with a BrickPi or BrickPi+ shield. The model doesn't matter, model A, B, B+ and v2 all work.
 - ...OR an Ev3 brain
-- A robot with two ropes attached to motors B and C, and a pen to motor D.
+- A robot with two ropes attached to motors B and C, and a pen to motor A.
 - A small USB wifi stick. Can't leave the robot connected while it's plotting
 
 ## Software requirements ##
@@ -26,7 +26,7 @@ sudo apt-get install build-essential python-dev
 git clone https://github.com/tornadoweb/tornado
 cd tornado
 python3 setup.py build
-sudo python3 setyp.py install
+sudo python3 setup.py install
 '''
 3. Install python PIL `sudo apt-get install python-pil`
 2. Clone this repo: `git clone https://github.com/antonvh/3nsor-plotter/`
@@ -57,4 +57,7 @@ As long as the server is running, there's no problem.
 - Refactor and clean up the code.
 - Move web UI stuff to a separate folder
 - Make routine for writing %done and status on ev3 screen
-- 
+- Improve speed of uploads
+- Convert print statements to logging statements see: http://stackoverflow.com/questions/15707056/get-time-of-execution-of-a-block-of-code-in-python-2-7
+- Add command line parameter to set log levels
+- Develop a status/voltage gauge on the web front-end

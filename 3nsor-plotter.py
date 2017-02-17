@@ -55,7 +55,7 @@ import tornado.template
 import json,os
 import sys
 from PIL import Image, ImageDraw, ImageOps
-import logging
+import logging,time
 from io import StringIO, BytesIO
 
 # My own stuff
@@ -86,18 +86,25 @@ class UploadHandler(tornado.web.RequestHandler):
             fileinfo = self.request.files['file_0'][0]
             fname = fileinfo['filename']
             extension = os.path.splitext(fname)[1]
-            #print(extension, extension.upper())
+            logging.debug(extension, extension.upper())
             if extension.upper() == '.JPG' or extension.upper() == '.JPEG':
+                logging.debug("started image download")
                 img_file = open("uploads/tmp.jpg", 'wb')
+                logging.debug("started file write")
                 img_file.write(fileinfo['body'])
-                # img_file.close()
+                logging.debug("started closing file")
+                img_file.close()
+                logging.debug("file closed")
                 im = Image.open(img_file)
+                logging.debug("image opened")
                 im = ImageOps.fit(im,(500, 500), Image.ANTIALIAS)
+                logging.debug("image scaled")
                 im.save("uploads/picture.jpg")
+                logging.debug("image saved")
             if extension.upper() == '.PNG':
                 img_file = open("uploads/tmp.png", 'wb')
                 img_file.write(fileinfo['body'])
-                # img_file.close() #is this needed?
+                img_file.close() #is this needed?
                 im = Image.open(img_file)
                 im = ImageOps.fit(im, (500, 500), Image.ANTIALIAS)
                 im.save("uploads/picture.jpg")
@@ -134,7 +141,7 @@ class WSHandler(tornado.websocket.WebSocketHandler):
         global websockets
         if self not in websockets:
             websockets.append(self)
-        #print('connection opened...')
+        logging.info('connection opened...')
 
     def check_origin(self, origin):
         return True
@@ -147,7 +154,7 @@ class WSHandler(tornado.websocket.WebSocketHandler):
         global websockets
         if self in websockets:
             websockets.remove(self)
-        #print('connection closed...')
+        logging.info('connection closed...')
 
 
 def wsSend(message):
@@ -308,7 +315,7 @@ class MotorThread(threading.Thread):
 
         #Stopped running. Shutting down all motors.
         self.plotter.stop_all_motors()
-        print("Socket thread stopped")
+        logging.info("Socket thread stopped")
 
 
 ################## Main #############################
@@ -320,13 +327,21 @@ if __name__ == "__main__":
     motor_thread.setDaemon(True)
     motor_thread.start()
 
-    # Turn down logging levels
+    # Set logging levels
+    if len(sys.argv) > 1: #Whatever argument is enough the lower log levels...
+        logging.basicConfig(filename='3nsor.log', level=logging.DEBUG,
+                            format='%(asctime)s.%(msecs)03d - %(funcName)s: %(message)s',
+                            datefmt="%H:%M:%S")
+        log_level = logging.DEBUG
+    else:
+        log_level = logging.CRITICAL
+
     access_log = logging.getLogger("tornado.access")
     app_log = logging.getLogger("tornado.application")
     gen_log = logging.getLogger("tornado.general")
-    access_log.setLevel(logging.CRITICAL)
-    app_log.setLevel(logging.CRITICAL)
-    gen_log.setLevel(logging.CRITICAL)
+    access_log.setLevel(log_level)
+    app_log.setLevel(log_level)
+    gen_log.setLevel(log_level)
 
     # Prepare the screen
     lcd = ev.Screen()
@@ -342,22 +357,20 @@ if __name__ == "__main__":
 
     # Set up web server
     application.listen(9093)  # starts the web sockets connection
-    print("Started web server at {0}:9093".format(get_ip_address()))
+    logging.info("Started web server at {0}:9093".format(get_ip_address()))
 
     # Display ip number on screen for easy connection
     lcd.update()
 
     try:
         tornado.ioloop.IOLoop.instance().start()
-    except KeyboardInterrupt:  # Triggered by pressing Ctrl+C. Time to clean up.
-        #Stop motor thread
-        running = False
-        #Close all sockets
-        for ws in websockets:
+    except KeyboardInterrupt:   # Triggered by pressing Ctrl+C. Time to clean up.
+        running = False         #Stop motor thread
+        for ws in websockets:   #Close all sockets
             ws.close()
 
     except:
-        print("Unexpected error:", sys.exc_info()[0])
+        logging.critical("Unexpected error:", sys.exc_info()[0])
         raise
 
-    print("Stopped. Bye!")
+    logging.info("Stopped. Bye!")

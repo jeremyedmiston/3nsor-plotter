@@ -533,7 +533,7 @@ display:none;
           contentType: false,
           processData: false,
           type: $(this).attr('method'),
-          success: function(data){
+          always: function(data){
               d = new Date();
               $("#jpgpreview").attr("src", "uploads/picture.jpg?"+d.getTime());
               $('#jpgloader').removeClass('loader');
@@ -566,7 +566,7 @@ display:none;
           contentType: false,
           processData: false,
           type: $(this).attr('method'),
-          success: function(data){
+          always: function(data){
               $("#coordspreview").attr("src", "uploads/preview.jpg?"+d.getTime());
               $('#csvloader').removeClass('loader');
           }

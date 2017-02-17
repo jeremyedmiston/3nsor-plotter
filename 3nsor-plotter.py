@@ -333,6 +333,7 @@ if __name__ == "__main__":
                             format='%(asctime)s.%(msecs)03d - %(funcName)s: %(message)s',
                             datefmt="%H:%M:%S")
         log_level = logging.DEBUG
+        print("debugging")
     else:
         log_level = logging.CRITICAL
 

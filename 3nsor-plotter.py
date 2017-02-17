@@ -70,6 +70,10 @@ import ev3dev.auto as ev
 c = 0               # movement command.
 websockets = []     # list of open sockets.
 
+logging.basicConfig(filename='3nsor.log', level=logging.DEBUG,
+                    format='%(asctime)s.%(msecs)03d - %(funcName)s: %(message)s',
+                    datefmt="%H:%M:%S")
+plotter_log = logging.getLogger("Plotter")
 
 ################# Set up web server & threads #####################
 
@@ -88,13 +92,16 @@ class UploadHandler(tornado.web.RequestHandler):
             extension = os.path.splitext(fname)[1]
             logging.debug(extension, extension.upper())
             if extension.upper() == '.JPG' or extension.upper() == '.JPEG':
-                logging.debug("started image download")
-                img_file = open("uploads/tmp.jpg", 'wb')
-                logging.debug("started file write")
+                plotter_log.debug("started image download")
+                img_file = open("uploads/picture.jpg", 'wb')
+
+                plotter_log.debug("started file write")
                 img_file.write(fileinfo['body'])
-                logging.debug("started closing file")
+
+                plotter_log.debug("started closing file")
                 img_file.close()
-                logging.debug("file closed")
+
+                plotter_log.debug("file closed")
                 # im = Image.open(img_file)
                 # logging.debug("image opened")
                 # im = ImageOps.fit(im,(500, 500), Image.ANTIALIAS)
@@ -141,7 +148,7 @@ class WSHandler(tornado.websocket.WebSocketHandler):
         global websockets
         if self not in websockets:
             websockets.append(self)
-        logging.info('connection opened...')
+        plotter_log.info('connection opened...')
 
     def check_origin(self, origin):
         return True
@@ -154,7 +161,7 @@ class WSHandler(tornado.websocket.WebSocketHandler):
         global websockets
         if self in websockets:
             websockets.remove(self)
-        logging.info('connection closed...')
+        plotter_log.info('connection closed...')
 
 
 def wsSend(message):
@@ -315,7 +322,7 @@ class MotorThread(threading.Thread):
 
         #Stopped running. Shutting down all motors.
         self.plotter.stop_all_motors()
-        logging.info("Socket thread stopped")
+        plotter_log.info("Socket thread stopped")
 
 
 ################## Main #############################
@@ -329,11 +336,7 @@ if __name__ == "__main__":
 
     # Set logging levels
     if len(sys.argv) > 1: #Whatever argument is enough the lower log levels...
-        logging.basicConfig(filename='3nsor.log', level=logging.DEBUG,
-                            format='%(asctime)s.%(msecs)03d - %(funcName)s: %(message)s',
-                            datefmt="%H:%M:%S")
         log_level = logging.DEBUG
-        print("debugging")
     else:
         log_level = logging.CRITICAL
 
@@ -343,6 +346,7 @@ if __name__ == "__main__":
     access_log.setLevel(log_level)
     app_log.setLevel(log_level)
     gen_log.setLevel(log_level)
+    plotter_log.setLevel(log_level)
 
     # Prepare the screen
     lcd = ev.Screen()

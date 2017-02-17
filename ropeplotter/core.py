@@ -13,6 +13,8 @@ UP = 0
 DOWN = 1
 UNCHANGED = -1
 
+plotter_log = logging.getLogger("Plotter")
+
 class RopePlotter(object):
     def __init__(self, l_rope_0, r_rope_0, attachment_distance, cm_to_deg=-175, Kp=2.2, Ki=0.2, Kd=0.02):
 
@@ -128,18 +130,18 @@ class RopePlotter(object):
     def calc_constants(self):
         # Calculate the height of triangle made up by the two ropes
         self.v_margin = self.triangle_area(self.__l_rope_0, self.__r_rope_0, self.__att_dist) / self.__att_dist * 2
-        logging.debug("v margin:"+str(self.v_margin))
+        plotter_log.debug("v margin:"+str(self.v_margin))
         print("v margin:"+str(self.v_margin))
 
         # Using pythagoras to find distance from bottom triangle point to left doorframe
         self.h_margin = (self.__l_rope_0 ** 2 - self.v_margin ** 2) ** 0.5
-        logging.debug("h margin:" + str(self.h_margin))
-        print("h margin:" + str(self.v_margin))
+        plotter_log.debug("h margin:" + str(self.h_margin))
+        print("h margin:" + str(self.h_margin))
 
         # For convenience, the canvas is square and centered between the attachment points
         self.canvas_size = self.__att_dist - 2 * self.h_margin
-        logging.debug("canvas:" + str(self.canvas_size))
-        print("canvas margin:" + str(self.canvas_size))
+        plotter_log.debug("canvas:" + str(self.canvas_size))
+        print("canvas :" + str(self.canvas_size))
 
     ### Calculations for global (doorframe) to local (canvas) coordinates and back. ###
     def motor_targets_from_norm_coords(self,x_norm, y_norm):

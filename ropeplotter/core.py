@@ -4,6 +4,7 @@ import time
 import ev3dev.auto as ev3
 import math
 from PIL import Image
+import logging
 from ropeplotter.robot_helpers import PIDMotor, clamp, BrickPiPowerSupply
 
 PEN_UP_POS = 0
@@ -127,12 +128,15 @@ class RopePlotter(object):
     def calc_constants(self):
         # Calculate the height of triangle made up by the two ropes
         self.v_margin = self.triangle_area(self.__l_rope_0, self.__r_rope_0, self.__att_dist) / self.__att_dist * 2
+        logging.debug("v margin:"+str(self.v_margin))
 
         # Using pythagoras to find distance from bottom triangle point to left doorframe
         self.h_margin = (self.__l_rope_0 ** 2 - self.v_margin ** 2) ** 0.5
+        logging.debug("h margin:" + str(self.v_margin))
 
         # For convenience, the canvas is square and centered between the attachment points
         self.canvas_size = self.__att_dist - 2 * self.h_margin
+        logging.debug("c margin:" + str(self.v_margin))
 
     ### Calculations for global (doorframe) to local (canvas) coordinates and back. ###
     def motor_targets_from_norm_coords(self,x_norm, y_norm):

@@ -12,6 +12,8 @@ PEN_DOWN_POS = -30
 UP = 0
 DOWN = 1
 UNCHANGED = -1
+SLOW = 300
+FAST = 650
 
 plotter_log = logging.getLogger("Plotter")
 
@@ -414,8 +416,6 @@ class RopePlotter(object):
         self.move_to_norm_coord(0,0)
 
     def plot_circles(self):
-        SLOW = 220
-        FAST = 500
         num_circles = self.scanlines
 
         im = Image.open("uploads/picture.jpg").convert("L")

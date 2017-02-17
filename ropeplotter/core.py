@@ -347,7 +347,7 @@ class RopePlotter(object):
             drive_motor.stop()
 
             # Yield to allow pause/stop and show percentage completion
-            yield (i * 50.0) / self.scanlines * 0.66
+            yield (i * 50.0) / self.scanlines
 
             # Good, now move to the next point and roll down.
             x = ((r_min + r_step * (i + 1)) ** 2 - self.v_margin ** 2) ** 0.5
@@ -401,7 +401,7 @@ class RopePlotter(object):
             drive_motor.stop()
 
             # Yield to allow pause/stop and show percentage
-            yield ((i + 1) * 50.0) / self.scanlines * 0.66
+            yield ((i + 1) * 50.0) / self.scanlines
 
         self.pen_up()
         self.move_to_norm_coord(0,0)

@@ -59,7 +59,7 @@ import logging,time
 from io import StringIO, BytesIO
 
 # My own stuff
-from ropeplotter import RopePlotter, Logger, Throttler, get_ip_address
+from ropeplotter import RopePlotter, Throttler, get_ip_address
 from settings import *
 
 #Ev3dev for drawing and buttons
@@ -70,7 +70,7 @@ import ev3dev.auto as ev
 c = 0               # movement command.
 websockets = []     # list of open sockets.
 
-logging.basicConfig(filename='3nsor.log', level=logging.DEBUG,
+logging.basicConfig(filename='plotter.log',
                     format='%(asctime)s.%(msecs)03d - %(funcName)s: %(message)s',
                     datefmt="%H:%M:%S")
 plotter_log = logging.getLogger("Plotter")
@@ -187,7 +187,6 @@ class MotorThread(threading.Thread):
     """
 
     def __init__(self):
-        self.motor_log = Logger("Motors")
         threading.Thread.__init__(self)
         self.plotter = RopePlotter(L_ROPE_0, R_ROPE_0, ROPE_ATTACHMENT_WIDTH, Kp=KP, Ki=TI, Kd=TD, cm_to_deg=CM_TO_DEG)
         self.throttle = Throttler(MOTOR_CMD_RATE)

@@ -94,43 +94,6 @@ class Throttler(object):
         self.timestamp = time.time()
 
 
-class Logger(object):
-    """
-    Helper class that logs events to the console and later maybe to a file.
-
-    log() writes whatever you throw at it to the current line in the logbook
-
-    newline() tells the log it's time to start a new group of events. This makes it easier to reconstruct what happened
-    in multiple threads.
-
-    """
-
-    def __init__(self, logname="log",to_file=False):
-        self.logname = logname
-        self.loglist = []
-        self.new_line_ready = False
-        self.to_file = to_file
-        if to_file:
-            self.logfile = open("logs/"+self.logname+".csv",'w')
-
-    def log(self, *args):
-        self.new_line_ready = False
-        self.loglist += list(args)
-        #print args
-
-    def newline(self):
-        if len(self.loglist) > 0:
-            self.lastline = [time.time()] + list(self.loglist)
-            self.loglist = []
-            self.new_line_ready = True
-            if self.to_file:
-                self.logfile.write(",".join([str(i) for i in self.lastline])+"\n")
-
-    def log_line(self, *args):
-        self.log(*args)
-        self.newline()
-
-
 class PIDControl(object):
     """
     Helper class that remembers the integral and derivative of an error and uses that to calculate

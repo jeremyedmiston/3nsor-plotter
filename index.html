@@ -537,6 +537,16 @@ display:none;
               d = new Date();
               $("#jpgpreview").attr("src", "uploads/picture.jpg?"+d.getTime());
               $('#jpgloader').removeClass('loader');
+          },
+          done: function(data){
+              d = new Date();
+              $("#jpgpreview").attr("src", "uploads/picture.jpg?"+d.getTime());
+              $('#jpgloader').removeClass('loader');
+          },
+          success: function(data){
+              d = new Date();
+              $("#jpgpreview").attr("src", "uploads/picture.jpg?"+d.getTime());
+              $('#jpgloader').removeClass('loader');
           }
       });
 
@@ -569,6 +579,17 @@ display:none;
           always: function(data){
               $("#coordspreview").attr("src", "uploads/preview.jpg?"+d.getTime());
               $('#csvloader').removeClass('loader');
+              console.log("always");
+          },
+          success: function(data){
+              $("#coordspreview").attr("src", "uploads/preview.jpg?"+d.getTime());
+              $('#csvloader').removeClass('loader');
+              console.log("success");
+          },
+          done: function(data){
+              $("#coordspreview").attr("src", "uploads/preview.jpg?"+d.getTime());
+              $('#csvloader').removeClass('loader');
+              console.log("done");
           }
       });
 

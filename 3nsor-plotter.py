@@ -65,15 +65,19 @@ from settings import *
 #Ev3dev for drawing and buttons
 import ev3dev.auto as ev
 
-################## Globals. I know. #################
+######################### Globals. ################################
 
 c = 0               # movement command.
 websockets = []     # list of open sockets.
+
+# instantiate a plotter object
+plotter = RopePlotter(L_ROPE_0, R_ROPE_0, ROPE_ATTACHMENT_WIDTH, Kp=KP, Ki=TI, Kd=TD, cm_to_deg=CM_TO_DEG)
 
 logging.basicConfig(filename='plotter.log',
                     format='%(asctime)s.%(msecs)03d - %(funcName)s: %(message)s',
                     datefmt="%H:%M:%S")
 plotter_log = logging.getLogger("Plotter")
+
 
 ################# Set up web server & threads #####################
 
@@ -81,7 +85,15 @@ plotter_log = logging.getLogger("Plotter")
 # Initialize Tornado to use 'GET' and load index.html
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
-        self.render("index.html", kp=KP, ti=TI, td=TD, ll=L_ROPE_0, lr=R_ROPE_0, sl=SCAN_LINES, aw=ROPE_ATTACHMENT_WIDTH, cm_to_deg=CM_TO_DEG)
+        self.render("index.html",
+                    kp=plotter.Kp,
+                    ti=plotter.Ti,
+                    td=plotter.Td,
+                    ll=plotter.l_rope_0,
+                    lr=plotter.r_rope_0,
+                    sl=plotter.scanlines,
+                    aw=plotter.att_dist,
+                    cm_to_deg=plotter.cm_to_deg)
 
 
 class UploadHandler(tornado.web.RequestHandler):
@@ -188,11 +200,10 @@ class MotorThread(threading.Thread):
 
     def __init__(self):
         threading.Thread.__init__(self)
-        self.plotter = RopePlotter(L_ROPE_0, R_ROPE_0, ROPE_ATTACHMENT_WIDTH, Kp=KP, Ki=TI, Kd=TD, cm_to_deg=CM_TO_DEG)
         self.throttle = Throttler(MOTOR_CMD_RATE)
 
     def run(self):
-        global c
+        global c, plotter
         buttons = ev.Button()
         right_or_up_pressed_earlier = False
         left_or_down_pressed_earlier = False
@@ -203,18 +214,18 @@ class MotorThread(threading.Thread):
                 # We got settings
                 if 'kp' in c:
                     #We got pid settings
-                    self.plotter.Kp = c['kp']
-                    self.plotter.Ti = c['ti']
-                    self.plotter.Td = c['td']
-                    self.plotter.cm_to_deg = int(c['cm_to_deg'])
+                    plotter.Kp = c['kp']
+                    plotter.Ti = c['ti']
+                    plotter.Td = c['td']
+                    plotter.cm_to_deg = int(c['cm_to_deg'])
                     wsSend("PID parameters set")
 
                 if 'll' in c:
                     #we got rope length settings
-                    self.plotter.l_rope_0 = c['ll']
-                    self.plotter.r_rope_0 = c['lr']
-                    self.plotter.att_dist = c['aw']
-                    self.plotter.scanlines = int(c['sl'])
+                    plotter.l_rope_0 = c['ll']
+                    plotter.r_rope_0 = c['lr']
+                    plotter.att_dist = c['aw']
+                    plotter.scanlines = int(c['sl'])
                     wsSend("Plotter settings set")
                 c=''
 

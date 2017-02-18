@@ -232,92 +232,92 @@ class MotorThread(threading.Thread):
 
             #Socket commands
             if c == 'left-fwd':
-                self.plotter.left_fwd()
+                plotter.left_fwd()
 
             elif c == 'left-back':
-                self.plotter.left_back()
+                plotter.left_back()
 
             elif c == 'right-fwd':
-                self.plotter.right_fwd()
+                plotter.right_fwd()
 
             elif c == 'right-back':
-                self.plotter.right_back()
+                plotter.right_back()
 
             elif buttons.right:
-                self.plotter.left_fwd()
+                plotter.left_fwd()
                 right_or_up_pressed_earlier = True
 
             elif buttons.up:
-                self.plotter.left_back()
+                plotter.left_back()
                 right_or_up_pressed_earlier = True
 
             elif buttons.down:
-                self.plotter.right_fwd()
+                plotter.right_fwd()
                 left_or_down_pressed_earlier = True
 
             elif buttons.left:
-                self.plotter.right_back()
+                plotter.right_back()
                 left_or_down_pressed_earlier = True
 
             elif not (buttons.left and buttons.down) and left_or_down_pressed_earlier:
-                self.plotter.right_stop()
+                plotter.right_stop()
                 left_or_down_pressed_earlier = False
 
             elif not (buttons.right and buttons.up) and right_or_up_pressed_earlier:
-                self.plotter.left_stop()
+                plotter.left_stop()
                 right_or_up_pressed_earlier = False
 
             elif c == 'right-stop':
-                self.plotter.right_stop()
+                plotter.right_stop()
                 c = ''
 
             elif c == 'left-stop':
-                self.plotter.left_stop()
+                plotter.left_stop()
                 c = ''
 
             elif c == 'pu':
-                self.plotter.pen_up()
+                plotter.pen_up()
                 c = ''
 
             elif c == 'pd':
-                self.plotter.pen_down()
+                plotter.pen_down()
                 c = ''
 
             elif c == 'stop':
-                self.plotter.left_stop()
-                self.plotter.right_stop()
+                plotter.left_stop()
+                plotter.right_stop()
                 c = ''
 
             elif c == 'testdrive':
-                self.plotter.test_drive()
+                plotter.test_drive()
                 c = ''
 
             elif c == 'plot':
                 # c stays 'plot' until another command is sent trough the socket
-                plot_action = self.plotter.plot_from_file('uploads/coords.csv')
+                plot_action = plotter.plot_from_file('uploads/coords.csv')
                 c = 'plotting'
 
             elif c == 'plotting':
                 try:
                     pct_done = next(plot_action)
-                    wsSend("[ {0:.2f}V ] Plot {1:.2f}% done".format(self.plotter.battery.measured_voltage/1000000.0, pct_done))
+                    wsSend("[ {0:.2f}V ] Plot {1:.2f}% done".format(plotter.battery.measured_voltage/1000000.0, pct_done))
                 except StopIteration:
                     c = ''
                     wsSend("Done plotting")
 
             elif c == 'zero':
                 wsSend("zero motor positions")
-                self.plotter.set_control_zeroes()
+                plotter.set_control_zeroes()
                 c = ''
             elif c == 'plotcircles':
                 wsSend("Plotting circles")
                 # c stays 'plot' until another command is sent trough the socket
-                plot_action = self.plotter.plot_circles()
+                plot_action = plotter.plot_circles()
                 c = 'plotting'
             elif c == 'plotwaves':
                 wsSend("Plotting waves")
                 # c stays 'plot' until another command is sent trough the socket
-                plot_action = self.plotter.plot_circle_waves()
+                plot_action = plotter.plot_circle_waves()
                 c = 'plotting'
 
             #Button commands
@@ -331,7 +331,7 @@ class MotorThread(threading.Thread):
             self.throttle.throttle()  #Don't go too fast.
 
         #Stopped running. Shutting down all motors.
-        self.plotter.stop_all_motors()
+        plotter.stop_all_motors()
         plotter_log.info("Socket thread stopped")
 
 

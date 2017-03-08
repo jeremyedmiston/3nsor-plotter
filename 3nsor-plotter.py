@@ -154,7 +154,7 @@ class UploadHandler(tornado.web.RequestHandler):
             return
 
 
-#Code for handling the data sent from the webpage
+# Code for handling the data sent from the webpage
 class WSHandler(tornado.websocket.WebSocketHandler):
     def open(self):
         global websockets
@@ -209,7 +209,6 @@ class MotorThread(threading.Thread):
         left_or_down_pressed_earlier = False
         while running:
 
-
             if type(c) == dict:
                 # We got settings
                 if 'kp' in c:
@@ -229,8 +228,7 @@ class MotorThread(threading.Thread):
                     wsSend("Plotter settings set")
                 c=''
 
-
-            #Socket commands
+            # Socket commands
             if c == 'left-fwd':
                 plotter.left_fwd()
 
@@ -320,7 +318,7 @@ class MotorThread(threading.Thread):
                 plot_action = plotter.plot_circle_waves()
                 c = 'plotting'
 
-            #Button commands
+            # Button commands
             if buttons.backspace:
                 tornado.ioloop.IOLoop.instance().stop()
                 # Close all sockets
@@ -328,9 +326,9 @@ class MotorThread(threading.Thread):
                     ws.close()
                 break
 
-            self.throttle.throttle()  #Don't go too fast.
+            self.throttle.throttle()  # Don't go too fast.
 
-        #Stopped running. Shutting down all motors.
+        # Stopped running. Shutting down all motors.
         plotter.stop_all_motors()
         plotter_log.info("Socket thread stopped")
 
@@ -345,7 +343,7 @@ if __name__ == "__main__":
     motor_thread.start()
 
     # Set logging levels
-    if len(sys.argv) > 1: #Whatever argument is enough the lower log levels...
+    if len(sys.argv) > 1: # Whatever argument is enough the lower log levels...
         log_level = logging.DEBUG
     else:
         log_level = logging.CRITICAL
@@ -380,8 +378,8 @@ if __name__ == "__main__":
     try:
         tornado.ioloop.IOLoop.instance().start()
     except KeyboardInterrupt:   # Triggered by pressing Ctrl+C. Time to clean up.
-        running = False         #Stop motor thread
-        for ws in websockets:   #Close all sockets
+        running = False         # Stop motor thread
+        for ws in websockets:   # Close all sockets
             ws.close()
 
     except:

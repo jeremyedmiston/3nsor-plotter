@@ -6,6 +6,7 @@ import ev3dev.auto as ev3
 import smbus
 import socket
 
+
 def get_ip_address():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.connect(("8.8.8.8", 80))
@@ -114,8 +115,6 @@ class PIDControl(object):
         self.max_out = max_out
         self.max_i = max_integral
 
-
-
     @property
     def Kp(self):
         return self.__Kp
@@ -190,7 +189,6 @@ class PIDControl(object):
             Kp = self.Kp_neg
         else:
             Kp = self.Kp
-
 
         output = Kp * ( error + self.integral * self.Ti + self.Td * self.derivative )
         if output < -2:

@@ -192,7 +192,7 @@ class PIDControl(object):
             Kp = self.Kp
 
 
-        output = Kp * ( error + self.integral * self.Ti + self.Td * self.derivative )+10
+        output = Kp * ( error + self.integral * self.Ti + self.Td * self.derivative )
         if output < -2:
             output -= 8
         elif output > 2:

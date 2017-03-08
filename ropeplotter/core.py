@@ -318,7 +318,7 @@ class RopePlotter(object):
                 # Look at the pixel we're at and move pen up & down according to it's darkness
                 pixel_location = (clamp(x_norm * w, (0, w - 1)), clamp(y_norm * w, (0, h - 1)))
                 darkness = (pixels[pixel_location] - 255.0) / -255.0
-                drive_speed = 600 - 578 * darkness ** 0.6 # Exponential darkness for more contrast.
+                drive_speed = 600 - 578 * darkness ** 0.9   # Exponential darkness for more contrast.
 
                 if darkness > 0.2:
                     self.pen_motor.position_sp = PEN_DOWN_POS
@@ -372,7 +372,7 @@ class RopePlotter(object):
                 x_norm, y_norm = self.coords_from_motor_pos(anchor_motor_pos, drive_motor_pos)
                 pixel_location = (clamp(x_norm * w, (0, w - 1)), clamp(y_norm * w, (0, h - 1)))
                 darkness = (pixels[pixel_location] - 255.0) / -255.0  # this turns 0 when white (255), 1 when black.
-                drive_speed = (600 - 578 * darkness ** 0.6) * -1  # Exponential darkness for more contrast.
+                drive_speed = (600 - 578 * darkness ** 0.9) * -1  # Exponential darkness for more contrast.
 
                 if darkness > 0.2:
                     self.pen_motor.position_sp = PEN_DOWN_POS

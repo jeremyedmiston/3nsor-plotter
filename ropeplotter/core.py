@@ -12,7 +12,7 @@ UP = 0
 DOWN = 1
 UNCHANGED = -1
 SLOW = 300
-FAST = 650
+FAST = 580
 
 class RopePlotter(object):
     def __init__(self, l_rope_0, r_rope_0, attachment_distance, cm_to_deg=-175, Kp=2.2, Ki=0.2, Kd=0.02):

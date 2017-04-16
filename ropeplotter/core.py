@@ -3,7 +3,7 @@ __author__ = 'anton'
 import time
 import ev3dev.auto as ev3
 import math
-from PIL import Image
+from PIL import Image, ImageFilter
 from ropeplotter.robot_helpers import PIDMotor, clamp, BrickPiPowerSupply
 
 PEN_UP_POS = 0
@@ -24,6 +24,7 @@ class RopePlotter(object):
         self.direction = 1 # -1 is for reversing motors
         self.calc_constants()
         self.scanlines = 40
+        self.r_step = 1.0 #cm
 
         # Start the engines
         self.pen_motor = PIDMotor(ev3.OUTPUT_A, Kp=2, Ki=0.1, Kd=0 ,brake=0.1, speed_reg=True)
@@ -159,12 +160,12 @@ class RopePlotter(object):
 
         return x_norm,y_norm
 
-    def normalized_to_global_coords(self,x_norm,y_norm):
+    def normalized_to_global_coords(self, x_norm, y_norm):
         # convert normalized coordinates to global coordinates
         x = x_norm * self.canvas_size + self.h_margin
         y = y_norm * self.canvas_size + self.v_margin
 
-        return x,y
+        return x, y
 
     ### Movement functions ###
     def set_control_zeroes(self):
@@ -592,6 +593,224 @@ class RopePlotter(object):
 
         self.move_to_norm_coord(0,0,pen=UP, brake=True)
 
+    def optimized_etch(self):
+        # load image
+        im = Image.open("picture.jpg")
+        levels = [180, 120, 60]
+        for i in range(3):
+            # make all pixels with brightness between 0 and levels[i] white, the rest black.
+            etch_area = Image.eval(im, lambda x: (x < levels[i]) * 255)
+            # Get the Bounding rectangle of the result
+            bbox = etch_area.getbbox()
+            # create a blurred version to slow the robot down when it nears a white area
+            im_blur = etch_area.filter(ImageFilter.GaussianBlur(30))
+            # composite the images to create map for robot speed and pen up/down
+            etch_area = Image.composite(etch_area, im_blur, etch_area)
+            # etch only the resulting rectangle with the resulting image
+            self.etch_region(bbox, etch_area, i)
+        self.move_to_norm_coord(0, 0, pen=UP, brake=True)
+
+    def etch_region(self, bbox, im, direction):
+        w, h = im.size
+        pixels = im.load()
+
+        # convert bbox to absolute global coordinates in cm
+        # The bounding box is returned as a 4-tuple defining the left, upper, right, and lower pixel
+        left, top = self.normalized_to_global_coords(float(bbox[0]) / w, float(bbox[1]) / w)
+        right, bottom = self.normalized_to_global_coords(float(bbox[2]) / w, float(bbox[3]) / w)
+        width = right-left
+
+        r_min = (left**2+top**2)**0.5
+        r_max = (right**2 + bottom**2)**0.5
+        r_step = self.r_step
+        num_circles = round((r_max-r_min)/r_step)
+
+        if direction < 2:
+            right_side_mode = direction
+            if right_side_mode:
+                drive_motor, anchor_motor = self.drive_motors
+            else:
+                anchor_motor, drive_motor = self.drive_motors
+
+            for i in range(1, num_circles, 2):
+                # Move to the starting point at x,y which is slightly below the top left of the rectangle
+                # Calculate where a circle with radius r_min+r_step*i crosses the left (or right) margin.
+                x = left + (right_side_mode * width)
+                y = ((r_min+r_step*i)**2 - left ** 2) ** 0.5   # This is the same left and right
+                if y >= bottom:
+                    # We reached the bottom, now we check where circles cross the bottom margin
+                    if right_side_mode:
+                        x = self.att_dist - ((r_min + r_step*i) ** 2 - bottom ** 2) ** 0.5
+                    else:
+                        x = ((r_min + r_step*i) ** 2 - bottom ** 2) ** 0.5
+                    y = bottom  # This is the same left and right
+
+                self.move_to_coord(x, y, pen=UP, brake=True)
+                # Yield to allow pause/stop and show percentage
+                yield (i * 50.0 + right_side_mode * 50.0) / num_circles * 0.66
+
+                # Now calculate coordinates continuously until we reach the top, or right side of the canvas
+                # Motor B is off, so let's get it's encoder only once
+                while 1:
+                    # Look at the pixel we're at and move pen up or down accordingly
+                    x_norm, y_norm = self.coords_from_motor_pos(self.drive_motors[0].position, self.drive_motors[1].position)
+                    x, y = self.normalized_to_global_coords(x_norm, y_norm)
+                    pixel_location = (clamp(x_norm * w, (0, w-1)), clamp(y_norm * w, (0, h-1)))
+                    if pixels[pixel_location] == 255:
+                        self.pen_motor.position_sp = PEN_DOWN_POS
+                        if not self.pen_motor.positionPID.target_reached:
+                            drive_motor.stop()
+                        else:
+                            drive_motor.run_forever(speed_sp=SLOW)
+                    else:
+                        self.pen_motor.position_sp = PEN_UP_POS
+                        if not self.pen_motor.positionPID.target_reached:
+                            drive_motor.stop()
+                        else:
+                            # Calculate speed. At pixel value 255 it should be slow, at 0 fast, and otherwise
+                            # proportionally in between.
+                            speed = FAST - pixels[pixel_location] * (FAST-SLOW) // 255
+                            drive_motor.run_forever(speed_sp=speed)
+                    self.pen_motor.run()
+
+                    if y <= top:    # reached the top
+                        break
+                    if (not right_side_mode) and x >= right:    # reached the right side
+                        break
+                    if right_side_mode and x <= left:           # reached the left side
+                        break
+
+                drive_motor.stop()
+
+
+                #Good, now move to the next point and roll down.
+                if right_side_mode:
+                    x = self.att_dist - ((r_min + r_step*(i+1)) ** 2 - top ** 2) ** 0.5
+                else:
+                    x = ((r_min + r_step*(i+1)) ** 2 - top ** 2) ** 0.5
+                y = top
+
+                if (not right_side_mode) and x >= right: # Reached right side
+                    x = right
+                    y = ((r_min+r_step*(i+1)) ** 2 - right ** 2) ** 0.5
+
+                if right_side_mode and x <= left: # Reached left side
+                    x = left
+                    y = ((r_min+r_step*(i+1)) ** 2 - (self.att_dist - left) ** 2) ** 0.5
+
+                self.move_to_coord(x, y, pen=UP, brake=True)
+                # Yield to allow pause/stop and show percentage
+                yield ((i+1)*50.0+right_side_mode*50.0)/num_circles * 0.66
+
+                # Calculate coordinates continuously until we reach the top, or right side of the canvas
+                while 1:
+                    # Look at the pixel we're at and move pen up or down accordingly
+                    x_norm, y_norm = self.coords_from_motor_pos(self.drive_motors[0].position, self.drive_motors[1].position)
+                    x, y = self.normalized_to_global_coords(x_norm, y_norm)
+                    pixel_location = (int(clamp(x_norm * w, (0,w-1))), int(clamp(y_norm * w, (0,h-1))))
+                    if pixels[pixel_location] == 255:
+                        self.pen_motor.position_sp = PEN_DOWN_POS
+                        if not self.pen_motor.positionPID.target_reached:
+                            drive_motor.stop()
+                        else:
+                            drive_motor.run_forever(speed_sp=-SLOW)
+                    else:
+                        self.pen_motor.position_sp = PEN_UP_POS
+                        if not self.pen_motor.positionPID.target_reached:
+                            drive_motor.stop()
+                        else:
+                            speed = FAST - pixels[pixel_location] * (FAST - SLOW) // 255
+                            drive_motor.run_forever(speed_sp=-speed)
+                    self.pen_motor.run()
+
+                    if y >= bottom:
+                        break # reached the bottom
+                    if x <= left and not right_side_mode:
+                        break # reached the left side
+                    if x >= right and right_side_mode:
+                        break
+                    time.sleep(0.02)
+
+                drive_motor.stop()
+
+        if direction == 2:
+            # Now draw horizontalish lines.
+            self.pen_up()
+
+            for i in range(0, num_circles, 2):
+                x = left
+                y = top + i * r_step
+                self.move_to_coord(x, y, pen=UP, brake=True)
+                yield 66 + i * 33.33 / num_circles
+
+                while 1:
+                        # Look at the pixel we're at and move pen up or down accordingly
+                        x_norm, y_norm = self.coords_from_motor_pos(self.drive_motors[0].position, self.drive_motors[1].position)
+                        x, y = self.normalized_to_global_coords(x_norm, y_norm)
+                        pixel_location = (clamp(x_norm * w, (0,w-1)), clamp(y_norm * w, (0,h-1)))
+                        if pixels[pixel_location] == 255:
+                            self.pen_motor.position_sp = PEN_DOWN_POS
+                            if not self.pen_motor.positionPID.target_reached:
+                                self.right_motor.stop()
+                                self.left_motor.stop()
+                            else:
+                                self.right_motor.run_forever(speed_sp=SLOW)
+                                self.left_motor.run_forever(speed_sp=-SLOW)
+                        else:
+                            self.pen_motor.position_sp = PEN_UP_POS
+                            if not self.pen_motor.positionPID.target_reached:
+                                self.right_motor.stop()
+                                self.left_motor.stop()
+                            else:
+                                speed = FAST - pixels[pixel_location] * (FAST - SLOW) // 255
+                                self.right_motor.run_forever(speed_sp=speed)
+                                self.left_motor.run_forever(speed_sp=-speed)
+                        self.pen_motor.run()
+
+                        if x >= right:
+                            break
+
+                self.right_motor.stop()
+                self.left_motor.stop()
+
+                x = right
+                y = top + (i+1) * r_step
+                self.move_to_coord(x, y, pen=UP, brake=True)
+                yield 66 + (i+1) * 33.33 / num_circles
+
+                while 1:
+
+                        # Look at the pixel we're at and move pen up or down accordingly
+                        x_norm, y_norm = self.coords_from_motor_pos(self.drive_motors[0].position, self.drive_motors[1].position)
+                        x, y = self.normalized_to_global_coords(x_norm, y_norm)
+                        pixel_location = (clamp(x_norm * w, (0,w-1)), clamp(y_norm * w, (0,h-1)))
+                        if pixels[pixel_location] == 255:
+                            self.pen_motor.position_sp = PEN_DOWN_POS
+                            if not self.pen_motor.positionPID.target_reached:
+                                self.right_motor.stop()
+                                self.left_motor.stop()
+                            else:
+                                self.right_motor.run_forever(speed_sp=-SLOW)
+                                self.left_motor.run_forever(speed_sp=SLOW)
+                        else:
+                            self.pen_motor.position_sp = PEN_UP_POS
+                            if not self.pen_motor.positionPID.target_reached:
+                                self.right_motor.stop()
+                                self.left_motor.stop()
+                            else:
+                                speed = FAST - pixels[pixel_location] * (FAST - SLOW) // 255
+                                self.right_motor.run_forever(speed_sp=-speed)
+                                self.left_motor.run_forever(speed_sp=speed)
+                        self.pen_motor.run()
+
+                        if x <= left:
+                            break
+
+            self.right_motor.stop()
+            self.left_motor.stop()
+
+
+
 
     ### Calibration & manual movement functions ###
     def pen_up(self):
@@ -622,8 +841,4 @@ class RopePlotter(object):
         for motor in self.all_motors:
             motor.stop()
         print("Motors stopped")
-
-
-
-
 

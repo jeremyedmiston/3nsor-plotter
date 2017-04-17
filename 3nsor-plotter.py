@@ -91,7 +91,7 @@ class MainHandler(tornado.web.RequestHandler):
                     td=plotter.Td,
                     ll=plotter.l_rope_0,
                     lr=plotter.r_rope_0,
-                    sl=plotter.scanlines,
+                    rs=plotter.r_step,
                     aw=plotter.att_dist,
                     cm_to_deg=plotter.cm_to_deg)
 
@@ -224,7 +224,7 @@ class MotorThread(threading.Thread):
                     plotter.l_rope_0 = c['ll']
                     plotter.r_rope_0 = c['lr']
                     plotter.att_dist = c['aw']
-                    plotter.scanlines = int(c['sl'])
+                    plotter.r_step = float(c['rs'])
                     wsSend("Plotter settings set")
                 c=''
 

@@ -23,7 +23,7 @@ class RopePlotter(object):
         self.__att_dist = float(attachment_distance)
         self.direction = 1 # -1 is for reversing motors
         self.calc_constants()
-        self.scanlines = 40
+        self.scanlines = 100
         self.r_step = 1.0 #cm
 
         # Start the engines

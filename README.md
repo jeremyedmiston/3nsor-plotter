@@ -22,7 +22,7 @@ a web interface with tornado. The video is done with the BrickPi branch of this 
 1. Get yourself a micro SD with the right Ev3dev image. They exist for both BrickPi and Ev3. http://www.ev3dev.org/docs/getting-started/
 2. Install [Tornado](http://www.tornadoweb.org/en/stable/#installation) like so:
 ``` sh
-sudo apt-get install build-essential python-dev
+sudo apt-get install build-essential python3-dev
 git clone https://github.com/tornadoweb/tornado
 cd tornado
 python3 setup.py build

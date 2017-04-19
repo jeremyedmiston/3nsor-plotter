@@ -334,7 +334,7 @@ class MotorThread(threading.Thread):
 
             # Chalk extrusion
             if CHALK:
-                if chalk_sensor.is_pressed:
+                if not chalk_sensor.is_pressed:
                     chalk_motor.stop()
                 else:
                     chalk_motor.run_direct(duty_cycle_sp=60)

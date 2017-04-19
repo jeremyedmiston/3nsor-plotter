@@ -344,6 +344,7 @@ class MotorThread(threading.Thread):
                         c = ''
                         # Drive the loader back and wait for human to insert new chalk and resume
                         chalk_motor.run_to_abs_pos(position_sp=0, speed_sp=600)
+                        chalk_motor.wait_while('running')
 
 
             self.throttle.throttle()  # Don't go too fast.

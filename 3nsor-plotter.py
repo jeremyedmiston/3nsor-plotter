@@ -207,6 +207,12 @@ class MotorThread(threading.Thread):
         buttons = ev.Button()
         right_or_up_pressed_earlier = False
         left_or_down_pressed_earlier = False
+
+        if CHALK:
+            chalk_motor = ev.Motor(ev.OUTPUT_D)
+            chalk_sensor = ev.TouchSensor(ev.INPUT_4)
+            chalk_motor.position = 0
+
         while running:
 
             if type(c) == dict:
@@ -324,7 +330,21 @@ class MotorThread(threading.Thread):
                 # Close all sockets
                 for ws in websockets:
                     ws.close()
-                break
+
+
+            # Chalk extrusion
+            if CHALK:
+                if chalk_sensor.is_pressed:
+                    chalk_motor.stop()
+                else:
+                    chalk_motor.run_direct(duty_cycle_sp=60)
+                    if chalk_motor.position > 20552:
+                        plotter.left_stop()
+                        plotter.right_stop()
+                        c = ''
+                        # Drive the loader back and wait for human to insert new chalk and resume
+                        chalk_motor.run_to_abs_pos(position_sp=0, speed_sp=600)
+
 
             self.throttle.throttle()  # Don't go too fast.
 

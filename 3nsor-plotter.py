@@ -54,9 +54,8 @@ import tornado.websocket
 import tornado.template
 import json,os
 import sys
-from PIL import Image, ImageDraw, ImageOps
-import logging,time
-from io import StringIO, BytesIO
+from PIL import Image, ImageDraw
+import logging
 
 # My own stuff
 from ropeplotter import RopePlotter, Throttler, get_ip_address

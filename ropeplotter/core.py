@@ -5,6 +5,9 @@ import ev3dev.auto as ev3
 import math
 from PIL import Image, ImageFilter
 from ropeplotter.robot_helpers import PIDMotor, clamp, BrickPiPowerSupply
+import logging
+
+plotter_log = logging.getLogger("Plotter")
 
 PEN_UP_POS = 0
 PEN_DOWN_POS = -30
@@ -55,7 +58,7 @@ class RopePlotter(object):
         self.set_control_zeroes()
 
 
-    # Getters & setters for plotter properties. Python style, Baby!
+    # Getters & setters for plotter properties.
     # After setting these, some calculations need to be done, that's why I define special functions
     # And decorate them as setters and getters.
 
@@ -181,6 +184,7 @@ class RopePlotter(object):
         return x, y
 
     ### Movement functions ###
+
     def set_control_zeroes(self):
         for motor in self.drive_motors:
             motor.position = 0
@@ -243,6 +247,7 @@ class RopePlotter(object):
             self.chalk_motor.wait_while('running')
 
     ### Advanced plotting functions by chaining movement functions ###
+
     def test_drive(self):
         # A little disturbance in the force
         self.move_to_norm_coord(0.0,0.5)
@@ -627,14 +632,23 @@ class RopePlotter(object):
         for i in range(3):
             # make all pixels with brightness between 0 and levels[i] white, the rest black.
             etch_area = Image.eval(im, lambda x: (x < levels[i]) * 255)
+            plotter_log.info("Pixels selected")
             # Get the Bounding rectangle of the result
             bbox = etch_area.getbbox()
             # create a blurred version to slow the robot down when it nears a white area
             im_blur = etch_area.filter(ImageFilter.GaussianBlur(30))
+            plotter_log.info("Image blurred")
             # composite the images to create map for robot speed and pen up/down
             etch_area = Image.composite(etch_area, im_blur, etch_area)
+            plotter_log.info("Image composited")
             # etch only the resulting rectangle with the resulting image
-            self.etch_region(bbox, etch_area, i)
+            plot_action = self.etch_region(bbox, etch_area, i)
+            while True:
+                try:
+                    yield next(plot_action)
+                except StopIteration:
+                    break
+
         self.move_to_norm_coord(0, 0, pen=UP, brake=True)
 
     def etch_region(self, bbox, im, direction):
@@ -836,10 +850,8 @@ class RopePlotter(object):
             self.right_motor.stop()
             self.left_motor.stop()
 
-
-
-
     ### Calibration & manual movement functions ###
+
     def pen_up(self):
         self.pen_motor.run_to_abs_pos(position_sp=PEN_UP_POS)
 

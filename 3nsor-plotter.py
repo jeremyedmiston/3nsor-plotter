@@ -71,7 +71,7 @@ c = 0               # movement command.
 websockets = []     # list of open sockets.
 
 # instantiate a plotter object
-plotter = RopePlotter(L_ROPE_0, R_ROPE_0, ROPE_ATTACHMENT_WIDTH, Kp=KP, Ki=TI, Kd=TD, cm_to_deg=CM_TO_DEG)
+plotter = RopePlotter(L_ROPE_0, R_ROPE_0, ROPE_ATTACHMENT_WIDTH, Kp=KP, Ki=TI, Kd=TD, cm_to_deg=CM_TO_DEG, chalk=CHALK)
 
 logging.basicConfig(filename='plotter.log',
                     format='%(asctime)s.%(msecs)03d - %(funcName)s: %(message)s',
@@ -208,11 +208,6 @@ class MotorThread(threading.Thread):
         right_or_up_pressed_earlier = False
         left_or_down_pressed_earlier = False
 
-        if CHALK:
-            chalk_motor = ev.Motor(ev.OUTPUT_D)
-            chalk_sensor = ev.TouchSensor(ev.INPUT_4)
-            chalk_motor.position = 0
-
         while running:
 
             if type(c) == dict:
@@ -292,6 +287,9 @@ class MotorThread(threading.Thread):
                 plotter.right_stop()
                 c = ''
 
+            elif c == 'load':
+                plotter.load
+
             elif c == 'testdrive':
                 plotter.test_drive()
                 c = ''
@@ -330,22 +328,6 @@ class MotorThread(threading.Thread):
                 # Close all sockets
                 for ws in websockets:
                     ws.close()
-
-
-            # Chalk extrusion
-            if CHALK:
-                if not chalk_sensor.is_pressed:
-                    chalk_motor.stop()
-                else:
-                    chalk_motor.run_direct(duty_cycle_sp=60)
-                    if chalk_motor.position > 20552:
-                        plotter.left_stop()
-                        plotter.right_stop()
-                        c = ''
-                        # Drive the loader back and wait for human to insert new chalk and resume
-                        chalk_motor.run_to_abs_pos(position_sp=0, speed_sp=600)
-                        chalk_motor.wait_while('running')
-
 
             self.throttle.throttle()  # Don't go too fast.
 

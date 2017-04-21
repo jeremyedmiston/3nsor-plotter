@@ -15,7 +15,7 @@ SLOW = 300
 FAST = 580
 
 class RopePlotter(object):
-    def __init__(self, l_rope_0, r_rope_0, attachment_distance, cm_to_deg=-175, Kp=2.2, Ki=0.2, Kd=0.02):
+    def __init__(self, l_rope_0, r_rope_0, attachment_distance, cm_to_deg=-175, Kp=2.2, Ki=0.2, Kd=0.02, chalk=False):
 
         self.cm_to_deg = cm_to_deg
         self.__l_rope_0 = float(l_rope_0)
@@ -26,8 +26,21 @@ class RopePlotter(object):
         self.scanlines = 100
         self.r_step = 1.0 #cm
 
+        # Chalk extruder startup
+        self.chalk = chalk
+        if chalk:
+            self.chalk_motor = ev3.Motor(ev3.OUTPUT_D)
+            self.chalk_sensor = ev3.TouchSensor(ev3.INPUT_4)
+
+            # Drive slowly to find the end position
+            self.chalk_motor.run_direct(duty_cycle_sp=-30)
+            self.chalk_motor.wait_until('stalled')
+            self.chalk_motor.stop()
+            self.chalk_motor.position = -10
+
+
         # Start the engines
-        self.pen_motor = PIDMotor(ev3.OUTPUT_A, Kp=2, Ki=0.1, Kd=0 ,brake=0.1, speed_reg=True)
+        self.pen_motor = PIDMotor(ev3.OUTPUT_A, Kp=2, Ki=0.1, Kd=0, brake=0.1, speed_reg=True)
         self.pen_motor.positionPID.precision = 10
         self.left_motor = PIDMotor(ev3.OUTPUT_B, Kp=Kp, Ki=Ki, Kd=Kd)
         self.left_motor.stop_action = 'brake'
@@ -200,6 +213,14 @@ class RopePlotter(object):
                 motor.run()
             if pen > -1:
                 self.pen_motor.run()
+            if self.chalk and self.pen_motor.position_sp == PEN_DOWN_POS:
+                # Extrude chalk if needed.
+                if not self.chalk_sensor.is_pressed:
+                    self.chalk_motor.stop()
+                else:
+                    self.chalk_motor.run_direct(duty_cycle_sp=60)
+                    if self.chalk_motor.position > 20552:
+                        self.reload_chalk()
 
             if all([motor.positionPID.target_reached for motor in self.drive_motors]):
                 if brake: #Run a little while long to stay in position.
@@ -214,6 +235,12 @@ class RopePlotter(object):
 
             #We're done calculating and setting all motor speeds!
             time.sleep(0.016)
+
+    def reload_chalk(self):
+        if self.chalk:
+            # Drive the loader back and wait for human to insert new chalk and resume
+            self.chalk_motor.run_to_abs_pos(position_sp=0, speed_sp=600)
+            self.chalk_motor.wait_while('running')
 
     ### Advanced plotting functions by chaining movement functions ###
     def test_drive(self):

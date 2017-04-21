@@ -635,6 +635,7 @@ class RopePlotter(object):
             yield "Pixels < " + str(levels[i]) + " selected"
             # Get the Bounding rectangle of the result
             bbox = etch_area.getbbox()
+            yield str(bbox)
             # # create a blurred version to slow the robot down when it nears a white area
             # im_blur = etch_area.filter(ImageFilter.GaussianBlur(30))
             # yield "Image blurred"
@@ -795,7 +796,6 @@ class RopePlotter(object):
                                 self.right_motor.stop()
                                 self.left_motor.stop()
                             else:
-                                print(SLOW)
                                 self.right_motor.run_forever(speed_sp=SLOW)
                                 self.left_motor.run_forever(speed_sp=-SLOW)
                         else:
@@ -805,7 +805,6 @@ class RopePlotter(object):
                                 self.left_motor.stop()
                             else:
                                 speed = FAST - pixels[pixel_location] * (FAST - SLOW) // 255
-                                print(speed)
                                 self.right_motor.run_forever(speed_sp=speed)
                                 self.left_motor.run_forever(speed_sp=-speed)
                         self.pen_motor.run()

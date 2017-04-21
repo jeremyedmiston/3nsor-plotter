@@ -632,15 +632,15 @@ class RopePlotter(object):
         for i in range(3):
             # make all pixels with brightness between 0 and levels[i] white, the rest black.
             etch_area = Image.eval(im, lambda x: (x < levels[i]) * 255)
-            yield "Pixels < " + str(i) + "selected"
+            yield "Pixels < " + str(levels[i]) + " selected"
             # Get the Bounding rectangle of the result
             bbox = etch_area.getbbox()
-            # create a blurred version to slow the robot down when it nears a white area
-            im_blur = etch_area.filter(ImageFilter.GaussianBlur(30))
-            yield "Image blurred"
-            # composite the images to create map for robot speed and pen up/down
-            etch_area = Image.composite(etch_area, im_blur, etch_area)
-            yield "Image composited"
+            # # create a blurred version to slow the robot down when it nears a white area
+            # im_blur = etch_area.filter(ImageFilter.GaussianBlur(30))
+            # yield "Image blurred"
+            # # composite the images to create map for robot speed and pen up/down
+            # etch_area = Image.composite(etch_area, im_blur, etch_area)
+            # yield "Image composited"
             # etch only the resulting rectangle with the resulting image
             plot_action = self.etch_region(bbox, etch_area, i)
             while True:
@@ -788,13 +788,14 @@ class RopePlotter(object):
                         # Look at the pixel we're at and move pen up or down accordingly
                         x_norm, y_norm = self.coords_from_motor_pos(self.drive_motors[0].position, self.drive_motors[1].position)
                         x, y = self.normalized_to_global_coords(x_norm, y_norm)
-                        pixel_location = (clamp(x_norm * w, (0,w-1)), clamp(y_norm * w, (0,h-1)))
+                        pixel_location = (clamp(x_norm * w, (0, w-1)), clamp(y_norm * w, (0, h-1)))
                         if pixels[pixel_location] == 255:
                             self.pen_motor.position_sp = PEN_DOWN_POS
                             if not self.pen_motor.positionPID.target_reached:
                                 self.right_motor.stop()
                                 self.left_motor.stop()
                             else:
+                                print(SLOW)
                                 self.right_motor.run_forever(speed_sp=SLOW)
                                 self.left_motor.run_forever(speed_sp=-SLOW)
                         else:
@@ -804,6 +805,7 @@ class RopePlotter(object):
                                 self.left_motor.stop()
                             else:
                                 speed = FAST - pixels[pixel_location] * (FAST - SLOW) // 255
+                                print(speed)
                                 self.right_motor.run_forever(speed_sp=speed)
                                 self.left_motor.run_forever(speed_sp=-speed)
                         self.pen_motor.run()

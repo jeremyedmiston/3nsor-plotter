@@ -287,8 +287,8 @@ class MotorThread(threading.Thread):
                 plotter.right_stop()
                 c = ''
 
-            elif c == 'load':
-                plotter.load
+            elif c == 'reload':
+                plotter.reload_chalk()
 
             elif c == 'testdrive':
                 plotter.test_drive()

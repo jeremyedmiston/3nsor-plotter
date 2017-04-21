@@ -14,8 +14,8 @@ PEN_DOWN_POS = -30
 UP = 0
 DOWN = 1
 UNCHANGED = -1
-SLOW = 300
-FAST = 580
+SLOW = 320
+FAST = 540
 
 class RopePlotter(object):
     def __init__(self, l_rope_0, r_rope_0, attachment_distance, cm_to_deg=-175, Kp=2.2, Ki=0.2, Kd=0.02, chalk=False):
@@ -200,14 +200,16 @@ class RopePlotter(object):
         self.move_to_targets((motor_b_target, motor_c_target),pen=pen, brake=brake)
 
     def move_to_targets(self, targets, brake=False, pen=-1):
+
         # Set targets
         for motor, tgt in zip(self.drive_motors, targets):
             motor.position_sp = tgt
 
-        if pen == 1:     #Put the pen down
-            self.pen_motor.position_sp = PEN_DOWN_POS
-        elif pen == 0:  #Put the pen down
-            self.pen_motor.position_sp = PEN_UP_POS
+        if pen == 1:        # Put the pen down
+            self.pen_down()
+        elif pen == 0:      # Put the pen up
+            self.pen_up()
+
 
         # Now run the motors and wait for the motors to reach their targets
         # Alas ev3dev's run_to_abs_pos is not usable on BrickPi. So I emulate a PID controller.
@@ -215,8 +217,7 @@ class RopePlotter(object):
         while 1:
             for motor in self.drive_motors:
                 motor.run()
-            if pen > -1:
-                self.pen_motor.run()
+
             if self.chalk and self.pen_motor.position_sp == PEN_DOWN_POS:
                 # Extrude chalk if needed.
                 if not self.chalk_sensor.is_pressed:
@@ -245,6 +246,9 @@ class RopePlotter(object):
             # Drive the loader back and wait for human to insert new chalk and resume
             self.chalk_motor.run_to_abs_pos(position_sp=0, speed_sp=600)
             self.chalk_motor.wait_while('running')
+            buttons = ev3.Button()
+            while not buttons.enter():
+                time.sleep(0.5)
 
     ### Advanced plotting functions by chaining movement functions ###
 
@@ -628,7 +632,7 @@ class RopePlotter(object):
     def optimized_etch(self):
         # load image
         im = Image.open("uploads/picture.jpg").convert("L")
-        levels = [180, 120, 60]
+        levels = [210, 140, 70]
         for i in range(3):
             # make all pixels with brightness between 0 and levels[i] white, the rest black.
             etch_area = Image.eval(im, lambda x: (x < levels[i]) * 255)
@@ -662,12 +666,14 @@ class RopePlotter(object):
         right, bottom = self.normalized_to_global_coords(float(bbox[2]) / w, float(bbox[3]) / w)
         width = right-left
 
-        r_min = (left**2+top**2)**0.5
-        r_max = (right**2 + bottom**2)**0.5
         r_step = self.r_step
-        num_circles = round((r_max-r_min)/r_step)
 
         if direction < 2:
+            # Calculate the number of circles to be drawn.
+            r_min = (left ** 2 + top ** 2) ** 0.5
+            r_max = (right ** 2 + bottom ** 2) ** 0.5
+            num_circles = round((r_max - r_min) / r_step)
+
             right_side_mode = direction
             if right_side_mode:
                 drive_motor, anchor_motor = self.drive_motors
@@ -777,6 +783,9 @@ class RopePlotter(object):
 
         if direction == 2:
             # Now draw horizontalish lines.
+
+            num_circles = (bottom - top)/r_step
+
             self.pen_up()
 
             for i in range(0, num_circles, 2):
@@ -855,9 +864,11 @@ class RopePlotter(object):
 
     def pen_up(self):
         self.pen_motor.run_to_abs_pos(position_sp=PEN_UP_POS)
+        self.pen_motor.wait_while('running')
 
     def pen_down(self):
         self.pen_motor.run_to_abs_pos(position_sp=PEN_DOWN_POS)
+        self.pen_motor.wait_while('running')
 
     def left_fwd(self):
         self.left_motor.run_direct(duty_cycle_sp=50)

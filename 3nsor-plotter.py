@@ -314,7 +314,7 @@ class MotorThread(threading.Thread):
             elif c == 'plotcircles':
                 wsSend("Plotting circles")
                 # c stays 'plot' until another command is sent trough the socket
-                plot_action = plotter.plot_circles()
+                plot_action = plotter.optimized_etch()
                 c = 'plotting'
             elif c == 'plotwaves':
                 wsSend("Plotting waves")

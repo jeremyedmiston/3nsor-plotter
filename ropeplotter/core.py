@@ -622,7 +622,7 @@ class RopePlotter(object):
 
     def optimized_etch(self):
         # load image
-        im = Image.open("picture.jpg")
+        im = Image.open("uploads/picture.jpg").convert("L")
         levels = [180, 120, 60]
         for i in range(3):
             # make all pixels with brightness between 0 and levels[i] white, the rest black.

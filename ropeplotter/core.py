@@ -632,7 +632,7 @@ class RopePlotter(object):
     def optimized_etch(self):
         # load image
         im = Image.open("uploads/picture.jpg").convert("L")
-        levels = [210, 140, 70]
+        levels = [180, 120, 65]
         for i in range(3):
             # make all pixels with brightness between 0 and levels[i] white, the rest black.
             etch_area = Image.eval(im, lambda x: (x < levels[i]) * 255)
@@ -684,7 +684,7 @@ class RopePlotter(object):
                 # Move to the starting point at x,y which is slightly below the top left of the rectangle
                 # Calculate where a circle with radius r_min+r_step*i crosses the left (or right) margin.
                 x = left + (right_side_mode * width)
-                y = ((r_min+r_step*i)**2 - left ** 2) ** 0.5   # This is the same left and right
+                y = ((r_min+r_step*i)**2 - x ** 2) ** 0.5
                 if y >= bottom:
                     # We reached the bottom, now we check where circles cross the bottom margin
                     if right_side_mode:

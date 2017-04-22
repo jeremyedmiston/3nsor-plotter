@@ -214,7 +214,7 @@ class PIDMotor(ev3.Motor):
         return self.positionPID.set_point
 
     @position_sp.setter
-    def position_sp(self,tgt):
+    def position_sp(self, tgt):
         self.positionPID.set_point = tgt
 
     def stop(self):

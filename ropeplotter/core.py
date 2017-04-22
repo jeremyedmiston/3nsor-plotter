@@ -830,7 +830,7 @@ class RopePlotter(object):
                 self.left_motor.stop()
 
                 x = right
-                y = top + (i+1) * r_step
+                y += r_step
                 self.move_to_coord(x, y, pen=UP, brake=True)
                 yield 66 + (i+1) * 33.33 / num_circles
 

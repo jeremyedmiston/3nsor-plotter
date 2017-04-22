@@ -640,12 +640,12 @@ class RopePlotter(object):
             # Get the Bounding rectangle of the result
             bbox = etch_area.getbbox()
             yield "Plotting inside " + str(bbox)
-            # # create a blurred version to slow the robot down when it nears a white area
-            # im_blur = etch_area.filter(ImageFilter.GaussianBlur(30))
-            # yield "Image blurred"
-            # # composite the images to create map for robot speed and pen up/down
-            # etch_area = Image.composite(etch_area, im_blur, etch_area)
-            # yield "Image composited"
+            # create a blurred version to slow the robot down when it nears a white area
+            im_blur = etch_area.filter(ImageFilter.GaussianBlur(20))
+            yield "Image blurred"
+            # composite the images to create map for robot speed and pen up/down
+            etch_area = Image.composite(etch_area, im_blur, etch_area)
+            yield "Image composited"
             # etch only the resulting rectangle with the resulting image
             plot_action = self.etch_region(bbox, etch_area, i)
             while True:
@@ -811,7 +811,9 @@ class RopePlotter(object):
                                 self.left_motor.stop()
                             else:
                                 self.right_motor.run_forever(speed_sp=SLOW)
-                                self.left_motor.run_forever(speed_sp=-SLOW)
+                                self.left_motor.position_sp = ((self.right_motor.position / self.cm_to_deg) ** 2 - self.att_dist ** 2 + 2*self.att_dist*x) ** 0.5
+                                self.left_motor.run()
+                                #self.left_motor.run_forever(speed_sp=-SLOW)
                         else:
                             self.pen_motor.position_sp = PEN_UP_POS
                             if not self.pen_motor.positionPID.target_reached:
@@ -820,7 +822,9 @@ class RopePlotter(object):
                             else:
                                 speed = FAST - pixels[pixel_location] * (FAST - SLOW) // 255
                                 self.right_motor.run_forever(speed_sp=speed)
-                                self.left_motor.run_forever(speed_sp=-speed)
+                                self.left_motor.position_sp = ((self.right_motor.position / self.cm_to_deg) ** 2 - self.att_dist ** 2 + 2 * self.att_dist * x) ** 0.5
+                                self.left_motor.run()
+                                # self.left_motor.run_forever(speed_sp=-speed)
                         self.pen_motor.run()
 
                         if x >= right:
@@ -846,7 +850,10 @@ class RopePlotter(object):
                                 self.right_motor.stop()
                                 self.left_motor.stop()
                             else:
-                                self.right_motor.run_forever(speed_sp=-SLOW)
+                                # self.right_motor.run_forever(speed_sp=-SLOW)
+                                self.right_motor.position_sp = ((
+                                                               self.left_motor.position / self.cm_to_deg) ** 2 + self.att_dist ** 2 - 2 * self.att_dist * x) ** 0.5
+                                self.right_motor.run()
                                 self.left_motor.run_forever(speed_sp=SLOW)
                         else:
                             self.pen_motor.position_sp = PEN_UP_POS
@@ -855,8 +862,11 @@ class RopePlotter(object):
                                 self.left_motor.stop()
                             else:
                                 speed = FAST - pixels[pixel_location] * (FAST - SLOW) // 255
-                                self.right_motor.run_forever(speed_sp=-speed)
+                                #self.right_motor.run_forever(speed_sp=-speed)
                                 self.left_motor.run_forever(speed_sp=speed)
+                                self.right_motor.position_sp = ((
+                                                                    self.left_motor.position / self.cm_to_deg) ** 2 + self.att_dist ** 2 - 2 * self.att_dist * x) ** 0.5
+                                self.right_motor.run()
                         self.pen_motor.run()
 
                         if x <= left:

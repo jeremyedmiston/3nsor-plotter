@@ -633,7 +633,7 @@ class RopePlotter(object):
         # load image
         im = Image.open("uploads/picture.jpg").convert("L")
         levels = [180, 120, 65]
-        for i in range(3)
+        for i in range(3):
             # make all pixels with brightness between 0 and levels[i] white, the rest black.
             etch_area = Image.eval(im, lambda x: (x < levels[i]) * 255)
             yield "Pixels < " + str(levels[i]) + " selected"

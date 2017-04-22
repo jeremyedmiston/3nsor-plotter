@@ -633,7 +633,7 @@ class RopePlotter(object):
         # load image
         im = Image.open("uploads/picture.jpg").convert("L")
         levels = [180, 120, 65]
-        for i in [1,2]:     # range(3)
+        for i in [2]:     # range(3)
             # make all pixels with brightness between 0 and levels[i] white, the rest black.
             etch_area = Image.eval(im, lambda x: (x < levels[i]) * 255)
             yield "Pixels < " + str(levels[i]) + " selected"
@@ -664,7 +664,6 @@ class RopePlotter(object):
         # The bounding box is returned as a 4-tuple defining the left, upper, right, and lower pixel
         left, top = self.normalized_to_global_coords(float(bbox[0]) / w, float(bbox[1]) / w)
         right, bottom = self.normalized_to_global_coords(float(bbox[2]) / w, float(bbox[3]) / w)
-        width = right-left
 
         r_step = self.r_step
 
@@ -788,7 +787,7 @@ class RopePlotter(object):
         if direction == 2:
             # Now draw horizontalish lines.
 
-            num_circles = (bottom - top)/r_step
+            num_circles = round((bottom - top) / r_step)
 
             self.pen_up()
 

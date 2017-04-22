@@ -822,8 +822,11 @@ class RopePlotter(object):
                             else:
                                 speed = FAST - pixels[pixel_location] * (FAST - SLOW) // 255
                                 self.right_motor.run_forever(speed_sp=speed)
-                                self.left_motor.position_sp = self.cm_to_deg * ((self.right_motor.position / self.cm_to_deg) ** 2 - self.att_dist ** 2 + 2 * self.att_dist * x) ** 0.5
+                                left_tgt = self.cm_to_deg * ((self.right_motor.position / self.cm_to_deg) ** 2 - self.att_dist ** 2 + 2 * self.att_dist * x) ** 0.5
+                                self.left_motor.position_sp = left_tgt
                                 self.left_motor.run()
+                                print(left_tgt)
+                                print("Running left at " + str(self.left_motor.duty_cycle_sp))
                                 # self.left_motor.run_forever(speed_sp=-speed)
                         self.pen_motor.run()
 

@@ -27,7 +27,7 @@ class RopePlotter(object):
         self.direction = 1 # -1 is for reversing motors
         self.calc_constants()
         self.scanlines = 100
-        self.r_step = 1.0 #cm
+        self.r_step = 0.7 #cm
 
         # Chalk extruder startup
         self.chalk = chalk
@@ -633,7 +633,7 @@ class RopePlotter(object):
         # load image
         im = Image.open("uploads/picture.jpg").convert("L")
         levels = [180, 120, 65]
-        for i in range(3):
+        for i in [1,2]:     # range(3)
             # make all pixels with brightness between 0 and levels[i] white, the rest black.
             etch_area = Image.eval(im, lambda x: (x < levels[i]) * 255)
             yield "Pixels < " + str(levels[i]) + " selected"
@@ -683,8 +683,12 @@ class RopePlotter(object):
             for i in range(1, num_circles, 2):
                 # Move to the starting point at x,y which is slightly below the top left of the rectangle
                 # Calculate where a circle with radius r_min+r_step*i crosses the left (or right) margin.
-                x = left + (right_side_mode * width)
-                y = ((r_min+r_step*i)**2 - x ** 2) ** 0.5
+                if right_side_mode:
+                    x = right
+                    y = ((r_min+r_step*i)**2 - (self.att_dist - x) ** 2) ** 0.5
+                else:
+                    x = left
+                    y = ((r_min + r_step * i) ** 2 - x ** 2) ** 0.5
                 if y >= bottom:
                     # We reached the bottom, now we check where circles cross the bottom margin
                     if right_side_mode:

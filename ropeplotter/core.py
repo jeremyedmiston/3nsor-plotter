@@ -639,7 +639,7 @@ class RopePlotter(object):
             yield "Pixels < " + str(levels[i]) + " selected"
             # Get the Bounding rectangle of the result
             bbox = etch_area.getbbox()
-            yield str(bbox)
+            yield "Plotting inside " + str(bbox)
             # # create a blurred version to slow the robot down when it nears a white area
             # im_blur = etch_area.filter(ImageFilter.GaussianBlur(30))
             # yield "Image blurred"
@@ -650,7 +650,9 @@ class RopePlotter(object):
             plot_action = self.etch_region(bbox, etch_area, i)
             while True:
                 try:
-                    yield next(plot_action)
+                    message = "{0:.2f}% done".format(next(plot_action))
+                    plotter_log.info(message)
+                    yield message
                 except StopIteration:
                     break
 
@@ -751,7 +753,7 @@ class RopePlotter(object):
 
                 self.move_to_coord(x, y, pen=UP, brake=True)
                 # Yield to allow pause/stop and show percentage
-                yield ((i+1)*50.0+right_side_mode*50.0)/num_circles * 0.66
+                yield ((i+1)*33.3+right_side_mode*33.3)/num_circles
 
                 # Calculate coordinates continuously until we reach the top, or right side of the canvas
                 while 1:

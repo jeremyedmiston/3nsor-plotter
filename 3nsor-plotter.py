@@ -56,6 +56,7 @@ import json,os
 import sys
 from PIL import Image, ImageDraw
 import logging
+import time
 
 # My own stuff
 from ropeplotter import RopePlotter, Throttler, get_ip_address
@@ -305,13 +306,16 @@ class MotorThread(threading.Thread):
                     #wsSend("[ {0:.2f}V ] Plot {1:.2f}% done".format(plotter.battery.measured_voltage/1000000.0, pct_done))
                 except StopIteration:
                     c = ''
-                    wsSend("Done plotting")
+                    elapsed = time.time()-start_time
+                    elapsed_str = time.strftime("%Hh %Mm %Ss", time.gmtime(elapsed))
+                    wsSend("Done plotting after " + elapsed_str)
 
             elif c == 'zero':
                 wsSend("zero motor positions")
                 plotter.set_control_zeroes()
                 c = ''
             elif c == 'plotcircles':
+                start_time = time.time()
                 wsSend("Plotting circles")
                 # c stays 'plot' until another command is sent trough the socket
                 plot_action = plotter.optimized_etch()
@@ -357,7 +361,7 @@ if __name__ == "__main__":
     access_log.setLevel(log_level)
     app_log.setLevel(log_level)
     gen_log.setLevel(log_level)
-    plotter_log.setLevel(log_level)
+    plotter_log.setLevel(logging.INFO)
 
     # Prepare the screen
     lcd = ev.Screen()

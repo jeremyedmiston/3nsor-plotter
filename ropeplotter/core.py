@@ -15,7 +15,7 @@ UP = 0
 DOWN = 1
 UNCHANGED = -1
 SLOW = 320
-FAST = 540
+FAST = 560
 
 class RopePlotter(object):
     def __init__(self, l_rope_0, r_rope_0, attachment_distance, cm_to_deg=-175, Kp=2.2, Ki=0.2, Kd=0.02, chalk=False):
@@ -633,19 +633,19 @@ class RopePlotter(object):
         # load image
         im = Image.open("uploads/picture.jpg").convert("L")
         levels = [180, 120, 65]
-        for i in [2]:     # range(3)
+        for i in range(3)
             # make all pixels with brightness between 0 and levels[i] white, the rest black.
             etch_area = Image.eval(im, lambda x: (x < levels[i]) * 255)
             yield "Pixels < " + str(levels[i]) + " selected"
             # Get the Bounding rectangle of the result
             bbox = etch_area.getbbox()
             yield "Plotting inside " + str(bbox)
-            # # create a blurred version to slow the robot down when it nears a white area
-            # im_blur = etch_area.filter(ImageFilter.GaussianBlur(20))
-            # yield "Image blurred"
-            # # composite the images to create map for robot speed and pen up/down
-            # etch_area = Image.composite(etch_area, im_blur, etch_area)
-            # yield "Image composited"
+            # create a blurred version to slow the robot down when it nears a white area
+            im_blur = etch_area.filter(ImageFilter.GaussianBlur(20))
+            yield "Image blurred"
+            # composite the images to create map for robot speed and pen up/down
+            etch_area = Image.composite(etch_area, im_blur, etch_area)
+            yield "Image composited"
             # etch only the resulting rectangle with the resulting image
             plot_action = self.etch_region(bbox, etch_area, i)
             while True:

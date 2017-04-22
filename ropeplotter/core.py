@@ -870,6 +870,7 @@ class RopePlotter(object):
                                 l_tgt, r_tgt = self.motor_targets_from_coords(x, top + (i + 1) * r_step)
                                 self.right_motor.position_sp = r_tgt
                                 self.right_motor.run()
+                        self.pen_motor.run()
 
                         if x <= left:
                             break

@@ -15,7 +15,7 @@ UP = 0
 DOWN = 1
 UNCHANGED = -1
 SLOW = 320
-FAST = 560
+FAST = 520
 
 class RopePlotter(object):
     def __init__(self, l_rope_0, r_rope_0, attachment_distance, cm_to_deg=-175, Kp=2.2, Ki=0.2, Kd=0.02, chalk=False):
@@ -734,6 +734,7 @@ class RopePlotter(object):
                         break
 
                 drive_motor.stop()
+                self.pen_up()
 
 
                 #Good, now move to the next point and roll down.
@@ -785,6 +786,7 @@ class RopePlotter(object):
                     time.sleep(0.02)
 
                 drive_motor.stop()
+                self.pen_up()
 
         if direction == 2:
             # Now draw horizontalish lines.
@@ -834,6 +836,7 @@ class RopePlotter(object):
 
                 self.right_motor.stop()
                 self.left_motor.stop()
+                self.pen_up()
 
                 x = right
                 y += r_step
@@ -877,6 +880,7 @@ class RopePlotter(object):
 
             self.right_motor.stop()
             self.left_motor.stop()
+            self.pen_up()
 
     ### Calibration & manual movement functions ###
 

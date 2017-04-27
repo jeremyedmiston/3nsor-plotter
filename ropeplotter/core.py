@@ -812,7 +812,7 @@ class RopePlotter(object):
                                 self.right_motor.stop()
                                 self.left_motor.stop()
                             else:
-                                self.right_motor.run_forever(speed_sp=SLOW)
+                                self.right_motor.run_forever(speed_sp=SLOW-100)
                                 l_tgt, r_tgt = self.motor_targets_from_coords(x, top + i * r_step)
                                 self.left_motor.position_sp = l_tgt
                                 self.left_motor.run()
@@ -824,7 +824,7 @@ class RopePlotter(object):
                                 self.left_motor.stop()
                             else:
                                 speed = FAST - pixels[pixel_location] * (FAST - SLOW) // 255
-                                self.right_motor.run_forever(speed_sp=speed)
+                                self.right_motor.run_forever(speed_sp=speed-150)
                                 l_tgt, r_tgt = self.motor_targets_from_coords(x, top + i * r_step)
                                 self.left_motor.position_sp = l_tgt
                                 self.left_motor.run()
@@ -857,7 +857,7 @@ class RopePlotter(object):
                             else:
                                 # self.right_motor.run_forever(speed_sp=-SLOW)
 
-                                self.left_motor.run_forever(speed_sp=SLOW)
+                                self.left_motor.run_forever(speed_sp=SLOW-100)
                                 l_tgt, r_tgt = self.motor_targets_from_coords(x, top + (i+1) * r_step)
                                 self.right_motor.position_sp = r_tgt
                                 self.right_motor.run()
@@ -869,7 +869,7 @@ class RopePlotter(object):
                             else:
                                 speed = FAST - pixels[pixel_location] * (FAST - SLOW) // 255
                                 #self.right_motor.run_forever(speed_sp=-speed)
-                                self.left_motor.run_forever(speed_sp=speed)
+                                self.left_motor.run_forever(speed_sp=speed-150)
                                 l_tgt, r_tgt = self.motor_targets_from_coords(x, top + (i + 1) * r_step)
                                 self.right_motor.position_sp = r_tgt
                                 self.right_motor.run()

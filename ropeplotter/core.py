@@ -221,10 +221,12 @@ class RopePlotter(object):
             print(PEN_DOWN_POS, self.pen_motor.position_sp)
             if self.chalk and self.pen_motor.position_sp == PEN_DOWN_POS:
                 # Extrude chalk if needed.
-                print("extruding...")
+
                 if not self.chalk_sensor.is_pressed:
                     self.chalk_motor.stop()
+                    print("pressed...")
                 else:
+                    print("not pressed...")
                     self.chalk_motor.run_direct(duty_cycle_sp=60)
                     if self.chalk_motor.position > 20552:
                         self.reload_chalk()

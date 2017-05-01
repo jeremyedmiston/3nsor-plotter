@@ -218,18 +218,15 @@ class RopePlotter(object):
             for motor in self.drive_motors:
                 motor.run()
 
-            print(PEN_DOWN_POS, self.pen_motor.position_sp)
             if self.chalk and self.pen_motor.position_sp == PEN_DOWN_POS:
                 # Extrude chalk if needed.
 
-                if not self.chalk_sensor.is_pressed:
-                    self.chalk_motor.stop()
-                    print("pressed...")
-                else:
-                    print("not pressed...")
+                if self.chalk_sensor.is_pressed:
                     self.chalk_motor.run_direct(duty_cycle_sp=60)
                     if self.chalk_motor.position > 20552:
                         self.reload_chalk()
+                else:
+                    self.chalk_motor.stop()
 
             if all([motor.positionPID.target_reached for motor in self.drive_motors]):
                 if brake: #Run a little while long to stay in position.
@@ -895,6 +892,12 @@ class RopePlotter(object):
     def pen_down(self):
         self.pen_motor.run_to_abs_pos(position_sp=PEN_DOWN_POS)
         self.pen_motor.wait_while('running')
+        while self.chalk_sensor.is_pressed:
+            self.chalk_motor.run_direct(duty_cycle_sp=60)
+            if self.chalk_motor.position > 20552:
+                self.reload_chalk()
+
+        self.chalk_motor.stop()
 
     def left_fwd(self):
         self.left_motor.run_direct(duty_cycle_sp=50)

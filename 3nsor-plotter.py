@@ -295,6 +295,7 @@ class MotorThread(threading.Thread):
                 c = ''
 
             elif c == 'plot':
+                start_time = time.time()
                 # c stays 'plot' until another command is sent trough the socket
                 plot_action = plotter.plot_from_file('uploads/coords.csv')
                 c = 'plotting'
@@ -306,9 +307,10 @@ class MotorThread(threading.Thread):
                     #wsSend("[ {0:.2f}V ] Plot {1:.2f}% done".format(plotter.battery.measured_voltage/1000000.0, pct_done))
                 except StopIteration:
                     c = ''
-                    elapsed = time.time()-start_time
-                    elapsed_str = time.strftime("%Hh %Mm %Ss", time.gmtime(elapsed))
-                    wsSend("Done plotting after " + elapsed_str)
+                    if start_time:
+                        elapsed = time.time()-start_time
+                        elapsed_str = time.strftime("%Hh %Mm %Ss", time.gmtime(elapsed))
+                        wsSend("Done plotting after " + elapsed_str)
 
             elif c == 'zero':
                 wsSend("zero motor positions")

@@ -10,7 +10,7 @@ import logging
 plotter_log = logging.getLogger("Plotter")
 
 PEN_UP_POS = 0
-PEN_DOWN_POS = -30
+PEN_DOWN_POS = -45
 UP = 0
 DOWN = 1
 UNCHANGED = -1
@@ -218,8 +218,10 @@ class RopePlotter(object):
             for motor in self.drive_motors:
                 motor.run()
 
+            print(PEN_DOWN_POS, self.pen_motor.position_sp)
             if self.chalk and self.pen_motor.position_sp == PEN_DOWN_POS:
                 # Extrude chalk if needed.
+                print("extruding...")
                 if not self.chalk_sensor.is_pressed:
                     self.chalk_motor.stop()
                 else:

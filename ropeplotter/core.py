@@ -29,19 +29,6 @@ class RopePlotter(object):
         self.scanlines = 100
         self.r_step = 0.7 #cm
 
-        # Chalk extruder startup
-        self.chalk = chalk
-        if chalk:
-            self.chalk_motor = ev3.Motor(ev3.OUTPUT_D)
-            self.chalk_sensor = ev3.TouchSensor(ev3.INPUT_4)
-
-            # Drive slowly to find the end position
-            self.chalk_motor.run_direct(duty_cycle_sp=-30)
-            self.chalk_motor.wait_until('stalled')
-            self.chalk_motor.stop()
-            self.chalk_motor.position = -10
-
-
         # Start the engines
         self.pen_motor = PIDMotor(ev3.OUTPUT_A, Kp=2, Ki=0.1, Kd=0, brake=0.1, speed_reg=True)
         self.pen_motor.positionPID.precision = 10
@@ -57,6 +44,18 @@ class RopePlotter(object):
         # Set starting point
         self.set_control_zeroes()
 
+        # Chalk extruder startup
+        self.chalk = chalk
+        if chalk:
+            self.chalk_motor = ev3.Motor(ev3.OUTPUT_D)
+            self.chalk_sensor = ev3.TouchSensor(ev3.INPUT_4)
+
+            # Drive slowly to find the end position
+            self.chalk_motor.run_direct(duty_cycle_sp=-30)
+            self.chalk_motor.wait_until('stalled')
+            self.chalk_motor.stop()
+            self.chalk_motor.position = -10
+            self.right_motor.polarity = 'inversed'
 
     # Getters & setters for plotter properties.
     # After setting these, some calculations need to be done, that's why I define special functions

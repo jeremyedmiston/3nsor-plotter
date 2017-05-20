@@ -892,29 +892,29 @@ class RopePlotter(object):
         self.pen_motor.run_to_abs_pos(position_sp=PEN_DOWN_POS)
         self.pen_motor.wait_while('running')
         while self.chalk_sensor.is_pressed:
-            self.chalk_motor.run_direct(duty_cycle_sp=60)
+            self.chalk_motor.run_forever(speed_sp=150)
             if self.chalk_motor.position > 20552:
                 self.reload_chalk()
 
         self.chalk_motor.stop()
 
     def left_fwd(self):
-        self.left_motor.run_direct(duty_cycle_sp=50)
+        self.left_motor.run_direct(duty_cycle_sp=100)
 
     def left_stop(self):
         self.left_motor.stop()
 
     def left_back(self):
-        self.left_motor.run_direct(duty_cycle_sp=-50)
+        self.left_motor.run_direct(duty_cycle_sp=-100)
 
     def right_fwd(self):
-        self.right_motor.run_direct(duty_cycle_sp=50)
+        self.right_motor.run_direct(duty_cycle_sp=100)
 
     def right_stop(self):
         self.right_motor.stop()
 
     def right_back(self):
-        self.right_motor.run_direct(duty_cycle_sp=-50)
+        self.right_motor.run_direct(duty_cycle_sp=-100)
 
     def stop_all_motors(self):
         for motor in self.all_motors:

@@ -51,7 +51,7 @@ class RopePlotter(object):
             self.chalk_sensor = ev3.TouchSensor(ev3.INPUT_4)
 
             # Drive slowly to find the end position
-            self.chalk_motor.run_direct(duty_cycle_sp=-30)
+            self.chalk_motor.run_direct(duty_cycle_sp=-50)
             self.chalk_motor.wait_until('stalled')
             self.chalk_motor.stop()
             self.chalk_motor.position = -10

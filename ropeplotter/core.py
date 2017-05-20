@@ -10,7 +10,7 @@ import logging
 plotter_log = logging.getLogger("Plotter")
 
 PEN_UP_POS = 0
-PEN_DOWN_POS = -45
+PEN_DOWN_POS = -90
 UP = 0
 DOWN = 1
 UNCHANGED = -1

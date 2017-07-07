@@ -711,6 +711,12 @@ class RopePlotter(object):
                     pixel_location = (clamp(x_norm * w, (0, w-1)), clamp(y_norm * w, (0, h-1)))
                     if pixels[pixel_location] == 255:
                         self.pen_motor.position_sp = PEN_DOWN_POS
+
+                        while self.chalk_sensor.is_pressed:
+                            drive_motor.stop()
+                            self.chalk_motor.run_forever(speed_sp=300)
+                        self.chalk_motor.stop()
+
                         if not self.pen_motor.positionPID.target_reached:
                             drive_motor.stop()
                         else:
@@ -764,6 +770,12 @@ class RopePlotter(object):
                     pixel_location = (int(clamp(x_norm * w, (0,w-1))), int(clamp(y_norm * w, (0,h-1))))
                     if pixels[pixel_location] == 255:
                         self.pen_motor.position_sp = PEN_DOWN_POS
+
+                        while self.chalk_sensor.is_pressed: #pause to load chalk
+                            drive_motor.stop()
+                            self.chalk_motor.run_forever(speed_sp=300)
+                        self.chalk_motor.stop()
+
                         if not self.pen_motor.positionPID.target_reached:
                             drive_motor.stop()
                         else:
@@ -807,7 +819,15 @@ class RopePlotter(object):
                         x, y = self.normalized_to_global_coords(x_norm, y_norm)
                         pixel_location = (clamp(x_norm * w, (0, w-1)), clamp(y_norm * w, (0, h-1)))
                         if pixels[pixel_location] == 255:
+
                             self.pen_motor.position_sp = PEN_DOWN_POS
+
+                            while self.chalk_sensor.is_pressed: #Pause to load chalk
+                                self.right_motor.stop()
+                                self.left_motor.stop()
+                                self.chalk_motor.run_forever(speed_sp=300)
+                            self.chalk_motor.stop()
+
                             if not self.pen_motor.positionPID.target_reached:
                                 self.right_motor.stop()
                                 self.left_motor.stop()

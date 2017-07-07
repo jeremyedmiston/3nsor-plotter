@@ -891,6 +891,7 @@ class RopePlotter(object):
     def pen_down(self):
         self.pen_motor.run_to_abs_pos(position_sp=PEN_DOWN_POS)
         self.pen_motor.wait_while('running')
+        time.sleep(0.5) # Wait a bit to avoid touch sensor bounce.
         while self.chalk_sensor.is_pressed:
             self.chalk_motor.run_forever(speed_sp=150)
             if self.chalk_motor.position > 20552:

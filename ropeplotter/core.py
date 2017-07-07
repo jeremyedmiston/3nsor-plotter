@@ -14,8 +14,8 @@ PEN_DOWN_POS = -90
 UP = 0
 DOWN = 1
 UNCHANGED = -1
-SLOW = 320
-FAST = 520
+SLOW = 600 # 320
+FAST = 600 # 520
 
 class RopePlotter(object):
     def __init__(self, l_rope_0, r_rope_0, attachment_distance, cm_to_deg=-175, Kp=2.2, Ki=0.2, Kd=0.02, chalk=False):
@@ -27,7 +27,7 @@ class RopePlotter(object):
         self.direction = 1 # -1 is for reversing motors
         self.calc_constants()
         self.scanlines = 100
-        self.r_step = 0.7 #cm
+        self.r_step = 2.0 # cm
 
         # Start the engines
         self.pen_motor = PIDMotor(ev3.OUTPUT_A, Kp=2, Ki=0.1, Kd=0, brake=0.1, speed_reg=True)
@@ -822,11 +822,13 @@ class RopePlotter(object):
 
                             self.pen_motor.position_sp = PEN_DOWN_POS
 
-                            while self.chalk_sensor.is_pressed: #Pause to load chalk
+                            while self.chalk_sensor.is_pressed:
+                                # Pause to load chalk
                                 self.right_motor.stop()
                                 self.left_motor.stop()
                                 self.chalk_motor.run_forever(speed_sp=300)
                             self.chalk_motor.stop()
+                            # Resume
 
                             if not self.pen_motor.positionPID.target_reached:
                                 self.right_motor.stop()
